@@ -34,7 +34,7 @@ def get_roi_set(PATH, ROISIZE):
                 average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
                 roi_set.append(average_per_dimension)
     else:
-        roi_set: list = data.reshape((x * y, 24))
+        roi_set: list = data.reshape((x * y, z))
             
     return numpy.array(roi_set, dtype="float32"), x, y, z
 
