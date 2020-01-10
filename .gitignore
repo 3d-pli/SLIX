@@ -1,0 +1,7 @@
+OutputData/
+*/*/__pycache__
+*/.idea
+Dateien/
+Programm/.ipynb_checkpoints/
+Programm/Notebooks/.ipynb_checkpoints/
+Programm/Python/.ipynb_checkpoints/
