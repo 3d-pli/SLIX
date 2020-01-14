@@ -134,6 +134,9 @@ class ParameterEstimator():
     def gray_mask(self):
         return self.__gray_substance_mask
 
+    def crossing_mask(self):
+        return self.__crossing_substance_mask
+
     def __getRetardationPlateau(self):
         ret_hist, ret_bins = numpy.histogram(self.__retardation, bins=self.__NUMBER_OF_BINS, range=(0, 1))
         # Cut backgrund
@@ -317,17 +320,18 @@ class ParameterEstimator():
             else:
                 self.__gray_white_seperator = self.__im
             
-        transmittance_roi_mask = numpy.where(self.__corrected_transmittance >= self.__gray_white_seperator, numpy.where(self.__corrected_transmittance <= transmittancePlateauEstimation, 1, 0), 0)
+        transmittance_roi_mask = numpy.where(self.__corrected_transmittance >= self.__gray_white_seperator, numpy.where(self.__corrected_transmittance <= transmittancePlateauEstimation, 1, 0), 0).astype(np.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(transmittance_roi_mask, cmap='gray')
             plt.show()
 
         # Create gray and white matter masks
-        self.__gray_substance_mask = numpy.where((transmittance_roi_mask == 1) & (mask_gm == 1), 1, 0)
+        self.__gray_substance_mask = numpy.where((transmittance_roi_mask == 1) & (mask_gm == 1), 1, 0).astype(numpy.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(self.__gray_substance_mask, cmap='gray')
             plt.show()
-        self.__white_substance_mask = numpy.where((transmittance_roi_mask == 0) | (mask_wm == 1), numpy.where((self.__corrected_transmittance < transmittancePlateauEstimation) & (self.__corrected_transmittance > 0), 1, 0), 0)
+        self.__white_substance_mask = numpy.where((transmittance_roi_mask == 0) | (mask_wm == 1), numpy.where((self.__corrected_transmittance < transmittancePlateauEstimation) & (self.__corrected_transmittance > 0), 1, 0), 0).astype(numpy.bool)
+        self.__crossing_substance_mask = numpy.where(self.__white_substance_mask, numpy.where((self.__transmittance < self.__im) & ((self.__retardation > 0.2) & (self.__retardation < 0.4)), 1, 0), 0).astype(numpy.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(self.__white_substance_mask, cmap='gray')
             plt.show()
