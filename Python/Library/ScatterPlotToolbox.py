@@ -27,7 +27,7 @@ def read_image(FILEPATH):
         data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
     else:
         data = tifffile.imread(FILEPATH)
-        data = numpy.moveaxis(data, 0, -1)
+        data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
 
     return data
 
@@ -48,24 +48,25 @@ def zaxis_roiset(IMAGE, ROISIZE):
     x = IMAGE.shape[0]
     y = IMAGE.shape[1]
     z = IMAGE.shape[2]
-
-    # TODO: Calculate final roi_set size and use parallel for
-    roi_set = []
+    nx = numpy.ceil(x/ROISIZE).astype('int')
+    ny = numpy.ceil(y/ROISIZE).astype('int')
+    
     # Roisize == 1 is exactly the same as the original image
     if ROISIZE > 1:
-        # TODO: Find optimization for this loop
-        for i in range(0, x, ROISIZE):
-            for j in range(0, y, ROISIZE):
-                # Create average of selected ROI and append two halfs to the front and back
-                roi = IMAGE[i:i+ROISIZE, j:j+ROISIZE, :]
-                average_per_dimension = numpy.average(numpy.average(roi, axis=1), axis=0).flatten()
-                average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
-                roi_set.append(average_per_dimension)
+        roi_set = pymp.shared.array((nx * ny, 2*z), dtype='float32')
+        with pymp.Parallel(CPU_COUNT) as p:
+            for i in p.range(0, nx):
+                for j in range(0, ny):
+                    # Create average of selected ROI and append two halfs to the front and back
+                    roi = IMAGE[ROISIZE*i:ROISIZE*i+ROISIZE, ROISIZE*j:ROISIZE*j+ROISIZE, :]
+                    average_per_dimension = numpy.average(numpy.average(roi, axis=1), axis=0).flatten()
+                    average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
+                    roi_set[i*ny + j] = average_per_dimension
     else:
         # Flatten two axis together as some algorithms expect a 2D input array
         roi_set = IMAGE.reshape((x * y, z))
             
-    return numpy.array(roi_set, dtype="float32")
+    return roi_set
 
 def reshape_array_to_image(image, x, ROISIZE):
     """
@@ -103,7 +104,7 @@ def peak_array_from_roiset(roiset):
             # Only consider peaks which are in bounds
             peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
             # Filter double peak
-            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
                 peaks = peaks[1:]
             peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
     return peak_array
@@ -121,7 +122,7 @@ def non_crossing_direction_array_from_roiset(roiset):
             # Only consider peaks which are in bounds
             peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
             # Filter double peak
-            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
                 peaks = peaks[1:]
 
             amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
@@ -149,7 +150,7 @@ def crossing_direction_array_from_roiset(roiset):
             # Only consider peaks which are in bounds
             peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
             # Filter double peak
-            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
                 peaks = peaks[1:]
 
             amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
@@ -157,12 +158,23 @@ def crossing_direction_array_from_roiset(roiset):
             peaks = (peaks - z//2) * 360 / z
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                peak_array[i, :] = (270 - peaks[0])%180
+                peak_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])//2))%180
-                peak_array[i, :] = pos
+                peak_array[i] = pos
+            elif amount_of_peaks == 3:
+                if(numpy.abs((peaks[0] - peaks[2]) - 180) < 35):
+                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180
+                    peak_array[i, 1] = (270 - peaks[1])%180
+                elif(numpy.abs((peaks[1] - peaks[0]) - 180) < 35):
+                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[0])//2))%180
+                    peak_array[i, 1] = (270 - peaks[2])%180 
+                elif(numpy.abs((peaks[1] - peaks[2]) - 180) < 35):
+                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[2])//2))%180
+                    peak_array[i, 1] = (270 - peaks[0])%180
+                else:
+                    peak_array[i] = BACKGROUND_COLOR 
             elif amount_of_peaks == 4:
-                # TODO: Check crossing fibers
                 if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
                     peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])//2))%180
                 else:
@@ -170,7 +182,7 @@ def crossing_direction_array_from_roiset(roiset):
                 if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
                     peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180   
                 else:
-                    peak_array[i, 0] = BACKGROUND_COLOR     
+                    peak_array[i] = BACKGROUND_COLOR    
             else:
                 peak_array[i] = BACKGROUND_COLOR
     return peak_array
