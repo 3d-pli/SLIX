@@ -1,9 +1,15 @@
 import nibabel
 import numpy
+import multiprocessing
 import peakutils
 import tifffile
+import sys
+
+import pymp
+from pymp import shared
 
 BACKGROUND_COLOR = 0
+CPU_COUNT = multiprocessing.cpu_count()
 
 def read_image(FILEPATH):
     """
@@ -38,12 +44,12 @@ def zaxis_roiset(IMAGE, ROISIZE):
     Returns:
         numpy.array -- Image with shape [x/ROISIZE, y/ROISIZE, 2*z] containing the average value of the given roiset for each image in z-axis.
     """
-
     # Get image dimensions
     x = IMAGE.shape[0]
     y = IMAGE.shape[1]
     z = IMAGE.shape[2]
 
+    # TODO: Calculate final roi_set size and use parallel for
     roi_set = []
     # Roisize == 1 is exactly the same as the original image
     if ROISIZE > 1:
@@ -86,100 +92,112 @@ def peak_array_from_roiset(roiset):
     Returns:
         numpy.array -- 2D-Array with the amount of peaks in each pixel
     """
-    peak_array = numpy.empty(roiset.shape[0])
+    peak_array = pymp.shared.array((roiset.shape[0]), dtype='uint8')
     z = roiset.shape[1]//2
     
-    for i, roi in enumerate(roiset):
-        # Generate peaks
-        peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
-        # Only consider peaks which are in bounds
-        peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-        # Filter double peak
-        if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
-            peaks = peaks[1:]
-        peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            # Generate peaks
+            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
+            # Only consider peaks which are in bounds
+            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+            # Filter double peak
+            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+                peaks = peaks[1:]
+            peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
     return peak_array
 
 
 def non_crossing_direction_array_from_roiset(roiset):
-    peak_array = numpy.empty(roiset.shape[0])
+    peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
-    for i, roi in enumerate(roiset):
-        # Generate peaks
-        peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
-        # Only consider peaks which are in bounds
-        peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-        # Filter double peak
-        if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
-            peaks = peaks[1:]
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            # Generate peaks
+            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
+            # Only consider peaks which are in bounds
+            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+            # Filter double peak
+            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+                peaks = peaks[1:]
 
-        amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-        # Scale peaks correctly for direction
-        peaks = (peaks - z//2) * 360 / z
-        # Change behaviour based on amount of peaks (steep, crossing, ...)
-        if amount_of_peaks == 1:
-            peak_array[i] = (270 - peaks[0])%180
-        elif amount_of_peaks == 2:
-            pos = (270 - ((peaks[1]+peaks[0])//2))%180
-            peak_array[i] = pos
-        else:
-            peak_array[i] = BACKGROUND_COLOR
+            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            # Scale peaks correctly for direction
+            peaks = (peaks - z//2) * 360 / z
+            # Change behaviour based on amount of peaks (steep, crossing, ...)
+            if amount_of_peaks == 1:
+                peak_array[i] = (270 - peaks[0])%180
+            elif amount_of_peaks == 2:
+                pos = (270 - ((peaks[1]+peaks[0])//2))%180
+                peak_array[i] = pos
+            else:
+                peak_array[i] = BACKGROUND_COLOR
     return peak_array
 
 def crossing_direction_array_from_roiset(roiset):
-    peak_array = numpy.empty((roiset.shape[0], 2))
+    peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
-    for i, roi in enumerate(roiset):
-        # Generate peaks
-        peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
-        # Only consider peaks which are in bounds
-        peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-        # Filter double peak
-        if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
-            peaks = peaks[1:]
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            # Generate peaks
+            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
+            # Only consider peaks which are in bounds
+            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+            # Filter double peak
+            if numpy.all(numpy.isin(peaks, [z//2, len(roi)-z//2])):
+                peaks = peaks[1:]
 
-        amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-        # Scale peaks correctly for direction
-        peaks = (peaks - z//2) * 360 / z
-        # Change behaviour based on amount of peaks (steep, crossing, ...)
-        if amount_of_peaks == 1:
-            peak_array[i, :] = (270 - peaks[0])%180
-        elif amount_of_peaks == 2:
-            pos = (270 - ((peaks[1]+peaks[0])//2))%180
-            peak_array[i, :] = pos
-        elif amount_of_peaks == 4:
-            # TODO: Check crossing fibers
-            if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
-                peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])//2))%180
+            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            # Scale peaks correctly for direction
+            peaks = (peaks - z//2) * 360 / z
+            # Change behaviour based on amount of peaks (steep, crossing, ...)
+            if amount_of_peaks == 1:
+                peak_array[i, :] = (270 - peaks[0])%180
+            elif amount_of_peaks == 2:
+                pos = (270 - ((peaks[1]+peaks[0])//2))%180
+                peak_array[i, :] = pos
+            elif amount_of_peaks == 4:
+                # TODO: Check crossing fibers
+                if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
+                    peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])//2))%180
+                else:
+                    peak_array[i, 1] = BACKGROUND_COLOR
+                if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
+                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180   
+                else:
+                    peak_array[i, 0] = BACKGROUND_COLOR     
             else:
-                peak_array[i, 1] = BACKGROUND_COLOR
-            if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
-                peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180   
-            else:
-                peak_array[i, 0] = BACKGROUND_COLOR     
-        else:
-            peak_array[i] = BACKGROUND_COLOR
+                peak_array[i] = BACKGROUND_COLOR
     return peak_array
 
 def max_array_from_roiset(roiset):
     #TODO: I'm totally sure that that code can be optimized
-    max_array = numpy.empty(roiset.shape[0])
-    for i, roi in enumerate(roiset):
-        max_array[i] = numpy.max(roi)
+    max_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            max_array[i] = numpy.max(roi)
     return max_array
 
 def min_array_from_roiset(roiset):
     #TODO: I'm totally sure that that code can be optimized
-    min_array = numpy.empty(roiset.shape[0])
-    for i, roi in enumerate(roiset):
-        min_array[i] = numpy.min(roi)
+    min_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            min_array[i] = numpy.min(roi)
     return min_array
 
 def avg_array_from_roiset(roiset):
     #TODO: I'm totally sure that that code can be optimized
-    avg_array = numpy.empty(roiset.shape[0])
-    for i, roi in enumerate(roiset):
-        avg_array[i] = numpy.mean(roi)
+    avg_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            avg_array[i] = numpy.mean(roi)
     return avg_array
