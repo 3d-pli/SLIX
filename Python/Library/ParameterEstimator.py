@@ -320,7 +320,7 @@ class ParameterEstimator():
             else:
                 self.__gray_white_seperator = self.__im
             
-        transmittance_roi_mask = numpy.where(self.__corrected_transmittance >= self.__gray_white_seperator, numpy.where(self.__corrected_transmittance <= transmittancePlateauEstimation, 1, 0), 0).astype(np.bool)
+        transmittance_roi_mask = numpy.where(self.__corrected_transmittance >= self.__gray_white_seperator, numpy.where(self.__corrected_transmittance <= transmittancePlateauEstimation, 1, 0), 0).astype(numpy.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(transmittance_roi_mask, cmap='gray')
             plt.show()
@@ -331,7 +331,7 @@ class ParameterEstimator():
             plt.imshow(self.__gray_substance_mask, cmap='gray')
             plt.show()
         self.__white_substance_mask = numpy.where((transmittance_roi_mask == 0) | (mask_wm == 1), numpy.where((self.__corrected_transmittance < transmittancePlateauEstimation) & (self.__corrected_transmittance > 0), 1, 0), 0).astype(numpy.bool)
-        self.__crossing_substance_mask = numpy.where(self.__white_substance_mask, numpy.where((self.__transmittance < self.__im) & ((self.__retardation > 0.2) & (self.__retardation < 0.4)), 1, 0), 0).astype(numpy.bool)
+        self.__crossing_substance_mask = numpy.where(self.__white_substance_mask, numpy.where((self.__transmittance < self.__im) & ((self.__retardation > 0.05) & (self.__retardation < 0.2)), 1, 0), 0).astype(numpy.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(self.__white_substance_mask, cmap='gray')
             plt.show()

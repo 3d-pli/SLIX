@@ -4,11 +4,12 @@ import multiprocessing
 import peakutils
 import tifffile
 import sys
+from scipy.signal import peak_widths, savgol_filter
 
 import pymp
 from pymp import shared
 
-BACKGROUND_COLOR = 0
+BACKGROUND_COLOR = -1
 CPU_COUNT = multiprocessing.cpu_count()
 
 def read_image(FILEPATH):
@@ -31,7 +32,23 @@ def read_image(FILEPATH):
 
     return data
 
-def zaxis_roiset(IMAGE, ROISIZE):
+def create_background_mask(IMAGE, threshold=10):
+    """Creates a background mask based on given threshhold. As all background pixels are near zero when looking through the z-axis plot
+    this method should remove most of the background allowing better approximations using the available features. It is advised to use this function.
+    
+    Arguments:
+        IMAGE {numpy.array} -- 2D/3D-image containing the z-axis in the last dimension
+    
+    Keyword Arguments:
+        threshold {int} -- Threshhold for mask creation (default: {10})
+    
+    Returns:
+        numpy.array -- 1D/2D-image which masks the background as True and foreground as False
+    """
+    mask = numpy.all(IMAGE < threshold, axis=-1)
+    return mask
+
+def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     """
     Create z-axis profile of given image by creating a roiset image containing the average value of pixels within the specified ROISIZE. 
     The returned image will have twice the size in the z-axis as the both halfs will be doubled for the peak detection.
@@ -51,20 +68,31 @@ def zaxis_roiset(IMAGE, ROISIZE):
     nx = numpy.ceil(x/ROISIZE).astype('int')
     ny = numpy.ceil(y/ROISIZE).astype('int')
     
+    if extend:
+        roi_set = pymp.shared.array((nx * ny, 2*z), dtype='float32')
+    else:
+        roi_set = pymp.shared.array((nx * ny, z), dtype='float32')
+
     # Roisize == 1 is exactly the same as the original image
     if ROISIZE > 1:
-        roi_set = pymp.shared.array((nx * ny, 2*z), dtype='float32')
         with pymp.Parallel(CPU_COUNT) as p:
             for i in p.range(0, nx):
                 for j in range(0, ny):
                     # Create average of selected ROI and append two halfs to the front and back
                     roi = IMAGE[ROISIZE*i:ROISIZE*i+ROISIZE, ROISIZE*j:ROISIZE*j+ROISIZE, :]
                     average_per_dimension = numpy.average(numpy.average(roi, axis=1), axis=0).flatten()
-                    average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
+                    if extend:
+                        average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
                     roi_set[i*ny + j] = average_per_dimension
     else:
-        # Flatten two axis together as some algorithms expect a 2D input array
-        roi_set = IMAGE.reshape((x * y, z))
+        with pymp.Parallel(CPU_COUNT) as p:
+            for i in p.range(0, nx):
+                for j in range(0, ny):
+                    # Create average of selected ROI and append two halfs to the front and back
+                    roi = IMAGE[i, j, :]
+                    if extend:
+                        roi = numpy.concatenate((roi[-z//2:], roi, roi[:z//2]))
+                    roi_set[i*ny + j] = roi
             
     return roi_set
 
@@ -109,6 +137,34 @@ def peak_array_from_roiset(roiset):
             peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
     return peak_array
 
+def inclination_array_from_roiset(roiset):
+    #TODO: Bestimme nicht nur Peaks, sondern auch deren Breite
+    #TODO: Setze Breite und Abstand in Verhältnis zu der Inklination (vorerst zwei Bilder?)
+    
+    peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    z = roiset.shape[1]//2
+
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            filtered_roi = scipy.signal.savgol_filter(roi, 25, 12)
+            # Generate peaks
+            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=3)
+            # Only consider peaks which are in bounds
+            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+            # Filter double peak
+            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                peaks = peaks[1:]
+            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            #peaks = (peaks - z//2) * 360 / z
+
+            if amount_of_peaks > 0:
+                widths = peak_widths(filtered_roi, peaks, rel_height=0.5)
+                peak_array[i] = numpy.mean(widths[0])
+            else:
+                peak_array[i] = 0
+
+    return peak_array
 
 def non_crossing_direction_array_from_roiset(roiset):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
@@ -127,12 +183,12 @@ def non_crossing_direction_array_from_roiset(roiset):
 
             amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
             # Scale peaks correctly for direction
-            peaks = (peaks - z//2) * 360 / z
+            peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
                 peak_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
-                pos = (270 - ((peaks[1]+peaks[0])//2))%180
+                pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
                 peak_array[i] = pos
             else:
                 peak_array[i] = BACKGROUND_COLOR
@@ -155,32 +211,32 @@ def crossing_direction_array_from_roiset(roiset):
 
             amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
             # Scale peaks correctly for direction
-            peaks = (peaks - z//2) * 360 / z
+            peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
                 peak_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
-                pos = (270 - ((peaks[1]+peaks[0])//2))%180
+                pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
                 peak_array[i] = pos
             elif amount_of_peaks == 3:
                 if(numpy.abs((peaks[0] - peaks[2]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180
+                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180
                     peak_array[i, 1] = (270 - peaks[1])%180
                 elif(numpy.abs((peaks[1] - peaks[0]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[0])//2))%180
+                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
                     peak_array[i, 1] = (270 - peaks[2])%180 
                 elif(numpy.abs((peaks[1] - peaks[2]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[2])//2))%180
+                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[2])/2.0))%180
                     peak_array[i, 1] = (270 - peaks[0])%180
                 else:
                     peak_array[i] = BACKGROUND_COLOR 
             elif amount_of_peaks == 4:
                 if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
-                    peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])//2))%180
+                    peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
                 else:
                     peak_array[i, 1] = BACKGROUND_COLOR
                 if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])//2))%180   
+                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
                 else:
                     peak_array[i] = BACKGROUND_COLOR    
             else:

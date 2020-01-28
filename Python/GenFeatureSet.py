@@ -1,13 +1,19 @@
 import Library.ScatterPlotToolbox as toolbox
 import numpy
+import argparse
+import os
 
 from matplotlib import pyplot as plt
 from PIL import Image
 
-def full_pipeline(PATH, NAME, ROISIZE):
+def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK = True, MASK_THRESHOLD = 10):
     image = toolbox.read_image(PATH)
+    print(image.shape)
     path_name = NAME
     roiset = toolbox.zaxis_roiset(image, ROISIZE)
+    if APPLY_MASK:
+        mask = toolbox.create_background_mask(roiset, MASK_THRESHOLD)
+        roiset[mask, :] = 0
     print("Roi finished")
     max_array = toolbox.max_array_from_roiset(roiset)
     max_image = toolbox.reshape_array_to_image(max_array, image.shape[0], ROISIZE)
@@ -25,6 +31,10 @@ def full_pipeline(PATH, NAME, ROISIZE):
     direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
     Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name+'_non_crossing_dir.tiff')
     print("Non Crossing Direction written")
+    inclination_array = toolbox.inclination_array_from_roiset(roiset)
+    inclination_image = toolbox.reshape_array_to_image(inclination_array, image.shape[0], ROISIZE)
+    Image.fromarray(inclination_image).resize(image.shape[:2][::-1]).save(path_name+'_inc_1.tiff')
+    print("Inclination written")
     crossing_array = numpy.where(peak_array > 2, 255, 0).astype('uint8')
     crossing_image = toolbox.reshape_array_to_image(crossing_array, image.shape[0], ROISIZE)
     Image.fromarray(crossing_image).resize(image.shape[:2][::-1]).save(path_name+'_crossing.tiff')
@@ -37,16 +47,23 @@ def full_pipeline(PATH, NAME, ROISIZE):
     print("Crossing Directions written")
 
 if __name__ == '__main__':
-    PATH_1947L: str = '/home/homeGlobal/jreuter/Studium/MasterStudium/MasterArbeit/Dateien/Vervet1947L_sagittal_s0374_rv/Scattering-Stack_s0139.nii'
-    PATH_OPTIC: str = '/home/homeGlobal/jreuter/Studium/MasterStudium/MasterArbeit/Dateien/Stack_s0125.nii'
-    PATH_VER: str = '/home/homeGlobal/jreuter/Studium/MasterStudium/MasterArbeit/Dateien/90_Stack.tif'
-    PATH_RAT: str = '/home/homeGlobal/jreuter/Studium/MasterStudium/MasterArbeit/Dateien/78_Stack.tif'
-    PATH_OPTIC_NEW = '/home/homeGlobal/jreuter/Studium/MasterStudium/MasterArbeit/Dateien/158_OpticChiasm_s0036_kk_rv_crop.nii'
-    ROISIZE: int = 3
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description='Creation of feature set from scattering image.')
+    parser.add_argument('-i', '--input', help=('Input path / files.'))
+    parser.add_argument('-o', '--output', help=('Output folder'))
+    parser.add_argument('-r', '--roisize', type=int, help=('Roisize which will be used to calculate images. Default = 1'), default=1)
+    parser.add_argument('--with_mask', action='store_true')
+    parser.add_argument('--mask_threshold', type=int, default=10, help=('Value for filtering background noise when calculating masks. Lower values might retain more background noise but will also affect the brain structure less.'))
+    arguments = parser.parse_args()
+    args = vars(arguments)
     
-    paths = [PATH_1947L, PATH_OPTIC, PATH_VER, PATH_RAT, PATH_OPTIC_NEW]
-    names = ['Scattering-Stack_s0139', 'Stack_s0125', '90_Stack', '78_Stack', '158_OpticChiasm_s0036_kk_rv_crop']
+    paths = args['input']
+    if not type(paths) is list:
+        paths = [paths]
 
-    for path, name in zip(paths, names):
-        print(path, name)
-        full_pipeline(path, name, ROISIZE)
+    if not os.path.exists(args['output']):
+        os.makedirs(args['output'], exist_ok=True)
+
+    for path in paths:
+        folder = os.path.dirname(path)
+        filename_without_extension = os.path.splitext(os.path.basename(path))[0]
+        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'], args['mask_threshold'])

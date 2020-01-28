@@ -14,7 +14,7 @@ class FileReader():
                 with h5py.File(self.__file, 'r') as f:
                     # Transmittance
                     try:
-                        self.__image = f['pyramid/03'][:]
+                        self.__image = f['pyramid/02'][:]
                     except KeyError:
                         self.__image = f['Image_thumbnail_4'][:]
             elif self.__file.endswith('.tif') or self.__file.endswith('.tiff'):
