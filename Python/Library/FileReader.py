@@ -32,7 +32,7 @@ class FileReader():
             with h5py.File(self.__file, 'r') as f:
                 # Transmittance
                 try:
-                    self.__attributes = f['Image'].attrs
+                    self.__attributes = f['pyramid/02'].attrs
                 except KeyError:
                     self.__attributes = f['Image_thumbnail_4'].attrs
 

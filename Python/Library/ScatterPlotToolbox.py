@@ -111,7 +111,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'),image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
-def peak_array_from_roiset(roiset):    
+def peak_array_from_roiset(roiset, cut_edges=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -128,16 +128,19 @@ def peak_array_from_roiset(roiset):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
             # Only consider peaks which are in bounds
-            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-            # Filter double peak
-            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                peaks = peaks[1:]
-            peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            if cut_edges:
+                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+                # Filter double peak
+                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                    peaks = peaks[1:]
+                peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            else:
+                peak_array[i] = len(peaks)
     return peak_array
 
-def inclination_array_from_roiset(roiset):
+def peakwidth_array_from_roiset(roiset, cut_edges=True):
     #TODO: Bestimme nicht nur Peaks, sondern auch deren Breite
     #TODO: Setze Breite und Abstand in Verhältnis zu der Inklination (vorerst zwei Bilder?)
     
@@ -147,15 +150,18 @@ def inclination_array_from_roiset(roiset):
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            filtered_roi = scipy.signal.savgol_filter(roi, 25, 12)
+            #TODO: Check polynom order to match non-background images. 9th order should be equal to 4-5 peaks
+            filtered_roi = savgol_filter(roi, 25, 11)
             # Generate peaks
-            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=3)
-            # Only consider peaks which are in bounds
-            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-            # Filter double peak
-            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                peaks = peaks[1:]
-            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=1/16 * z)
+            if cut_edges:
+                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+                # Filter double peak
+                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                    peaks = peaks[1:]
+                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            else:
+                amount_of_peaks = len(peaks)
             #peaks = (peaks - z//2) * 360 / z
 
             if amount_of_peaks > 0:
@@ -166,7 +172,7 @@ def inclination_array_from_roiset(roiset):
 
     return peak_array
 
-def non_crossing_direction_array_from_roiset(roiset):
+def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -174,14 +180,16 @@ def non_crossing_direction_array_from_roiset(roiset):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
-            # Only consider peaks which are in bounds
-            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-            # Filter double peak
-            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                peaks = peaks[1:]
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
+            if cut_edges:
+                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+                # Filter double peak
+                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                    peaks = peaks[1:]
+                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            else:
+                amount_of_peaks = len(peaks)
 
-            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
@@ -194,7 +202,7 @@ def non_crossing_direction_array_from_roiset(roiset):
                 peak_array[i] = BACKGROUND_COLOR
     return peak_array
 
-def crossing_direction_array_from_roiset(roiset):
+def crossing_direction_array_from_roiset(roiset, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -202,14 +210,16 @@ def crossing_direction_array_from_roiset(roiset):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.3, min_dist=3)
-            # Only consider peaks which are in bounds
-            peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-            # Filter double peak
-            if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                peaks = peaks[1:]
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
+            if cut_edges:
+                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+                # Filter double peak
+                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                    peaks = peaks[1:]
+                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            else:
+                amount_of_peaks = len(peaks)
 
-            amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
