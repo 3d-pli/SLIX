@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import Library.ScatterPlotToolbox as toolbox
 import numpy
 import argparse

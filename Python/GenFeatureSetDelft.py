@@ -1,24 +1,34 @@
+#!/usr/bin/env python3
+
 import Library.ScatterPlotToolbox as toolbox
 import numpy
-import pandas
 import argparse
 import os
 from matplotlib import pyplot as plt
 from PIL import Image
 
-def full_pipeline(PATH, NAME):
+import pandas
+from scipy.signal import peak_widths, savgol_filter
+
+def full_pipeline(PATH, NAME, with_smoothing=True):
     print(PATH)
     roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')
-    roiset = numpy.concatenate((roiset, roiset, roiset))
+    if with_smoothing:
+        roiset = numpy.concatenate((roiset, roiset, roiset))
+        #df = pandas.DataFrame(data=roiset)
+        #df = df.rolling(window=15).mean()
+        #roiset_rolled = df.to_numpy()
+        roiset_rolled = savgol_filter(roiset, 45, 2)
 
-    df = pandas.DataFrame(data=roiset)
-    df = df.rolling(window=30).mean()
-    roiset_rolled = df.to_numpy()
+        z_begin = len(roiset_rolled)//3//2
+        z_end = len(roiset_rolled) - z_begin
+        roiset_rolled = roiset_rolled[z_begin:z_end]
 
-    z_begin = len(roiset_rolled)//3//2
-    z_end = len(roiset_rolled) - z_begin
-    roiset_rolled = roiset_rolled[z_begin:z_end]
-    roiset_rolled = numpy.swapaxes(roiset_rolled, 1, 0)
+        #roiset_rolled = numpy.swapaxes(roiset_rolled, 1, 0)
+        roiset_rolled = numpy.expand_dims(roiset_rolled, axis=0)
+    else:
+        roiset = numpy.concatenate((roiset[-len(roiset)//2:], roiset, roiset[:len(roiset)//2]))
+        roiset_rolled = numpy.expand_dims(roiset, axis=0)
 
     print("Roi finished")
     max_array = toolbox.max_array_from_roiset(roiset_rolled)
@@ -37,14 +47,15 @@ def full_pipeline(PATH, NAME):
     # Generate output parameters for file
     output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nNon_Crossing_Dir: ' + str(nc_direction_array)\
         + '\nPeakwidth: ' + str(peakwidth_array) + '\nCrossing_Dir: ' + str(direction_array)
-    with open(NAME+'_params.txt', 'w') as f:
+    with open(NAME+'.txt', 'w') as f:
         f.write(output)
         f.flush()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description='Creation of feature set from scattering image.')
-    parser.add_argument('-i', '--input', nargs='*', help=('Input path / files.'))
-    parser.add_argument('-o', '--output', help=('Output folder'))
+    parser.add_argument('-i', '--input', nargs='*', help=('Input path / files.'), required=True)
+    parser.add_argument('-o', '--output', help=('Output folder'), required=True)
+    parser.add_argument('--smoothing', required=False, action='store_true', default=False)
     arguments = parser.parse_args()
     args = vars(arguments)
     
@@ -58,4 +69,4 @@ if __name__ == '__main__':
     for path in paths:
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
-        full_pipeline(path, args['output'] + '/' + filename_without_extension)
+        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['smoothing'])

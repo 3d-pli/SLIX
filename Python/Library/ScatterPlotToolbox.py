@@ -4,6 +4,7 @@ import multiprocessing
 import peakutils
 import tifffile
 import sys
+from read_roi import read_roi_zip
 from scipy.signal import peak_widths, savgol_filter
 
 import pymp
@@ -47,6 +48,44 @@ def create_background_mask(IMAGE, threshold=10):
     """
     mask = numpy.all(IMAGE < threshold, axis=-1)
     return mask
+
+def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
+    rois = read_roi_zip(PATH_TO_ROISET)
+    x, y, z = IMAGE.shape[0], IMAGE.shape[1], IMAGE.shape[2]
+    
+    if extend:
+        roi_set = pymp.shared.array((len(rois.items()), 2*z), dtype='float32')
+    else:
+        roi_set = pymp.shared.array((len(rois.items()), z), dtype='float32')
+
+    roi_values = list(dict(rois.items()).values())
+    name_set = list(dict(rois.items()).keys())
+
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(1, len(rois)):
+                value = roi_values[i]
+                name = value['name']
+                width, height = value['width'], value['height']
+                roi_type = value['type']
+                left, top = value['left'], value['top']
+                center = (left + width/2, top + height/2)
+
+                if width == height and roi_type == 'oval':
+                    x_indices = numpy.arange(top, top+height+1)
+                    y_indices = numpy.arange(left, left+width+1)
+                    rectangle_indices = numpy.array(numpy.meshgrid(x_indices, y_indices)).T.reshape(-1, 2)
+                    rectangle_indices = rectangle_indices[(rectangle_indices[:, 0] - center[1])**2 + (rectangle_indices[:, 1] - center[0])**2 < width*height]
+                    
+                    roi = IMAGE[rectangle_indices[:, 0], rectangle_indices[:, 1], :]
+                    average_per_dimension = numpy.average(roi, axis=0).flatten()
+                    if extend:
+                        average_per_dimension = numpy.concatenate((average_per_dimension[-z//2:], average_per_dimension, average_per_dimension[:z//2]))
+                    name_set[i] = name
+                    roi_set[i] = average_per_dimension
+                else:
+                    continue
+
+    return roi_set[1:], name_set[1:]
 
 def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     """
@@ -128,7 +167,7 @@ def peak_array_from_roiset(roiset, cut_edges=True):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
             # Only consider peaks which are in bounds
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
@@ -153,7 +192,7 @@ def peakwidth_array_from_roiset(roiset, cut_edges=True):
             #TODO: Check polynom order to match non-background images. 9th order should be equal to 4-5 peaks
             filtered_roi = savgol_filter(roi, 25, 11)
             # Generate peaks
-            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=1/16 * z)
+            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=1/10 * z)
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -180,7 +219,7 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -192,6 +231,7 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
 
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
+            print(peaks)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
                 peak_array[i] = (270 - peaks[0])%180
@@ -210,7 +250,7 @@ def crossing_direction_array_from_roiset(roiset, cut_edges=True):
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/16 * z)
+            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
