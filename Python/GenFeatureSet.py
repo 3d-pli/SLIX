@@ -10,21 +10,21 @@ from PIL import Image
 
 def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK = True, MASK_THRESHOLD = 10):
     image = toolbox.read_image(PATH)
-    print(image.shape)
+    print(PATH)
     path_name = NAME
     roiset = toolbox.zaxis_roiset(image, ROISIZE)
     if APPLY_MASK:
         mask = toolbox.create_background_mask(roiset, MASK_THRESHOLD)
         roiset[mask, :] = 0
     print("Roi finished")
-    max_array = toolbox.max_array_from_roiset(roiset)
-    max_image = toolbox.reshape_array_to_image(max_array, image.shape[0], ROISIZE)
-    Image.fromarray(max_image).resize(image.shape[:2][::-1]).save(path_name+'_max.tiff')
-    print("Max image written")
-    min_array = toolbox.min_array_from_roiset(roiset)
-    min_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
-    Image.fromarray(min_image).resize(image.shape[:2][::-1]).save(path_name+'_min.tiff')
-    print("Min image written")
+    #max_array = toolbox.max_array_from_roiset(roiset)
+    #max_image = toolbox.reshape_array_to_image(max_array, image.shape[0], ROISIZE)
+    #Image.fromarray(max_image).resize(image.shape[:2][::-1]).save(path_name+'_max.tiff')
+    #print("Max image written")
+    #min_array = toolbox.min_array_from_roiset(roiset)
+    #min_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
+    #Image.fromarray(min_image).resize(image.shape[:2][::-1]).save(path_name+'_min.tiff')
+    #print("Min image written")
     peak_array = toolbox.peak_array_from_roiset(roiset)
     peak_image = toolbox.reshape_array_to_image(peak_array, image.shape[0], ROISIZE)
     Image.fromarray(peak_image).resize(image.shape[:2][::-1]).save(path_name+'_peaks.tiff')
@@ -50,7 +50,7 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK = True, MASK_THRESHOLD = 10):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description='Creation of feature set from scattering image.')
-    parser.add_argument('-i', '--input', help=('Input path / files.'))
+    parser.add_argument('-i', '--input', nargs='*', help=('Input path / files.'))
     parser.add_argument('-o', '--output', help=('Output folder'))
     parser.add_argument('-r', '--roisize', type=int, help=('Roisize which will be used to calculate images. Default = 1'), default=1)
     parser.add_argument('--with_mask', action='store_true')

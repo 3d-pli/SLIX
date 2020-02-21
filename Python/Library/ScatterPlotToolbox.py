@@ -5,13 +5,13 @@ import peakutils
 import tifffile
 import sys
 from read_roi import read_roi_zip
-from scipy.signal import peak_widths, savgol_filter
+from scipy.signal import peak_widths, savgol_filter, find_peaks
 
 import pymp
 from pymp import shared
 
 BACKGROUND_COLOR = -1
-CPU_COUNT = multiprocessing.cpu_count()
+CPU_COUNT = multiprocessing.cpu_count()//2
 
 def read_image(FILEPATH):
     """
@@ -162,12 +162,14 @@ def peak_array_from_roiset(roiset, cut_edges=True):
     """
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='uint8')
     z = roiset.shape[1]//2
-    
+
+    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
+            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
             # Only consider peaks which are in bounds
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
@@ -186,13 +188,13 @@ def peakwidth_array_from_roiset(roiset, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
+    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            #TODO: Check polynom order to match non-background images. 9th order should be equal to 4-5 peaks
-            filtered_roi = savgol_filter(roi, 25, 11)
             # Generate peaks
-            peaks = peakutils.indexes(filtered_roi, thres=0.2, min_dist=1/10 * z)
+            #peaks = peakutils.indexes(filtered_roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -204,7 +206,7 @@ def peakwidth_array_from_roiset(roiset, cut_edges=True):
             #peaks = (peaks - z//2) * 360 / z
 
             if amount_of_peaks > 0:
-                widths = peak_widths(filtered_roi, peaks, rel_height=0.5)
+                widths = peak_widths(roi, peaks, rel_height=0.5)
                 peak_array[i] = numpy.mean(widths[0])
             else:
                 peak_array[i] = 0
@@ -215,11 +217,13 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
+    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
+            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -231,7 +235,6 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
 
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
-            print(peaks)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
                 peak_array[i] = (270 - peaks[0])%180
@@ -246,11 +249,13 @@ def crossing_direction_array_from_roiset(roiset, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
+    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             # Generate peaks
-            peaks = peakutils.indexes(roi, thres=0.2, min_dist=1/10 * z)
+            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -319,3 +324,28 @@ def avg_array_from_roiset(roiset):
             roi = roiset[i]
             avg_array[i] = numpy.mean(roi)
     return avg_array
+
+def z_scoring_peak_estimation(y, lag=5, threshold=3.5, influence=0.5) -> numpy.ndarray:
+    print(y.shape)
+    signals = numpy.zeros(len(y))
+    filteredY = numpy.array(y)
+    avgFilter = numpy.zeros(len(y))
+    stdFilter = numpy.zeros(len(y))
+    avgFilter[lag - 1] = numpy.mean(y[:lag])
+    stdFilter[lag - 1] = numpy.std(y[:lag])
+
+    for i in range(lag, len(y)):
+        if abs(y[i] - avgFilter[i-1]) > threshold * stdFilter[i-1]:
+            if y[i] > avgFilter[i-1]:
+                signals[i] = +1
+            else:
+                signals[i] = -1
+            filteredY[i] = influence * y[i] + (1-influence) * filteredY[i-1]
+        else:
+            signals[i] = 0
+            filteredY[i] = y[i]
+        
+        avgFilter[i] = numpy.mean(filteredY[(i-lag+1):i+1])
+        stdFilter[i] = numpy.std(filteredY[(i-lag+1):i+1])
+
+    return signals

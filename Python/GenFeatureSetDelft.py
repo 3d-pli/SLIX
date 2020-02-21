@@ -15,16 +15,10 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
     roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')
     if with_smoothing:
         roiset = numpy.concatenate((roiset, roiset, roiset))
-        #df = pandas.DataFrame(data=roiset)
-        #df = df.rolling(window=15).mean()
-        #roiset_rolled = df.to_numpy()
         roiset_rolled = savgol_filter(roiset, 45, 2)
-
         z_begin = len(roiset_rolled)//3//2
         z_end = len(roiset_rolled) - z_begin
         roiset_rolled = roiset_rolled[z_begin:z_end]
-
-        #roiset_rolled = numpy.swapaxes(roiset_rolled, 1, 0)
         roiset_rolled = numpy.expand_dims(roiset_rolled, axis=0)
     else:
         roiset = numpy.concatenate((roiset[-len(roiset)//2:], roiset, roiset[:len(roiset)//2]))
