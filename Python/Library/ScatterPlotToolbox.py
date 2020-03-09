@@ -141,6 +141,21 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
     roiset_rolled = roiset_rolled[len(roiset):-len(roiset)]
     return roiset_rolled
 
+def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=True):
+    z = roi.shape[0] // 2
+    if not numpy.all(roi == 0) and roi.max() != roi.min():
+        roi = (roi - roi.min()) / (roi.max() - roi.min())
+    # Generate peaks
+    peaks, _ = find_peaks(roi, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
+    # Only consider peaks which are in bounds
+    if cut_edges:
+        peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+        # Filter double peak
+        if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+            peaks = peaks[1:]
+    return peaks
+
+
 def reshape_array_to_image(image, x, ROISIZE):
     """
     Convert array back to image keeping the lower resolution based on the ROISIZE.
@@ -153,7 +168,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     Returns:
         numpy.array -- Reshaped image based on the input array
     """
-    image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int'), 72))
+    image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
 def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):    
@@ -172,47 +187,20 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            if not numpy.all(roi == 0) and roi.max() != roi.min():
-                roi = (roi - roi.min()) / (roi.max() - roi.min())
-            # Generate peaks
-            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
-            # Only consider peaks which are in bounds
-            if cut_edges:
-                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-                # Filter double peak
-                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                    peaks = peaks[1:]
-
-                peak_arr[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-            else:
-                peak_arr[i] = len(peaks)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peak_arr[i] = len(peaks)
     return peak_arr
 
 def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
-    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            if not numpy.all(roi == 0) and roi.max() != roi.min():
-                roi = (roi - roi.min()) / (roi.max() - roi.min())
-            # Generate peaks
-            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
-            if cut_edges:
-                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-                # Filter double peak
-                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                    peaks = peaks[1:]
-                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-            else:
-                amount_of_peaks = len(peaks)
-            #peaks = (peaks - z//2) * 360 / z
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
 
-            if amount_of_peaks > 0:
+            if len(peaks) > 0:
                 widths = peak_widths(roi, peaks, rel_height=0.5)
                 peak_array[i] = numpy.mean(widths[0])
             else:
@@ -227,17 +215,7 @@ def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            if not numpy.all(roi == 0) and roi.max() != roi.min():
-                roi = (roi - roi.min()) / (roi.max() - roi.min())
-            # Generate peaks
-            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
-            # Only consider peaks which are in bounds
-            if cut_edges:
-                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-                # Filter double peak
-                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                    peaks = peaks[1:]
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
             peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
     return peak_arr
 
@@ -245,23 +223,11 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_pr
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
-    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            if not numpy.all(roi == 0) and roi.max() != roi.min():
-                roi = (roi - roi.min()) / (roi.max() - roi.min())
-            # Generate peaks
-            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
-            if cut_edges:
-                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-                # Filter double peak
-                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                    peaks = peaks[1:]
-                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-            else:
-                amount_of_peaks = len(peaks)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            amount_of_peaks = len(peaks)
 
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
@@ -279,23 +245,11 @@ def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_promin
     peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
-    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            if not numpy.all(roi == 0) and roi.max() != roi.min():
-                roi = (roi - roi.min()) / (roi.max() - roi.min())
-            # Generate peaks
-            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
-            if cut_edges:
-                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
-                # Filter double peak
-                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-                    peaks = peaks[1:]
-                amount_of_peaks = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-            else:
-                amount_of_peaks = len(peaks)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            amount_of_peaks = len(peaks)
 
             # Scale peaks correctly for direction
             peaks = (peaks - z//2) * (360.0 / z)
@@ -356,28 +310,3 @@ def avg_array_from_roiset(roiset):
             roi = roiset[i]
             avg_array[i] = numpy.mean(roi)
     return avg_array
-
-def z_scoring_peak_estimation(y, lag=5, threshold=3.5, influence=0.5) -> numpy.ndarray:
-    print(y.shape)
-    signals = numpy.zeros(len(y))
-    filteredY = numpy.array(y)
-    avgFilter = numpy.zeros(len(y))
-    stdFilter = numpy.zeros(len(y))
-    avgFilter[lag - 1] = numpy.mean(y[:lag])
-    stdFilter[lag - 1] = numpy.std(y[:lag])
-
-    for i in range(lag, len(y)):
-        if abs(y[i] - avgFilter[i-1]) > threshold * stdFilter[i-1]:
-            if y[i] > avgFilter[i-1]:
-                signals[i] = +1
-            else:
-                signals[i] = -1
-            filteredY[i] = influence * y[i] + (1-influence) * filteredY[i-1]
-        else:
-            signals[i] = 0
-            filteredY[i] = y[i]
-        
-        avgFilter[i] = numpy.mean(filteredY[(i-lag+1):i+1])
-        stdFilter[i] = numpy.std(filteredY[(i-lag+1):i+1])
-
-    return signals
