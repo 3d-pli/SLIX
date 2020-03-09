@@ -16,7 +16,7 @@ class FileReader():
                     try:
                         self.__image = f['pyramid/02'][:]
                     except KeyError:
-                        self.__image = f['Image_thumbnail_4'][:]
+                        self.__image = f['Image'][:]
             elif self.__file.endswith('.tif') or self.__file.endswith('.tiff'):
                 with Image.open(self.__file) as f:
                     self.__image = numpy.array(f)

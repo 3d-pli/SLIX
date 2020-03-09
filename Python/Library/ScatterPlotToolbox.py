@@ -5,13 +5,13 @@ import peakutils
 import tifffile
 import sys
 from read_roi import read_roi_zip
-from scipy.signal import peak_widths, savgol_filter, find_peaks
+from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominences
 
 import pymp
 from pymp import shared
 
 BACKGROUND_COLOR = -1
-CPU_COUNT = multiprocessing.cpu_count()//2
+CPU_COUNT = min(12, multiprocessing.cpu_count())
 
 def read_image(FILEPATH):
     """
@@ -135,6 +135,12 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
             
     return roi_set
 
+def smooth_roiset(roiset, range=45, polynom_order=2):
+    roiset_c = numpy.concatenate((roiset, roiset, roiset))
+    roiset_rolled = savgol_filter(roiset_c, range, polynom_order)
+    roiset_rolled = roiset_rolled[len(roiset):-len(roiset)]
+    return roiset_rolled
+
 def reshape_array_to_image(image, x, ROISIZE):
     """
     Convert array back to image keeping the lower resolution based on the ROISIZE.
@@ -147,10 +153,10 @@ def reshape_array_to_image(image, x, ROISIZE):
     Returns:
         numpy.array -- Reshaped image based on the input array
     """
-    image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'),image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
+    image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int'), 72))
     return image_reshaped
 
-def peak_array_from_roiset(roiset, cut_edges=True):    
+def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -160,31 +166,30 @@ def peak_array_from_roiset(roiset, cut_edges=True):
     Returns:
         numpy.array -- 2D-Array with the amount of peaks in each pixel
     """
-    peak_array = pymp.shared.array((roiset.shape[0]), dtype='uint8')
+    peak_arr = pymp.shared.array((roiset.shape[0]), dtype='uint8')
     z = roiset.shape[1]//2
 
-    roiset = (roiset.copy() - roiset.std())/roiset.mean()
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
+            if not numpy.all(roi == 0) and roi.max() != roi.min():
+                roi = (roi - roi.min()) / (roi.max() - roi.min())
             # Generate peaks
             #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
+            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
             # Only consider peaks which are in bounds
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
                 if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
                     peaks = peaks[1:]
-                peak_array[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
-            else:
-                peak_array[i] = len(peaks)
-    return peak_array
 
-def peakwidth_array_from_roiset(roiset, cut_edges=True):
-    #TODO: Bestimme nicht nur Peaks, sondern auch deren Breite
-    #TODO: Setze Breite und Abstand in Verhältnis zu der Inklination (vorerst zwei Bilder?)
-    
+                peak_arr[i] = len(peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)])
+            else:
+                peak_arr[i] = len(peaks)
+    return peak_arr
+
+def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
@@ -192,9 +197,11 @@ def peakwidth_array_from_roiset(roiset, cut_edges=True):
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
+            if not numpy.all(roi == 0) and roi.max() != roi.min():
+                roi = (roi - roi.min()) / (roi.max() - roi.min())
             # Generate peaks
-            #peaks = peakutils.indexes(filtered_roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
+            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -213,7 +220,28 @@ def peakwidth_array_from_roiset(roiset, cut_edges=True):
 
     return peak_array
 
-def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+    peak_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    z = roiset.shape[1]//2
+
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            if not numpy.all(roi == 0) and roi.max() != roi.min():
+                roi = (roi - roi.min()) / (roi.max() - roi.min())
+            # Generate peaks
+            #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
+            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
+            # Only consider peaks which are in bounds
+            if cut_edges:
+                peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+                # Filter double peak
+                if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
+                    peaks = peaks[1:]
+            peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
+    return peak_arr
+
+def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -221,9 +249,11 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
+            if not numpy.all(roi == 0) and roi.max() != roi.min():
+                roi = (roi - roi.min()) / (roi.max() - roi.min())
             # Generate peaks
             #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
+            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
@@ -245,7 +275,7 @@ def non_crossing_direction_array_from_roiset(roiset, cut_edges=True):
                 peak_array[i] = BACKGROUND_COLOR
     return peak_array
 
-def crossing_direction_array_from_roiset(roiset, cut_edges=True):
+def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -253,9 +283,11 @@ def crossing_direction_array_from_roiset(roiset, cut_edges=True):
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
+            if not numpy.all(roi == 0) and roi.max() != roi.min():
+                roi = (roi - roi.min()) / (roi.max() - roi.min())
             # Generate peaks
             #peaks = peakutils.indexes(roi, thres=0.5, min_dist=1/10 * z)
-            peaks, _ = find_peaks(roi, width=1, prominence=(0.125, None), distance=numpy.ceil(1.0/72.0 * z))
+            peaks, _ = find_peaks(roi, width=1, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
             if cut_edges:
                 peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
                 # Filter double peak
