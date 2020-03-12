@@ -146,8 +146,8 @@ def normalize_roi(roi):
         if roi.max() == roi.min():
             nroi = numpy.ones(roi.shape)
         else:
-            #nroi = (roi - roi.min()) / (roi.max() - roi.min())
-            nroi = roi / numpy.mean(roi)
+            nroi = (roi - roi.min()) / (roi.max() - roi.min())
+            #nroi = roi / numpy.mean(roi)
         return nroi
     else:
         return roi
@@ -174,7 +174,8 @@ def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=
 
         for i in range(maxima.shape[0]):
             peak = maxima[i]
-            distance = numpy.min(numpy.abs(minima - peak))
+            #distance = numpy.min(numpy.abs(minima - peak))
+            distance = 2
             lpos = peak - distance
             rpos = peak + distance
             centroid = numpy.sum(numpy.arange(lpos, rpos+1, 1) * roi[lpos:rpos+1]) / numpy.sum(roi[lpos:rpos+1])
@@ -200,7 +201,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
-def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):    
+def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -215,7 +216,7 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
             peak_arr[i] = len(peaks)
     return peak_arr
 
@@ -236,25 +237,25 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
 
     return peak_array"""
 
-def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
     peak_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = normalize_roi(roiset[i])
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
             peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
     return peak_arr
 
-def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
             amount_of_peaks = len(peaks)
 
             # Scale peaks correctly for direction
@@ -269,14 +270,14 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_pr
                 peak_array[i] = BACKGROUND_COLOR
     return peak_array
 
-def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
     peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
             amount_of_peaks = len(peaks)
 
             # Scale peaks correctly for direction
