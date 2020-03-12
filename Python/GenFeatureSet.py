@@ -72,7 +72,7 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     #print("Peakwidth written")
 
     ### Peakprominence
-    peakprominence_array = toolbox.peakprominence_array_from_roiset(roiset, low_prominence=0.0, centroid_calculation=APPLY_CENTROID)
+    peakprominence_array = toolbox.peakprominence_array_from_roiset(roiset, low_prominence=0.0)
     peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
     Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1]).save(path_name+'_peakprominence.tiff')
     print("Peakprominence written")

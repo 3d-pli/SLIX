@@ -20,11 +20,11 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
         z_end = len(roiset_rolled) - z_begin
         roiset_rolled = roiset_rolled[z_begin:z_end]
         roiset_rolled = numpy.expand_dims(roiset_rolled, axis=0)
+        z = z_begin
     else:
         roiset = numpy.concatenate((roiset[-len(roiset)//2:], roiset, roiset[:len(roiset)//2]))
         roiset_rolled = numpy.expand_dims(roiset, axis=0)
-
-    z = len(roiset)//4
+        z = len(roiset)//4
 
     #print("Roi finished")
     max_array = toolbox.max_array_from_roiset(roiset_rolled)
@@ -32,7 +32,7 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
     min_array = toolbox.min_array_from_roiset(roiset_rolled)
     #print("Min image finished")
     peak_array = toolbox.peak_array_from_roiset(roiset_rolled)
-    plt.plot(roiset)
+    plt.plot(roiset[z:-z+3])
     peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), low_prominence=0.1, centroid_calculation=False)
     peaks = peaks - z
     plt.plot(peaks, roiset_rolled.flatten()[z:-z+3][peaks], 'o')

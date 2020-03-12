@@ -237,14 +237,14 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
 
     return peak_array"""
 
-def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = normalize_roi(roiset[i])
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, False)
             peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
     return peak_arr
 
