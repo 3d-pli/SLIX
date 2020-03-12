@@ -141,19 +141,48 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
     roiset_rolled = roiset_rolled[len(roiset):-len(roiset)]
     return roiset_rolled
 
-def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=True):
+def normalize_roi(roi):
+    if not numpy.all(roi == 0):
+        if roi.max() == roi.min():
+            nroi = numpy.ones(roi.shape)
+        else:
+            #nroi = (roi - roi.min()) / (roi.max() - roi.min())
+            nroi = roi / numpy.mean(roi)
+        return nroi
+    else:
+        return roi
+
+def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
     z = roi.shape[0] // 2
-    if not numpy.all(roi == 0) and roi.max() != roi.min():
-        roi = (roi - roi.min()) / (roi.max() - roi.min())
+    #print(z)
+    roi = normalize_roi(roi)
     # Generate peaks
-    peaks, _ = find_peaks(roi, prominence=(low_prominence, high_prominence), distance=numpy.ceil(1.0/72.0 * z))
+    maxima, _ = find_peaks(roi, prominence=(low_prominence, high_prominence))
     # Only consider peaks which are in bounds
     if cut_edges:
-        peaks = peaks[(peaks >= z//2) & (peaks <= len(roi)-z//2)]
+        maxima = maxima[(maxima >= z//2) & (maxima <= len(roi)-z//2)]
         # Filter double peak
-        if numpy.all(numpy.isin([z//2, len(roi)-z//2], peaks)):
-            peaks = peaks[1:]
-    return peaks
+        if numpy.all(numpy.isin([z//2, len(roi)-z//2], maxima)):
+            maxima = maxima[1:]
+
+    # Correct position of maxima
+    # Reverse curve
+    if centroid_calculation:
+        reverse_roi = -1 * roi
+        minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
+        centroid_maxima = maxima.copy().astype('float32')
+
+        for i in range(maxima.shape[0]):
+            peak = maxima[i]
+            distance = numpy.min(numpy.abs(minima - peak))
+            lpos = peak - distance
+            rpos = peak + distance
+            centroid = numpy.sum(numpy.arange(lpos, rpos+1, 1) * roi[lpos:rpos+1]) / numpy.sum(roi[lpos:rpos+1])
+            centroid_maxima[i] = centroid
+
+        maxima = centroid_maxima
+
+    return maxima
 
 
 def reshape_array_to_image(image, x, ROISIZE):
@@ -182,7 +211,6 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
         numpy.array -- 2D-Array with the amount of peaks in each pixel
     """
     peak_arr = pymp.shared.array((roiset.shape[0]), dtype='uint8')
-    z = roiset.shape[1]//2
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
@@ -191,14 +219,14 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
             peak_arr[i] = len(peaks)
     return peak_arr
 
-def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+"""def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
+            peaks = numpy.array(get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges), dtype='int64')
 
             if len(peaks) > 0:
                 widths = peak_widths(roi, peaks, rel_height=0.5)
@@ -206,7 +234,7 @@ def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None
             else:
                 peak_array[i] = 0
 
-    return peak_array
+    return peak_array"""
 
 def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
     peak_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
@@ -214,7 +242,7 @@ def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
-            roi = roiset[i]
+            roi = normalize_roi(roiset[i])
             peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges)
             peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
     return peak_arr

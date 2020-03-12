@@ -8,12 +8,13 @@ import os
 from matplotlib import pyplot as plt
 from PIL import Image
 
-def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK = True, APPLY_SMOOTHING = True, MASK_THRESHOLD = 10):
+def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRESHOLD):
     image = toolbox.read_image(PATH)
     print(PATH)
     path_name = NAME
     roiset = toolbox.zaxis_roiset(image, ROISIZE)
     if APPLY_SMOOTHING:
+        print('Smoothing will be applied.')
         roiset = toolbox.smooth_roiset(roiset, 11, 2)
         #roi_image = toolbox.reshape_array_to_image(roiset[:, 36:-36], image.shape[0], ROISIZE)
         #for i in range(72):
@@ -63,12 +64,12 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK = True, APPLY_SMOOTHING = True
     print("Crossing Directions written")
 
     ### Peakwidth
-    peakwidth_array = toolbox.peakwidth_array_from_roiset(roiset, low_prominence=0.1)
-    peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
-    Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name+'_peakwidth.tiff')
-    print("Peakwidth written")
+    #peakwidth_array = toolbox.peakwidth_array_from_roiset(roiset, low_prominence=0.1)
+    #peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
+    #Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name+'_peakwidth.tiff')
+    #print("Peakwidth written")
 
-    ### Peakwidth
+    ### Peakprominence
     peakprominence_array = toolbox.peakprominence_array_from_roiset(roiset, low_prominence=0.0)
     peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
     Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1]).save(path_name+'_peakprominence.tiff')
@@ -87,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--roisize', type=int, help=('Roisize which will be used to calculate images. Default = 1'), default=1)
     parser.add_argument('--with_mask', action='store_true')
     parser.add_argument('--mask_threshold', type=int, default=10, help=('Value for filtering background noise when calculating masks. Lower values might retain more background noise but will also affect the brain structure less.'))
+    parser.add_argument('--with_smoothing', action='store_true', help=('Apply smoothing for individual roi curves for noisy images'))
     arguments = parser.parse_args()
     args = vars(arguments)
     
@@ -100,4 +102,4 @@ if __name__ == '__main__':
     for path in paths:
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
-        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'], args['mask_threshold'])
+        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'], args['with_smoothing'], args['mask_threshold'])
