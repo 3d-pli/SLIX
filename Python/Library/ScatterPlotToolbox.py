@@ -141,13 +141,28 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
     roiset_rolled = roiset_rolled[len(roiset):-len(roiset)]
     return roiset_rolled
 
-def normalize_roi(roi):
+def normalize_roi(roi, kind_of_normalizaion=0):
+    """
+    Normalize given line profile by using different normalization techniques based on the kind_of_normalization parameter
+
+    0 : Scale line profile to be between 0 and 1
+    1 : Divide line profile through it's mean value
+    
+    Arguments:
+        roi {numpy.memmap} -- Line profile of a singular pixel / region of interest
+        kind_of_normalization {int} -- Normalization technique which will be used for the calculation 
+    
+    Returns:
+        numpy.array -- Normalized line profile of the given roi parameter
+    """
     if not numpy.all(roi == 0):
         if roi.max() == roi.min():
             nroi = numpy.ones(roi.shape)
         else:
-            nroi = (roi - roi.min()) / (roi.max() - roi.min())
-            #nroi = roi / numpy.mean(roi)
+            if kind_of_normalizaion == 0:
+                nroi = (roi - roi.min()) / (roi.max() - roi.min())
+            elif kind_of_normalizaion == 1:
+                nroi = roi / numpy.mean(roi)
         return nroi
     else:
         return roi
@@ -238,18 +253,19 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
     return peak_array"""
 
 def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
-    peak_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    prominence_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
-            roi = normalize_roi(roiset[i])
-            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, False)
-            peak_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(roi, peaks)[0])
-    return peak_arr
+            peak_roi = normalize_roi(roiset[i])
+            prominence_roi = normalize_roi(roiset[i], kind_of_normalizaion=1)
+            peaks = get_peaks_from_roi(peak_roi, low_prominence, high_prominence, cut_edges, False)
+            prominence_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(prominence_roi, peaks)[0])
+    return prominence_arr
 
 def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
-    peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    dir_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
@@ -262,16 +278,16 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_pr
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                peak_array[i] = (270 - peaks[0])%180
+                dir_arr[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                peak_array[i] = pos
+                dir_arr[i] = pos
             else:
-                peak_array[i] = BACKGROUND_COLOR
-    return peak_array
+                dir_arr[i] = BACKGROUND_COLOR
+    return dir_arr
 
 def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
-    peak_array = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
+    dir_arr = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
@@ -284,37 +300,36 @@ def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_promin
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                peak_array[i] = (270 - peaks[0])%180
+                dir_arr[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                peak_array[i] = pos
+                dir_arr[i] = pos
             elif amount_of_peaks == 3:
                 if(numpy.abs((peaks[0] - peaks[2]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180
-                    peak_array[i, 1] = (270 - peaks[1])%180
+                    dir_arr[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180
+                    dir_arr[i, 1] = (270 - peaks[1])%180
                 elif(numpy.abs((peaks[1] - peaks[0]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                    peak_array[i, 1] = (270 - peaks[2])%180 
+                    dir_arr[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
+                    dir_arr[i, 1] = (270 - peaks[2])%180 
                 elif(numpy.abs((peaks[1] - peaks[2]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[1]+peaks[2])/2.0))%180
-                    peak_array[i, 1] = (270 - peaks[0])%180
+                    dir_arr[i, 0] = (270 - ((peaks[1]+peaks[2])/2.0))%180
+                    dir_arr[i, 1] = (270 - peaks[0])%180
                 else:
-                    peak_array[i] = BACKGROUND_COLOR 
+                    dir_arr[i] = BACKGROUND_COLOR 
             elif amount_of_peaks == 4:
                 if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
-                    peak_array[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
+                    dir_arr[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
                 else:
-                    peak_array[i, 1] = BACKGROUND_COLOR
+                    dir_arr[i, 1] = BACKGROUND_COLOR
                 if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
-                    peak_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
+                    dir_arr[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
                 else:
-                    peak_array[i] = BACKGROUND_COLOR    
+                    dir_arr[i] = BACKGROUND_COLOR    
             else:
-                peak_array[i] = BACKGROUND_COLOR
-    return peak_array
+                dir_arr[i] = BACKGROUND_COLOR
+    return dir_arr
 
 def max_array_from_roiset(roiset):
-    #TODO: I'm totally sure that that code can be optimized
     max_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
@@ -323,7 +338,6 @@ def max_array_from_roiset(roiset):
     return max_array
 
 def min_array_from_roiset(roiset):
-    #TODO: I'm totally sure that that code can be optimized
     min_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
@@ -332,7 +346,6 @@ def min_array_from_roiset(roiset):
     return min_array
 
 def avg_array_from_roiset(roiset):
-    #TODO: I'm totally sure that that code can be optimized
     avg_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
