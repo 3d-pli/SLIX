@@ -25,7 +25,6 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
         roiset = numpy.concatenate((roiset[-len(roiset)//2:], roiset, roiset[:len(roiset)//2]))
         roiset_rolled = numpy.expand_dims(roiset, axis=0)
         z = len(roiset)//4
-    print(z)
 
     #print("Roi finished")
     max_array = toolbox.max_array_from_roiset(roiset_rolled)
@@ -44,18 +43,12 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
     peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), low_prominence=0.1, centroid_calculation=True)
     peaks = peaks - z
     plt.plot(peaks, [roiset_rolled.flatten()[z:-z+3][int(numpy.floor(peak))] + (peak - int(peak)) * (roiset_rolled.flatten()[z:-z+3][int(numpy.ceil(peak))] - roiset_rolled.flatten()[z:-z+3][int(numpy.floor(peak))]) for peak in peaks], 'x')
-    plt.show()
+    #plt.show()
     plt.savefig(NAME+'.png', dpi=600)
     plt.close()
-    #print("Peak image finished")
-    nc_direction_array = toolbox.non_crossing_direction_array_from_roiset(roiset_rolled)
-    #print("Non Crossing Direction finished")
-    direction_array = toolbox.crossing_direction_array_from_roiset(roiset_rolled)
-    #print("Crossing Directions finished")
 
     # Generate output parameters for file
-    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nNon_Crossing_Dir: ' + str(nc_direction_array)\
-         + '\nCrossing_Dir: ' + str(direction_array)
+    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nPeak_Pos: ' + str(peaks)
     with open(NAME+'.txt', 'w') as f:
         f.write(output)
         f.flush()
