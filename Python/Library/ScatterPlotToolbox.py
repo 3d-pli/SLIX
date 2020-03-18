@@ -12,6 +12,7 @@ from pymp import shared
 
 BACKGROUND_COLOR = -1
 CPU_COUNT = min(12, multiprocessing.cpu_count())
+MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 def read_image(FILEPATH):
     """
@@ -189,11 +190,42 @@ def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=
 
         for i in range(maxima.shape[0]):
             peak = maxima[i]
-            #distance = numpy.min(numpy.abs(minima - peak))
-            distance = 2
-            lpos = peak - distance
-            rpos = peak + distance
+            target_peak_height = 0.8 * roi[maxima[i]]
+            minima_distances = peak - minima
+
+            # Check for minima in left and set left position accordingly
+            target_distances = (minima_distances <= MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances > 0)
+            if target_distances.any():
+                lpos = peak - minima_distances[target_distances].min()
+            # Look for 80% of the peak height
+            else:
+                below_target_peak_height = numpy.argwhere(roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION : peak] < target_peak_height)
+                if len(below_target_peak_height) > 0:
+                    below_target_peak_height = below_target_peak_height.max()
+                    # TODO: Create linear function to get exact target point for centroid calculation
+                    lpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
+                else:
+                    lpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+
+            # Repeat for right bound
+            target_distances = (minima_distances >= -MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances < 0)
+            if target_distances.any():
+                rpos = peak - minima_distances[target_distances].min()
+            # Look for 80% of the peak height
+            else:
+                below_target_peak_height = numpy.argwhere(roi[peak : peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] > target_peak_height)
+                if len(below_target_peak_height) > 0:
+                    below_target_peak_height = below_target_peak_height.min()
+                    # TODO: Create linear function to get exact target point for centroid calculation
+                    rpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
+                else:
+                    rpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+
+            # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
             centroid = numpy.sum(numpy.arange(lpos, rpos+1, 1) * roi[lpos:rpos+1]) / numpy.sum(roi[lpos:rpos+1])
+            #print(peak, lpos, rpos, centroid)
+            #if numpy.abs(centroid - peak) > 1:
+            #    centroid = peak + numpy.sign(centroid - peak)  
             centroid_maxima[i] = centroid
 
         maxima = centroid_maxima
