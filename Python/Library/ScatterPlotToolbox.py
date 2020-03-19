@@ -168,7 +168,7 @@ def normalize_roi(roi, kind_of_normalizaion=0):
     else:
         return roi
 
-def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):
     z = roi.shape[0] // 2
     #print(z)
     roi = normalize_roi(roi)
@@ -193,39 +193,46 @@ def get_peaks_from_roi(roi, low_prominence=0.1, high_prominence=None, cut_edges=
             target_peak_height = 0.8 * roi[maxima[i]]
             minima_distances = peak - minima
 
+            lpos = rpos = peak
+
             # Check for minima in left and set left position accordingly
             target_distances = (minima_distances <= MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances > 0)
             if target_distances.any():
                 lpos = peak - minima_distances[target_distances].min()
-            # Look for 80% of the peak height
+            # Look for 80% of the peak height    
+            below_target_peak_height = numpy.argwhere(roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION : peak] < target_peak_height)
+            if len(below_target_peak_height) > 0:
+                below_target_peak_height = below_target_peak_height.max()
+                # TODO: Create linear function to get exact target point for centroid calculation
+                tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
+                if tlpos < lpos:
+                    lpos = tlpos
             else:
-                below_target_peak_height = numpy.argwhere(roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION : peak] < target_peak_height)
-                if len(below_target_peak_height) > 0:
-                    below_target_peak_height = below_target_peak_height.max()
-                    # TODO: Create linear function to get exact target point for centroid calculation
-                    lpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
-                else:
-                    lpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+                tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+                if tlpos < lpos:
+                    lpos = tlpos
 
             # Repeat for right bound
             target_distances = (minima_distances >= -MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances < 0)
             if target_distances.any():
                 rpos = peak - minima_distances[target_distances].min()
             # Look for 80% of the peak height
+            below_target_peak_height = numpy.argwhere(roi[peak : peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] < target_peak_height)
+            if len(below_target_peak_height) > 0:
+                below_target_peak_height = below_target_peak_height.min()
+                # TODO: Create linear function to get exact target point for centroid calculation
+                trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
+                if trpos > rpos:
+                    rpos = trpos
             else:
-                below_target_peak_height = numpy.argwhere(roi[peak : peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] > target_peak_height)
-                if len(below_target_peak_height) > 0:
-                    below_target_peak_height = below_target_peak_height.min()
-                    # TODO: Create linear function to get exact target point for centroid calculation
-                    rpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
-                else:
-                    rpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+                trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+                if trpos > rpos:
+                    rpos = trpos
 
             # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
             centroid = numpy.sum(numpy.arange(lpos, rpos+1, 1) * roi[lpos:rpos+1]) / numpy.sum(roi[lpos:rpos+1])
-            #print(peak, lpos, rpos, centroid)
-            #if numpy.abs(centroid - peak) > 1:
-            #    centroid = peak + numpy.sign(centroid - peak)  
+            if numpy.abs(centroid - peak) > 1:
+                centroid = peak + numpy.sign(centroid - peak)  
             centroid_maxima[i] = centroid
 
         maxima = centroid_maxima
@@ -248,7 +255,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
-def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):    
+def peak_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -284,7 +291,7 @@ def peak_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut
 
     return peak_array"""
 
-def peakprominence_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True):
     prominence_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
@@ -318,7 +325,7 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_pr
                 dir_arr[i] = BACKGROUND_COLOR
     return dir_arr
 
-def crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def crossing_direction_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):
     dir_arr = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     

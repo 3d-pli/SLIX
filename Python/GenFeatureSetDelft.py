@@ -37,16 +37,17 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
         plt.plot(roiset_rolled.flatten()[z:-z+3])
     else:
         plt.plot(roiset[z:-z+3])
-    peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), low_prominence=0.1, centroid_calculation=False)
+    peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), centroid_calculation=False)
     peaks = peaks - z
     plt.plot(peaks, roiset_rolled.flatten()[z:-z+3][peaks], 'o')
-    peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), low_prominence=0.1, centroid_calculation=True)
+    peaks = toolbox.get_peaks_from_roi(roiset_rolled.flatten(), centroid_calculation=True)
     peaks = peaks - z
     plt.plot(peaks, [roiset_rolled.flatten()[z:-z+3][int(numpy.floor(peak))] + (peak - int(peak)) * (roiset_rolled.flatten()[z:-z+3][int(numpy.ceil(peak))] - roiset_rolled.flatten()[z:-z+3][int(numpy.floor(peak))]) for peak in peaks], 'x')
-    #plt.show()
     plt.savefig(NAME+'.png', dpi=600)
     plt.close()
-
+    # Convert peak calculation to angle for comparison with delft data
+    peaks = 180 / z * peaks 
+    
     # Generate output parameters for file
     output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nPeak_Pos: ' + str(peaks)
     with open(NAME+'.txt', 'w') as f:
