@@ -170,7 +170,7 @@ def normalize_roi(roi, kind_of_normalizaion=0):
 
 def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):
     z = roi.shape[0] // 2
-    #print(z)
+
     roi = normalize_roi(roi)
     # Generate peaks
     maxima, _ = find_peaks(roi, prominence=(low_prominence, high_prominence))

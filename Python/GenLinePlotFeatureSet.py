@@ -46,7 +46,7 @@ def full_pipeline(PATH, NAME, with_smoothing=True):
     plt.savefig(NAME+'.png', dpi=600)
     plt.close()
     # Convert peak calculation to angle for comparison with delft data
-    peaks = 180 / z * peaks 
+    peaks = peaks * 180.0 / z
     
     # Generate output parameters for file
     output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nPeak_Pos: ' + str(peaks)
