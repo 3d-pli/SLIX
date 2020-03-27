@@ -8,7 +8,7 @@ import os
 from matplotlib import pyplot as plt
 from PIL import Image
 
-PROMINENCE=0.1
+PROMINENCE=0.08
 
 def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHING, MASK_THRESHOLD):
     image = toolbox.read_image(PATH)

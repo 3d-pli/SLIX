@@ -1,7 +1,6 @@
 import nibabel
 import numpy
 import multiprocessing
-import peakutils
 import tifffile
 import sys
 from read_roi import read_roi_zip
@@ -10,9 +9,14 @@ from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominence
 import pymp
 from pymp import shared
 
+from matplotlib import pyplot as plt
+
 BACKGROUND_COLOR = -1
 CPU_COUNT = min(12, multiprocessing.cpu_count())
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
+
+NUMBER_OF_SAMPLES = 100
+TARGET_PEAK_HEIGHT = 0.90
 
 def read_image(FILEPATH):
     """
@@ -168,7 +172,7 @@ def normalize_roi(roi, kind_of_normalizaion=0):
     else:
         return roi
 
-def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def get_peaks_from_roi(roi, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
     z = roi.shape[0] // 2
 
     roi = normalize_roi(roi)
@@ -181,8 +185,6 @@ def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges
         if numpy.all(numpy.isin([z//2, len(roi)-z//2], maxima)):
             maxima = maxima[1:]
 
-    # Correct position of maxima
-    # Reverse curve
     if centroid_calculation:
         reverse_roi = -1 * roi
         minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
@@ -190,7 +192,7 @@ def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges
 
         for i in range(maxima.shape[0]):
             peak = maxima[i]
-            target_peak_height = 0.8 * roi[maxima[i]]
+            target_peak_height = TARGET_PEAK_HEIGHT * roi[maxima[i]]
             minima_distances = peak - minima
 
             lpos = rpos = peak
@@ -203,7 +205,6 @@ def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges
             below_target_peak_height = numpy.argwhere(roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION : peak] < target_peak_height)
             if len(below_target_peak_height) > 0:
                 below_target_peak_height = below_target_peak_height.max()
-                # TODO: Create linear function to get exact target point for centroid calculation
                 tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
                 if tlpos < lpos:
                     lpos = tlpos
@@ -220,7 +221,6 @@ def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges
             below_target_peak_height = numpy.argwhere(roi[peak : peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] < target_peak_height)
             if len(below_target_peak_height) > 0:
                 below_target_peak_height = below_target_peak_height.min()
-                # TODO: Create linear function to get exact target point for centroid calculation
                 trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
                 if trpos > rpos:
                     rpos = trpos
@@ -229,8 +229,32 @@ def get_peaks_from_roi(roi, low_prominence=0.05, high_prominence=None, cut_edges
                 if trpos > rpos:
                     rpos = trpos
 
+            # Create sampling to get exact 80% of peak height
+            def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
+                sampling = numpy.empty(number_of_samples * (right - left + 2))
+                for i in range(left-1, right+1):
+                    for j in range(number_of_samples):
+                        sampling[(i - (left-1)) * number_of_samples + j] = roi[i] + (roi[i+1] - roi[i]) * j/number_of_samples   
+
+                if roi[left] > target_peak_height:
+                    left_bound = 0
+                else:
+                    left_bound = numpy.argwhere(sampling[:(peak-left+1) * number_of_samples] < target_peak_height).max()
+                if roi[right] > target_peak_height:
+                    right_bound = len(sampling)
+                else:
+                    right_bound = (peak-left+1) * number_of_samples + numpy.argwhere(sampling[(peak-left+1) * number_of_samples:] < target_peak_height).min()
+
+                #sampling[left_bound:right_bound] = sampling[left_bound]
+
+                return sampling, left_bound, right_bound
+
+            sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
+            int_lpos = (lpos-1) + 1/NUMBER_OF_SAMPLES * lbound
+            int_rpos = (lpos-1) + 1/NUMBER_OF_SAMPLES * rbound
+
             # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
-            centroid = numpy.sum(numpy.arange(lpos, rpos+1, 1) * roi[lpos:rpos+1]) / numpy.sum(roi[lpos:rpos+1])
+            centroid = numpy.sum(numpy.linspace(int_lpos, int_rpos+1e-10, len(sampling[lbound:rbound])) * sampling[lbound:rbound]) / numpy.sum(sampling[lbound:rbound])
             if numpy.abs(centroid - peak) > 1:
                 centroid = peak + numpy.sign(centroid - peak)  
             centroid_maxima[i] = centroid
@@ -255,7 +279,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
-def peak_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):    
+def peak_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -291,7 +315,7 @@ def peak_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cu
 
     return peak_array"""
 
-def peakprominence_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True):
     prominence_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
@@ -303,7 +327,7 @@ def peakprominence_array_from_roiset(roiset, low_prominence=0.05, high_prominenc
             prominence_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(prominence_roi, peaks)[0])
     return prominence_arr
 
-def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
     dir_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -325,7 +349,7 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.1, high_pr
                 dir_arr[i] = BACKGROUND_COLOR
     return dir_arr
 
-def crossing_direction_array_from_roiset(roiset, low_prominence=0.05, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
     dir_arr = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
     z = roiset.shape[1]//2
     
