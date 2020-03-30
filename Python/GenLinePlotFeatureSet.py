@@ -6,8 +6,6 @@ import argparse
 import os
 from matplotlib import pyplot as plt
 from PIL import Image
-
-import pandas
 from scipy.signal import peak_widths, savgol_filter
 
 def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
@@ -59,6 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', help=('Output folder'), required=True)
     parser.add_argument('--smoothing', required=False, action='store_true', default=False)
     parser.add_argument('--with_plots', action='store_true')
+    parser.add_argument('--target_peak_height', type=float, required=False, help=('EXPERIENCED USERS ONLY: Replaces target peak height for peak evaluation.'), default=0.90)
     arguments = parser.parse_args()
     args = vars(arguments)
     
@@ -69,7 +68,9 @@ if __name__ == '__main__':
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
-    for path in paths:
-        folder = os.path.dirname(path)
-        filename_without_extension = os.path.splitext(os.path.basename(path))[0]
-        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['smoothing'], args['with_plots'])
+    toolbox.TARGET_PEAK_HEIGHT = args['target_peak_height']
+
+    for i in range(len(paths)):
+        folder = os.path.dirname(paths[i])
+        filename_without_extension = os.path.splitext(os.path.basename(paths[i]))[0]
+        full_pipeline(paths[i], args['output'] + '/' + filename_without_extension, args['smoothing'], args['with_plots'])

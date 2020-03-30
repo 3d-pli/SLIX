@@ -7,6 +7,7 @@ from read_roi import read_roi_zip
 from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominences
 
 import pymp
+pymp.config.nested = True
 from pymp import shared
 
 from matplotlib import pyplot as plt
@@ -16,7 +17,7 @@ CPU_COUNT = min(12, multiprocessing.cpu_count())
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 NUMBER_OF_SAMPLES = 100
-TARGET_PEAK_HEIGHT = 0.90
+TARGET_PEAK_HEIGHT = 0.94
 
 def read_image(FILEPATH):
     """
@@ -192,7 +193,7 @@ def get_peaks_from_roi(roi, low_prominence=0.08, high_prominence=None, cut_edges
 
         for i in range(maxima.shape[0]):
             peak = maxima[i]
-            target_peak_height = TARGET_PEAK_HEIGHT * roi[maxima[i]]
+            target_peak_height = roi[maxima[i]] - roi[maxima].max() * (1 - TARGET_PEAK_HEIGHT)
             minima_distances = peak - minima
 
             lpos = rpos = peak
