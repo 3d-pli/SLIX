@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', help=('Output folder'), required=True)
     parser.add_argument('--smoothing', required=False, action='store_true', default=False)
     parser.add_argument('--with_plots', action='store_true')
-    parser.add_argument('--target_peak_height', type=float, required=False, help=('EXPERIENCED USERS ONLY: Replaces target peak height for peak evaluation.'), default=0.90)
+    parser.add_argument('--target_peak_height', type=float, required=False, help=('EXPERIENCED USERS ONLY: Replaces target peak height for peak evaluation.'), default=toolbox.TARGET_PEAK_HEIGHT)
     arguments = parser.parse_args()
     args = vars(arguments)
     
