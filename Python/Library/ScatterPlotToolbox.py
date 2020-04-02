@@ -13,7 +13,7 @@ from pymp import shared
 from matplotlib import pyplot as plt
 
 BACKGROUND_COLOR = -1
-CPU_COUNT = min(12, multiprocessing.cpu_count())
+CPU_COUNT = 16
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 NUMBER_OF_SAMPLES = 100
@@ -179,6 +179,7 @@ def get_peaks_from_roi(roi, low_prominence=0.08, high_prominence=None, cut_edges
     roi = normalize_roi(roi)
     # Generate peaks
     maxima, _ = find_peaks(roi, prominence=(low_prominence, high_prominence))
+
     # Only consider peaks which are in bounds
     if cut_edges:
         maxima = maxima[(maxima >= z//2) & (maxima <= len(roi)-z//2)]
@@ -232,22 +233,28 @@ def get_peaks_from_roi(roi, low_prominence=0.08, high_prominence=None, cut_edges
 
             # Create sampling to get exact 80% of peak height
             def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
-                sampling = numpy.empty(number_of_samples * (right - left + 2))
-                for i in range(left-1, right+1):
-                    for j in range(number_of_samples):
-                        sampling[(i - (left-1)) * number_of_samples + j] = roi[i] + (roi[i+1] - roi[i]) * j/number_of_samples   
-
+                sampling = numpy.interp(numpy.linspace(left-1, right+1, (right-left + 2)*100), numpy.arange(left-1, right+1), roi[left-1:right+1])
                 if roi[left] > target_peak_height:
-                    left_bound = 0
+                    left_bound = number_of_samples
                 else:
-                    left_bound = numpy.argwhere(sampling[:(peak-left+1) * number_of_samples] < target_peak_height).max()
+                    try:
+                        choices = numpy.argwhere(sampling[:(peak-left+1) * number_of_samples] < target_peak_height)
+                        if len(choices) > 0:
+                            left_bound = choices.max()
+                        else:
+                            left_bound = number_of_samples
+                    except ValueError:
+                        print(roi[left], target_peak_height)
+                        exit(0)
                 if roi[right] > target_peak_height:
-                    right_bound = len(sampling)
+                    right_bound = len(sampling)-number_of_samples
                 else:
-                    right_bound = (peak-left+1) * number_of_samples + numpy.argwhere(sampling[(peak-left+1) * number_of_samples:] < target_peak_height).min()
-
-                #sampling[left_bound:right_bound] = sampling[left_bound]
-
+                    choices = numpy.argwhere(sampling[(peak-left+1) * number_of_samples:] < target_peak_height)
+                    if len(choices) > 0:
+                        right_bound = (peak-left+1) * number_of_samples + choices.min()
+                    else:
+                        right_bound = len(sampling)-number_of_samples
+        
                 return sampling, left_bound, right_bound
 
             sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
@@ -329,7 +336,7 @@ def peakprominence_array_from_roiset(roiset, low_prominence=0.08, high_prominenc
     return prominence_arr
 
 def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
-    dir_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    dir_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
@@ -342,16 +349,16 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_p
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                dir_arr[i] = (270 - peaks[0])%180
+                dir_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                dir_arr[i] = pos
+                dir_array[i] = pos
             else:
-                dir_arr[i] = BACKGROUND_COLOR
-    return dir_arr
+                dir_array[i] = BACKGROUND_COLOR
+    return dir_array
 
 def crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
-    dir_arr = pymp.shared.array((roiset.shape[0], 2), dtype='float32')
+    dir_array = pymp.shared.array((roiset.shape[0], 3), dtype='float32')
     z = roiset.shape[1]//2
     
     with pymp.Parallel(CPU_COUNT) as p:
@@ -364,34 +371,48 @@ def crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_promi
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                dir_arr[i] = (270 - peaks[0])%180
+                dir_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                dir_arr[i] = pos
-            elif amount_of_peaks == 3:
-                if(numpy.abs((peaks[0] - peaks[2]) - 180) < 35):
-                    dir_arr[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180
-                    dir_arr[i, 1] = (270 - peaks[1])%180
-                elif(numpy.abs((peaks[1] - peaks[0]) - 180) < 35):
-                    dir_arr[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                    dir_arr[i, 1] = (270 - peaks[2])%180 
-                elif(numpy.abs((peaks[1] - peaks[2]) - 180) < 35):
-                    dir_arr[i, 0] = (270 - ((peaks[1]+peaks[2])/2.0))%180
-                    dir_arr[i, 1] = (270 - peaks[0])%180
-                else:
-                    dir_arr[i] = BACKGROUND_COLOR 
+                dir_array[i] = pos
+            #elif amount_of_peaks == 3:
+            #    if(numpy.abs((peaks[0] - peaks[2]) - 180) < 35):
+            #        dir_arr[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180
+            #        dir_arr[i, 1] = (270 - peaks[1])%180
+            #    elif(numpy.abs((peaks[1] - peaks[0]) - 180) < 35):
+            #        dir_arr[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
+            #        dir_arr[i, 1] = (270 - peaks[2])%180 
+            #    elif(numpy.abs((peaks[1] - peaks[2]) - 180) < 35):
+            #        dir_arr[i, 0] = (270 - ((peaks[1]+peaks[2])/2.0))%180
+            #        dir_arr[i, 1] = (270 - peaks[0])%180
+            #    else:
+            #        dir_arr[i] = BACKGROUND_COLOR
             elif amount_of_peaks == 4:
                 if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
-                    dir_arr[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
+                    dir_array[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
                 else:
-                    dir_arr[i, 1] = BACKGROUND_COLOR
+                    dir_array[i, 1] = BACKGROUND_COLOR
                 if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
-                    dir_arr[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
+                    dir_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
                 else:
-                    dir_arr[i] = BACKGROUND_COLOR    
+                    dir_array[i] = BACKGROUND_COLOR    
+            elif amount_of_peaks == 6:
+                if(numpy.abs((peaks[3] - peaks[0]) - 180) < 35):
+                    dir_array[i, 0] = (270 - ((peaks[3]+peaks[0])/2.0))%180   
+                else:
+                    dir_array[i, 0] = BACKGROUND_COLOR 
+                if(numpy.abs((peaks[4] - peaks[1]) - 180) < 35):
+                    dir_array[i, 1] = (270 - ((peaks[4]+peaks[1])/2.0))%180
+                else:
+                    dir_array[i, 1] = BACKGROUND_COLOR
+                if(numpy.abs((peaks[5] - peaks[2]) - 180) < 35):
+                    dir_array[i, 2] = (270 - ((peaks[5]+peaks[2])/2.0))%180
+                else:
+                    dir_array[i, 2] = BACKGROUND_COLOR
             else:
-                dir_arr[i] = BACKGROUND_COLOR
-    return dir_arr
+                dir_array[i] = BACKGROUND_COLOR
+
+    return dir_array
 
 def max_array_from_roiset(roiset):
     max_array = pymp.shared.array((roiset.shape[0]), dtype='float32')

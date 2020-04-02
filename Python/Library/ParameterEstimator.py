@@ -336,6 +336,7 @@ class ParameterEstimator():
             plt.imshow(self.__white_substance_mask, cmap='gray')
             plt.show()
 
+        print(self.__gray_white_seperator)
         del mask_gm
         del mask_wm
         del transmittance_roi_mask

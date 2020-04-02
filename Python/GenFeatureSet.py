@@ -40,13 +40,13 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     print("Min image written")
 
     ### Low Prominence
-    low_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=None, high_prominence=PROMINENCE, centroid_calculation=APPLY_CENTROID)
+    low_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=None, high_prominence=PROMINENCE, centroid_calculation=False)
     low_peak_image = toolbox.reshape_array_to_image(low_prominence_array, image.shape[0], ROISIZE)
     Image.fromarray(low_peak_image).resize(image.shape[:2][::-1]).save(path_name+'_low_prominence_peaks.tiff')
     print('Low Peaks Written')
 
     ### High Prominence
-    high_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=APPLY_CENTROID)
+    high_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=False)
     high_peak_image = toolbox.reshape_array_to_image(high_prominence_array, image.shape[0], ROISIZE)
     Image.fromarray(high_peak_image).resize(image.shape[:2][::-1]).save(path_name+'_high_prominence_peaks.tiff')
     print('High Peaks Written')
@@ -61,8 +61,10 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     direction_array = toolbox.crossing_direction_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=APPLY_CENTROID)
     dir_1 = toolbox.reshape_array_to_image(direction_array[:, 0], image.shape[0], ROISIZE)
     dir_2 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
+    dir_3 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
     Image.fromarray(dir_1).resize(image.shape[:2][::-1]).save(path_name+'_dir_1.tiff')
     Image.fromarray(dir_2).resize(image.shape[:2][::-1]).save(path_name+'_dir_2.tiff')
+    Image.fromarray(dir_3).resize(image.shape[:2][::-1]).save(path_name+'_dir_3.tiff')
     print("Crossing Directions written")
 
     ### Peakwidth
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--with_mask', action='store_true')
     parser.add_argument('--mask_threshold', type=int, default=10, help=('Value for filtering background noise when calculating masks. Lower values might retain more background noise but will also affect the brain structure less.'))
     parser.add_argument('--with_smoothing', action='store_true', help=('Apply smoothing for individual roi curves for noisy images'))
-    parser.add_argument('-c', '--with_centroid_calculation', action='store_true')
+    parser.add_argument('-c', '--no_centroid_calculation', action='store_false', help=('Disable centroid calculation. Not recommended!'))
     arguments = parser.parse_args()
     args = vars(arguments)
     
@@ -105,4 +107,4 @@ if __name__ == '__main__':
     for path in paths:
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
-        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'], args['with_centroid_calculation'], args['with_smoothing'], args['mask_threshold'])
+        full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'], args['no_centroid_calculation'], args['with_smoothing'], args['mask_threshold'])
