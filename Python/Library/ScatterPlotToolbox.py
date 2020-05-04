@@ -13,11 +13,12 @@ from pymp import shared
 from matplotlib import pyplot as plt
 
 BACKGROUND_COLOR = -1
-CPU_COUNT = 16
+CPU_COUNT = min(16, multiprocessing.cpu_count())
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
+TARGET_PROMINENCE = 0.08
 
 def read_image(FILEPATH):
     """
@@ -52,7 +53,7 @@ def create_background_mask(IMAGE, threshold=10):
     Returns:
         numpy.array -- 1D/2D-image which masks the background as True and foreground as False
     """
-    mask = numpy.all(IMAGE < threshold, axis=-1)
+    mask = numpy.max(IMAGE < threshold, axis=-1)
     return mask
 
 def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
@@ -173,7 +174,7 @@ def normalize_roi(roi, kind_of_normalizaion=0):
     else:
         return roi
 
-def get_peaks_from_roi(roi, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def get_peaks_from_roi(roi, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True, centroid_calculation=True):
     z = roi.shape[0] // 2
 
     roi = normalize_roi(roi)
@@ -287,7 +288,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape((numpy.ceil(x/ROISIZE).astype('int'), image.shape[0]//numpy.ceil(x/ROISIZE).astype('int')))
     return image_reshaped
 
-def peak_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):    
+def peak_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True, centroid_calculation=True):    
     """
     Generate array visualizing the number of peaks present in each pixel of a given roiset.
     
@@ -306,24 +307,23 @@ def peak_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cu
             peak_arr[i] = len(peaks)
     return peak_arr
 
-"""def peakwidth_array_from_roiset(roiset, low_prominence=0.1, high_prominence=None, cut_edges=True):
-    peak_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+def peakwidth_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+    peakwidth_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
-
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
-            peaks = numpy.array(get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges), dtype='int64')
-
+            peaks = numpy.array(get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation=False), dtype='int64')
             if len(peaks) > 0:
                 widths = peak_widths(roi, peaks, rel_height=0.5)
-                peak_array[i] = numpy.mean(widths[0])
+                peakwidth_array[i] = numpy.mean(widths[0])
             else:
-                peak_array[i] = 0
+                peakwidth_array[i] = 0
+            peakwidth_array[i] = (peakwidth_array[i]) * (360.0 / z)
+    return peakwidth_array
 
-    return peak_array"""
 
-def peakprominence_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True):
+def peakprominence_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     prominence_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
 
@@ -335,7 +335,7 @@ def peakprominence_array_from_roiset(roiset, low_prominence=0.08, high_prominenc
             prominence_arr[i] = 0 if len(peaks) == 0 else numpy.mean(peak_prominences(prominence_roi, peaks)[0])
     return prominence_arr
 
-def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def non_crossing_direction_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True, centroid_calculation=True):
     dir_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
     z = roiset.shape[1]//2
     
@@ -357,7 +357,7 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_p
                 dir_array[i] = BACKGROUND_COLOR
     return dir_array
 
-def crossing_direction_array_from_roiset(roiset, low_prominence=0.08, high_prominence=None, cut_edges=True, centroid_calculation=True):
+def crossing_direction_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True, centroid_calculation=True):
     dir_array = pymp.shared.array((roiset.shape[0], 3), dtype='float32')
     z = roiset.shape[1]//2
     

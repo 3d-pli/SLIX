@@ -8,7 +8,6 @@ import gc
 import getpass
 from PIL import Image
 from tqdm import tqdm
-#from ArgumentParser import ArgumentParser
 from matplotlib import pyplot as plt
 
 import scipy

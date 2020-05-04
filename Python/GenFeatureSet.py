@@ -8,8 +8,6 @@ import os
 from matplotlib import pyplot as plt
 from PIL import Image
 
-PROMINENCE=0.08
-
 def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHING, MASK_THRESHOLD):
     image = toolbox.read_image(PATH)
     print(PATH)
@@ -40,25 +38,25 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     print("Min image written")
 
     ### Low Prominence
-    low_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=None, high_prominence=PROMINENCE, centroid_calculation=False)
+    low_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=None, high_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=False)
     low_peak_image = toolbox.reshape_array_to_image(low_prominence_array, image.shape[0], ROISIZE)
     Image.fromarray(low_peak_image).resize(image.shape[:2][::-1]).save(path_name+'_low_prominence_peaks.tiff')
     print('Low Peaks Written')
 
     ### High Prominence
-    high_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=False)
+    high_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=False)
     high_peak_image = toolbox.reshape_array_to_image(high_prominence_array, image.shape[0], ROISIZE)
     Image.fromarray(high_peak_image).resize(image.shape[:2][::-1]).save(path_name+'_high_prominence_peaks.tiff')
     print('High Peaks Written')
 
     ### Direction Non Crossing
-    direction_array = toolbox.non_crossing_direction_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=APPLY_CENTROID)
+    direction_array = toolbox.non_crossing_direction_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=APPLY_CENTROID)
     direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
     Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name+'_non_crossing_dir.tiff')
     print("Non Crossing Direction written")
 
     ### Direction Crossing
-    direction_array = toolbox.crossing_direction_array_from_roiset(roiset, low_prominence=PROMINENCE, centroid_calculation=APPLY_CENTROID)
+    direction_array = toolbox.crossing_direction_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=APPLY_CENTROID)
     dir_1 = toolbox.reshape_array_to_image(direction_array[:, 0], image.shape[0], ROISIZE)
     dir_2 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
     dir_3 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
@@ -68,10 +66,10 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     print("Crossing Directions written")
 
     ### Peakwidth
-    #peakwidth_array = toolbox.peakwidth_array_from_roiset(roiset, low_prominence=0.1)
-    #peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
-    #Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name+'_peakwidth.tiff')
-    #print("Peakwidth written")
+    peakwidth_array = toolbox.peakwidth_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE)
+    peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
+    Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name+'_peakwidth.tiff')
+    print("Peakwidth written")
 
     ### Peakprominence
     peakprominence_array = toolbox.peakprominence_array_from_roiset(roiset, low_prominence=0.0)
