@@ -85,12 +85,12 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, description='Creation of feature set from scattering image.')
-    parser.add_argument('-i', '--input', nargs='*', help=('Input path / files.'))
-    parser.add_argument('-o', '--output', help=('Output folder'))
-    parser.add_argument('-r', '--roisize', type=int, help=('Roisize which will be used to calculate images. Default = 1'), default=1)
-    parser.add_argument('--with_mask', action='store_true')
-    parser.add_argument('--mask_threshold', type=int, default=10, help=('Value for filtering background noise when calculating masks. Lower values might retain more background noise but will also affect the brain structure less.'))
-    parser.add_argument('--with_smoothing', action='store_true', help=('Apply smoothing for individual roi curves for noisy images'))
+    parser.add_argument('-i', '--input', nargs='*', help=('Input files (.nii or .tiff/.tif).'), required=True)
+    parser.add_argument('-o', '--output', help=('Output folder where images will be saved to'), required=True)
+    parser.add_argument('-r', '--roisize', type=int, help=('Roisize which will be used to calculate images. This effectively equals downsampling and will speed up the calculation. Images will be upscaled later to retain the same size as the input images. Default = 1'), default=1)
+    parser.add_argument('--with_mask', action='store_true', help=('Use mask to try to remove some of the background'))
+    parser.add_argument('--mask_threshold', type=int, default=10, help=('Value for filtering background noise when calculating masks. Higher values might result in the removal of some of the gray matter in the mask but will remove the background more effectively.'))
+    parser.add_argument('--with_smoothing', action='store_true', help=('Apply smoothing for individual roi curves for noisy images. Recommended for measurements with less than 5 degree between each image.'))
     parser.add_argument('-c', '--no_centroid_calculation', action='store_false', help=('Disable centroid calculation. Not recommended!'))
     arguments = parser.parse_args()
     args = vars(arguments)
