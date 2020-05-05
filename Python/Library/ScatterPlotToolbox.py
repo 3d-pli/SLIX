@@ -246,7 +246,6 @@ def get_peaks_from_roi(roi, low_prominence=TARGET_PROMINENCE, high_prominence=No
                             left_bound = number_of_samples
                     except ValueError:
                         print(roi[left], target_peak_height)
-                        exit(0)
                 if roi[right] > target_peak_height:
                     right_bound = len(sampling)-number_of_samples
                 else:
@@ -325,8 +324,6 @@ def peakwidth_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_p
 
 def peakprominence_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     prominence_arr = pymp.shared.array((roiset.shape[0]), dtype='float32')
-    z = roiset.shape[1]//2
-
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
             peak_roi = normalize_roi(roiset[i])
@@ -407,7 +404,8 @@ def crossing_direction_array_from_roiset(roiset, low_prominence=TARGET_PROMINENC
                 if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
                     dir_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
                 else:
-                    dir_array[i] = BACKGROUND_COLOR    
+                    dir_array[i] = BACKGROUND_COLOR
+                dir_array[i, 2] = BACKGROUND_COLOR    
             elif amount_of_peaks == 6:
                 if(numpy.abs((peaks[3] - peaks[0]) - 180) < 35):
                     dir_array[i, 0] = (270 - ((peaks[3]+peaks[0])/2.0))%180   
