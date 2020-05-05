@@ -70,7 +70,7 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
         direction_array = toolbox.crossing_direction_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=APPLY_CENTROID)
         dir_1 = toolbox.reshape_array_to_image(direction_array[:, 0], image.shape[0], ROISIZE)
         dir_2 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
-        dir_3 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
+        dir_3 = toolbox.reshape_array_to_image(direction_array[:, 2], image.shape[0], ROISIZE)
         Image.fromarray(dir_1).resize(image.shape[:2][::-1]).save(path_name+'_dir_1.tiff')
         Image.fromarray(dir_2).resize(image.shape[:2][::-1]).save(path_name+'_dir_2.tiff')
         Image.fromarray(dir_3).resize(image.shape[:2][::-1]).save(path_name+'_dir_3.tiff')
@@ -121,7 +121,7 @@ def create_argument_parser():
     compute.add_argument('--num_procs', type=int, help=('Number of processes used'), default=min(16, multiprocessing.cpu_count()))
 
     image = parser.add_argument_group('output choice (none = all except optional)')
-    image.add_argument('--dir', action='store_true', help='Add crossing directions (dir_1, dir_2, dir_3)')
+    image.add_argument('--direction', action='store_true', help='Add crossing directions (dir_1, dir_2, dir_3)')
     image.add_argument('--peaks', action='store_true', help='Add number of peaks below prominence and above prominence')
     image.add_argument('--peakprominence', action='store_true', help='Add average peak prominence for each pixel')
     image.add_argument('--peakwidth', action='store_true', help='Add average width of all peaks detected')
@@ -135,8 +135,8 @@ if __name__ == '__main__':
     arguments = parser.parse_args()
     args = vars(arguments)
 
-    if args['dir'] or args['peaks'] or args['peakprominence'] or  args['peakwidth'] or args['peakdistance']:
-        DIRECTION = args['dir']
+    if args['direction'] or args['peaks'] or args['peakprominence'] or  args['peakwidth'] or args['peakdistance']:
+        DIRECTION = args['direction']
         PEAKS = args['peaks']
         PEAKPROMINENCE = args['peakprominence']
         PEAKWIDTH = args['peakwidth']
