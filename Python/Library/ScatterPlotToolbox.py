@@ -162,6 +162,7 @@ def normalize_roi(roi, kind_of_normalizaion=0):
     Returns:
         numpy.array -- Normalized line profile of the given roi parameter
     """
+    roi = roi.copy().astype('float32')
     if not numpy.all(roi == 0):
         if roi.max() == roi.min():
             nroi = numpy.ones(roi.shape)
@@ -348,8 +349,9 @@ def distance_array_from_roiset(roiset, low_prominence=TARGET_PROMINENCE, high_pr
             # Compute peak distance for curves with 1-2 detected peaks
             if amount_of_peaks == 1:    # distance for one peak = 0
                 dist_array[i] = 0
-            elif amount_of_peaks == 2:  # distance for two peaks 
-                dist_array[i] = peaks[1]-peaks[0]
+            elif amount_of_peaks >= 2 and amount_of_peaks % 2 == 0:
+                distances = peaks[1::2] - peaks[::2]
+                dist_array[i] = distances.mean()
                 if dist_array[i] > 180:
                     dist_array[i] = 360 - dist_array[i]
             else:
@@ -392,19 +394,22 @@ def crossing_direction_array_from_roiset(roiset, low_prominence=TARGET_PROMINENC
             peaks = (peaks - z//2) * (360.0 / z)
             # Change behaviour based on amount of peaks (steep, crossing, ...)
             if amount_of_peaks == 1:
-                dir_array[i] = (270 - peaks[0])%180
+                dir_array[i, 0] = (270 - peaks[0])%180
+                dir_array[i, 1] = BACKGROUND_COLOR
+                dir_array[i, 2] = BACKGROUND_COLOR
             elif amount_of_peaks == 2:
-                pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
-                dir_array[i] = pos
+                dir_array[i, 0] = (270 - ((peaks[1]+peaks[0])/2.0))%180
+                dir_array[i, 1] = BACKGROUND_COLOR
+                dir_array[i, 2] = BACKGROUND_COLOR
             elif amount_of_peaks == 4:
+                if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
+                    dir_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
+                else:
+                    dir_array[i, 0] = BACKGROUND_COLOR
                 if(numpy.abs((peaks[3] - peaks[1]) - 180) < 35):
                     dir_array[i, 1] = (270 - ((peaks[3]+peaks[1])/2.0))%180
                 else:
                     dir_array[i, 1] = BACKGROUND_COLOR
-                if(numpy.abs((peaks[2] - peaks[0]) - 180) < 35):
-                    dir_array[i, 0] = (270 - ((peaks[2]+peaks[0])/2.0))%180   
-                else:
-                    dir_array[i] = BACKGROUND_COLOR
                 dir_array[i, 2] = BACKGROUND_COLOR    
             elif amount_of_peaks == 6:
                 if(numpy.abs((peaks[3] - peaks[0]) - 180) < 35):
