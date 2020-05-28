@@ -47,7 +47,7 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
         print("Min image written")
 
         ### Direction Non Crossing
-        direction_array = toolbox.non_crossing_direction_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=APPLY_CENTROID)
+        direction_array = toolbox.non_crossing_direction_array_from_roiset_experimental(roiset, low_prominence=toolbox.TARGET_PROMINENCE, centroid_calculation=APPLY_CENTROID)
         direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
         Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name+'_non_crossing_dir.tiff')
         print("Non Crossing Direction written")

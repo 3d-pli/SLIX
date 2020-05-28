@@ -143,9 +143,14 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     return roi_set
 
 def smooth_roiset(roiset, range=45, polynom_order=2):
-    roiset_c = numpy.concatenate((roiset, roiset, roiset))
-    roiset_rolled = savgol_filter(roiset_c, range, polynom_order)
-    roiset_rolled = roiset_rolled[len(roiset):-len(roiset)]
+    roiset_rolled = pymp.shared.array((roiset.shape), dtype='float32')
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(len(roiset)):
+            roi = roiset[i]
+            roi_c = numpy.concatenate((roi, roi, roi))
+            roi_rolled = savgol_filter(roi_c, range, polynom_order)
+            roi_rolled = roi_rolled[len(roi):-len(roi)]
+            roiset_rolled[i] = roi_rolled
     return roiset_rolled
 
 def normalize_roi(roi, kind_of_normalizaion=0):
@@ -375,6 +380,38 @@ def non_crossing_direction_array_from_roiset(roiset, low_prominence=TARGET_PROMI
                 dir_array[i] = (270 - peaks[0])%180
             elif amount_of_peaks == 2:
                 pos = (270 - ((peaks[1]+peaks[0])/2.0))%180
+                dir_array[i] = pos
+            else:
+                dir_array[i] = BACKGROUND_COLOR
+    return dir_array
+
+def non_crossing_direction_array_from_roiset_experimental(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True, centroid_calculation=True):
+    dir_array = pymp.shared.array((roiset.shape[0]), dtype='float32')
+    z = roiset.shape[1]//2
+    
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = get_peaks_from_roi(roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
+            amount_of_peaks = len(peaks)
+
+            # Scale peaks correctly for direction
+            dir_peaks = (peaks - z//2) * (360.0 / z)
+            # Change behaviour based on amount of peaks (steep, crossing, ...)
+            if amount_of_peaks == 1:
+                # check if another peak is detected when decreasing prominence
+                low_prominence_peaks = get_peaks_from_roi(roi, low_prominence=0.03, cut_edges=cut_edges, centroid_calculation=centroid_calculation)
+                low_prominence_dir_peaks = (low_prominence_peaks - z//2) * (360.0 / z)
+                low_prominence_dir_peaks = numpy.concatenate((low_prominence_dir_peaks, low_prominence_dir_peaks+360.0))
+                peak_index = numpy.abs(low_prominence_dir_peaks - dir_peaks[0]).argmin()
+                if len(low_prominence_peaks) > 1:
+                    front = low_prominence_dir_peaks[peak_index]
+                    back = low_prominence_dir_peaks[peak_index + int(numpy.ceil(len(low_prominence_peaks)//2))]
+                    dir_array[i] = (270 - ((front + back)/2.0)) % 180
+                else:
+                    dir_array[i] = (270 - dir_peaks[0])%180
+            elif amount_of_peaks == 2:
+                pos = (270 - ((dir_peaks[1]+dir_peaks[0])/2.0))%180
                 dir_array[i] = pos
             else:
                 dir_array[i] = BACKGROUND_COLOR

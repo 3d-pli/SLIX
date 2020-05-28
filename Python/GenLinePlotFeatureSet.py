@@ -13,7 +13,7 @@ def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
     roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')
     if with_smoothing:
         roiset = numpy.concatenate((roiset, roiset, roiset))
-        roiset_rolled = savgol_filter(roiset, 45, 2)
+        roiset_rolled = savgol_filter(roiset, 11, 2)
         z_begin = len(roiset_rolled)//3//2
         z_end = len(roiset_rolled) - z_begin
         roiset_rolled = roiset_rolled[z_begin:z_end]
