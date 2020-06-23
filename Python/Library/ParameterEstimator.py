@@ -136,6 +136,9 @@ class ParameterEstimator():
     def crossing_mask(self):
         return self.__crossing_substance_mask
 
+    def inclinated_mask(self):
+        return self.__inclinated_substance_mask
+
     def __getRetardationPlateau(self):
         ret_hist, ret_bins = numpy.histogram(self.__retardation, bins=self.__NUMBER_OF_BINS, range=(0, 1))
         # Cut backgrund
@@ -330,10 +333,34 @@ class ParameterEstimator():
             plt.imshow(self.__gray_substance_mask, cmap='gray')
             plt.show()
         self.__white_substance_mask = numpy.where((transmittance_roi_mask == 0) | (mask_wm == 1), numpy.where((self.__corrected_transmittance < transmittancePlateauEstimation) & (self.__corrected_transmittance > 0), 1, 0), 0).astype(numpy.bool)
-        self.__crossing_substance_mask = numpy.where(self.__white_substance_mask, numpy.where((self.__transmittance < self.__im) & ((self.__retardation > 0.05) & (self.__retardation < 0.2)), 1, 0), 0).astype(numpy.bool)
+
+        # Find first maximum in histogram
+        hist, bins = numpy.histogram(self.__transmittance, bins=self.__NUMBER_OF_BINS, range=(0, 1))
+        max_pos = numpy.argwhere(bins < self.__im).max()
+        crossing_seperator = bins[hist[1:max_pos].argmax()+3]
+        print(crossing_seperator)
+
+        self.__crossing_substance_mask = numpy.where((self.__retardation - retardationPlateauEstimation) < 0.3, numpy.where(self.__transmittance < crossing_seperator, 1, 0), 0).astype(numpy.bool)
+        self.__inclinated_substance_mask = numpy.where(self.__retardation > retardationPlateauEstimation, numpy.where(self.__transmittance < crossing_seperator, 1, 0), 0).astype(numpy.bool)
         if self.__DEBUG_IMAGE:
             plt.imshow(self.__white_substance_mask, cmap='gray')
             plt.show()
+
+        mask_r = numpy.empty((self.__retardation.shape[0], self.__retardation.shape[1], 3))
+        mask_r[:, :, 0] = self.__retardation
+        mask_r[:, :, 1] = self.__retardation    
+        mask_r[:, :, 2] = self.__retardation
+
+        mask_c = numpy.empty((self.__crossing_substance_mask.shape[0], self.__crossing_substance_mask.shape[1], 3))
+        mask_c[:, :, 0] = self.__crossing_substance_mask
+        mask_c[:, :, 1] = self.__crossing_substance_mask   
+        mask_c[:, :, 2] = self.__crossing_substance_mask
+        
+        mask_r = numpy.where(mask_c > 0, [0, 0.75, 1] * mask_r, [1, 0.65, 0] * mask_r)
+        plt.imshow(mask_r)
+        plt.axis('off')
+        plt.savefig('ret_crossing.png', dpi=600, bbox_inches='tight')
+        plt.show()
 
         print(self.__gray_white_seperator)
         del mask_gm

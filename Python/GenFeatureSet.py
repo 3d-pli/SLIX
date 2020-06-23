@@ -23,7 +23,7 @@ def full_pipeline(PATH, NAME, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHI
     roiset = toolbox.zaxis_roiset(image, ROISIZE)
     if APPLY_SMOOTHING:
         print('Smoothing will be applied.')
-        roiset = toolbox.smooth_roiset(roiset, 11, 2)
+        roiset = toolbox.smooth_roiset(roiset, 9, 2)
         #roi_image = toolbox.reshape_array_to_image(roiset[:, 36:-36], image.shape[0], ROISIZE)
         #for i in range(72):
         #    Image.fromarray(roi_image[:, :, i]).resize(image.shape[:2][::-1]).save(path_name+'_'+str(i)+'.tiff')

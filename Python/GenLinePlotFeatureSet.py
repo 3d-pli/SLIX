@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
-import Library.ScatterPlotToolbox as toolbox
-import numpy
 import argparse
 import os
+
+import numpy
+import tqdm
 from matplotlib import pyplot as plt
 from PIL import Image
 from scipy.signal import peak_widths, savgol_filter
 
+import Library.ScatterPlotToolbox as toolbox
+
+
 def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
-    print(PATH)
     roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')
     if with_smoothing:
         roiset = numpy.concatenate((roiset, roiset, roiset))
-        roiset_rolled = savgol_filter(roiset, 11, 2)
+        roiset_rolled = savgol_filter(roiset, 45, 2)
         z_begin = len(roiset_rolled)//3//2
         z_end = len(roiset_rolled) - z_begin
         roiset_rolled = roiset_rolled[z_begin:z_end]
@@ -46,7 +49,7 @@ def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
     peaks = (peaks * 180.0 / z) % 360
     
     # Generate output parameters for file
-    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(peak_array) + '\nPeak_Pos: ' + str(peaks)
+    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: [' + " ".join(str(x) for x in peak_array) + ']\nPeak_Pos: [' + " ".join(str(x) for x in peaks) + ']'
     with open(NAME+'.txt', 'w') as f:
         f.write(output)
         f.flush()
@@ -70,7 +73,7 @@ if __name__ == '__main__':
 
     toolbox.TARGET_PEAK_HEIGHT = args['target_peak_height']
 
-    for i in range(len(paths)):
+    for i in tqdm.tqdm(range(len(paths))):
         folder = os.path.dirname(paths[i])
         filename_without_extension = os.path.splitext(os.path.basename(paths[i]))[0]
         full_pipeline(paths[i], args['output'] + '/' + filename_without_extension, args['smoothing'], args['with_plots'])
