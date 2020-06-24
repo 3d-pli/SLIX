@@ -101,4 +101,4 @@ Evaluation of line profiles : max/min, number of peaks, peak positions
 - Miriam Menzel
 
 ## License
-This project is licensed under the GPLv3 License - see the LICENSE file for details
+This project is licensed under the GPLv3 License - see the [LICENSE](https://github.com/Thyre/SLIX/blob/master/LICENSE) file for details
