@@ -2,8 +2,8 @@
 
 ## How to insall the toolbox
 ```
-git clone git@jugit.fz-juelich.de:j.reuter/sli-toolbox.git
-cd sli-toolbox
+git clone git@github.com:Thyre/SLIX.git
+cd SLIX
 
 # If a virtual environment is needed:
 python3 -m venv venv
@@ -50,19 +50,26 @@ parameter besides `–-optional` is used no map besides the ones specified will 
 | `--optional`      | Generate additional feature maps (max values, min values, direction map without crossing regions)|
 
 ### Example
-![](https://iffmd.fz-juelich.de/uploads/upload_7e85118c3f06b5363389787f6ef3b6c8.gif)
+![](https://raw.githubusercontent.com/Thyre/SLIX/assets/demo.gif?token=ADRHMEJ6GV4BDOEOSZE43QS67RLRU)
 
 ### Resulting feature maps
-![](https://iffmd.fz-juelich.de/uploads/upload_0226cabc9220356e9a62de6ff5d55183.jpg =327x) ![](https://iffmd.fz-juelich.de/uploads/upload_129567136c1c51aa0f13058f1e68f9e2.jpg =327x) 
+ 
+<img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/dir_1.jpg?token=ADRHMEJLLCNNCFKDNVMVUF267RLVY" width="327"><img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/high_prominence_peaks.jpg?token=ADRHMEJHT6FA7OH52LJFASS67RL3W" width="327">
 
-Direction &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; High Prominence Peaks
+Direction &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; High Prominence Peaks
+ 
+<img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/low_prominence_peaks.jpg?token=ADRHMENJC4X7TW75LZKQNPC67RL42" width="327"><img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/peakprominence.jpg?token=ADRHMEJRY33RLYVFIX2NNKK67RL6E" width="327">
 
-![](https://iffmd.fz-juelich.de/uploads/upload_a385851e40bc8385000571cae3710742.jpg =327x) ![](https://iffmd.fz-juelich.de/uploads/upload_fb97443539499ae13bdcf44218e693d9.jpg =327x) 
+Low Prominence Peaks &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakprominence
 
-Low Prominence Peaks &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakprominence
+<img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/peakwidth.jpg?token=ADRHMEIXBQIDLWA5QYZZPIC67RL7I" width="327"><img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/peakdistance.jpg?token=ADRHMEJ2VA23CX3L3ZSEOSK67RMAM" width="327">
 
-![](https://iffmd.fz-juelich.de/uploads/upload_95ac99dbedd0f1a2789759ff4b8012a0.jpg =327x) ![](https://iffmd.fz-juelich.de/uploads/upload_0e912f34b25cf01b83ed05cd087eeaab.jpg =327x)
-Peakwidth &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakdistance
+Peakwidth &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakdistance
+
+<img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/max.jpg?token=ADRHMEOKKMB6N4I7CU6UDFK67RMEY" width="327"><img src="https://raw.githubusercontent.com/Thyre/SLIX/assets/min.jpg?token=ADRHMEPT5PG5F4JNTBR6UNC67RMF4" width="327">
+
+Maximum &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum
+
 
 ## Additional tools
 
