@@ -1,6 +1,6 @@
 # SLI Feature Generation Toolbox
 
-## How to insall the toolbox
+## How to install the toolbox
 ```
 git clone git@github.com:Thyre/SLIX.git
 cd SLIX
