@@ -1,4 +1,12 @@
-# SLI Feature Generation Toolbox
+# SLIX -- Scattered Light Imaging Toolbox
+
+# Introduction 
+
+Simulation studies by [Menzel. et. al  (2020)](http://dx.doi.org/10.1103/PhysRevX.10.021002) have shown that individual nerve fiber orientations in regions with crossing fibers are revealed through scattering patterns. In more recent studies [Menzel and Pereira (2020)](http://dx.doi.org/10.17632/dp496jpd7h.3) used coherent Fourier scatterometry to measure the scattering patterns for real brain tissue samples. The results validate simulation studies. However, only small brain sections with a limited resolution can be measured with this technique.
+
+Scattered Light Imaging presents a neuroimaging technique that is able to resolve the substructure of nerve fiber crossings in whole brain sections with micrometer resolution. It was first introduced in [Menzel. et. al  (2020)](http://dx.doi.org/10.1103/PhysRevX.10.021002). A brain section is illuminated under oblique incidence of light from different angles. While this technique can measure only a limited number of scattering angles (along a circle in the fullscattering pattern), it can be used to study the scattering behavior of a wholebrain section at once and with micrometer resolution.
+
+This repository represents the toolbox used for the feature generation of Scattered Light Imaging measurements. Given a scattering measurement `GenFeatureSet.py` is able to calculate up to 11 (8 + 3 optional) feature maps describing the scattering behaviour of the given measurement. Individual feature maps can be selected through command line parameters. Both `GenFeatureSet.py` and `GenLinePlotFeatureSet.py` show how the underlying toolbox can be used.
 
 ## How to install the toolbox
 ```
@@ -88,3 +96,9 @@ Evaluation of line profiles : max/min, number of peaks, peak positions
 | `--with_plots` | Generates png-files with line profiles and peak positions (with/without centroid) |
 | `--target_peak_height` | Change peak height used for centroid calculation |
 
+## Authors
+- Jan André Reuter
+- Miriam Menzel
+
+## License
+This project is licensed under the GPLv3 License - see the LICENSE file for details
