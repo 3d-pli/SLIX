@@ -74,7 +74,7 @@ Maximum &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 ## Additional tools
 
 ### `GenLinePlotFeatureSet.py`
-Evaluation of line profiles (SLI/Delft): max/min, number of peaks, peak positions
+Evaluation of line profiles : max/min, number of peaks, peak positions
 
 ```
 ./GenLinePlotFeatureSet.py [parameters]
