@@ -8,7 +8,7 @@ This repository contains the toolbox (SLIX) that allows an automated evaluation 
 
 ## How to install SLIX
 ```
-git clone git@github.com:Thyre/SLIX.git
+git clone git@jugit.fz-juelich.de:j.reuter/slix.git
 cd SLIX
 
 # If a virtual environment is needed:
