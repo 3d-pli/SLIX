@@ -2,9 +2,9 @@
 
 # Introduction 
 
-Scattered Light Imaging (SLI) is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution. The measurement principle was first introduced by [Menzel et. al (2020)](http://dx.doi.org/10.1103/PhysRevX.10.021002). A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different directions of illumination. For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (SLI image stack) in which each image pixel contains a light intensity profile (SLI profile, I(phi)) with respect to the direction of illumination (azimuthal angle, phi).
+Scattered Light Imaging (SLI) is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution. The measurement principle was first introduced by [Menzel et. al (2020)](http://dx.doi.org/10.1103/PhysRevX.10.021002). A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different directions of illumination. For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (SLI image stack) in which each image pixel contains a light intensity profile (SLI profile, <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">) with respect to the direction of illumination (azimuthal angle, <img src="https://render.githubusercontent.com/render/math?math=\phi">).
 
-This repository contains the toolbox (SLIX) that allows an automated evaluation of SLI measurements and generates different feature maps. For a given SLI image stack, `GenFeatureSet.py` is able to calculate up to 11 (8 + 3 optional) feature maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual feature maps can be selected through command line parameters. With `GenLinePlotFeatureSet.py`, it is possible to use existing SLI profiles (txt-files with list of intensity values) as input and compute the corresponding feature set (txt-file) for each SLI profile, which contains the number of peaks, and the position (phi) of the maximum, the minimum, and the peaks.
+This repository contains the toolbox (SLIX) that allows an automated evaluation of SLI measurements and generates different parameter maps. For a given SLI image stack, `GenFeatureSet.py` is able to calculate up to 11 (8 + 3 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `GenLinePlotFeatureSet.py`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding feature set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
 
 ## How to install SLIX
 ```
@@ -20,7 +20,7 @@ pip3 install -r requirements.txt
 
 ## `GenFeatureSet.py`
 
-Main tool to create desired feature maps from an SLI image stack.
+Main tool to create desired parameter maps from an SLI image stack.
 
 ```
 ./GenFeatureSet.py -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
@@ -31,7 +31,7 @@ Main tool to create desired feature maps from an SLI image stack.
 | Parameter        | Function                                                |
 | ---------------- | ------------------------------------------------------- |
 | `-i, --input`    | Input file: SLI image stack (as .tif(f) or .nii).      |
-| `-o, --output`   | Output folder where resulting feature maps will be stored. Will be created if not existing. |
+| `-o, --output`   | Output folder where resulting parameter maps will be stored. Will be created if not existing. |
 
 ### Optional parameters
 
@@ -41,21 +41,20 @@ Main tool to create desired feature maps from an SLI image stack.
 | `--with_mask`      | Remove the background based on the maximum value of each image pixel. May include gray matter.                                                                |
 | `--mask_threshold` | Set the threshold for the background mask. Pixels for which the maximum intensity value of the SLI profile is below the threshold, will be considered as background. Higher values might remove the background better but will also include more of the gray matter. (Default = 10) |
 | `--num_procs`      | Run the program with the selected number of processes. (Default = either 16 threads or the maximum number of threads available.)                                  |
-| `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with phi = 5° steps.)                                                                                     |
+| `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> = 5° steps.)                                                                                     |
 | `--without_centroid_calculation`| Disable correction of peak positions (taking the shapes of the peaks into account). Not recommended! |
 
 ### Output
-Additional parameters that determine which feature maps will be generated from the SLI image stack. If no parameter is used, the following feature maps will be generated: peaks, direction, peakwidth, peakprominence, peakdistance. If any parameter (except `–-optional`) is used, no feature map besides the ones specified will be generated.
+Additional parameters that determine which parameter maps will be generated from the SLI image stack. If no parameter is used, the following parameter maps will be generated: peaks, direction, peakwidth, peakprominence, peakdistance. If any parameter (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
 
 | Parameter      | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
-| `--peaks`         | Generate two feature maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks of the SLI profiles for a prominence below and above 8% of the maximum signal amplitude. |
-| `--direction`     | Generate three feature maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers. If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map. |
-| `--peakwidth`     | Generate a feature map (`_peakwidth.tiff`) containing the average peak width of all peaks in an SLI profile (image pixel) with a prominence above 8%. |
-| `--peakprominence`| Generate a feature map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the mean of the profile. |
-| `--peakdistance`  | Generate a feature map (`_peakdistance.tiff`) containing the distance between two peaks of an SLI profile (image pixel) with a prominence above 8%. All other pixels are set to `-1`. |
-| `--optional`      | Generate additional feature maps: maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), in-plane direction angles in regions without crossings (`_dir.tiff`). |
-
+| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks of the SLI profiles for a prominence below and above 8% of the maximum signal amplitude. |
+| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers. If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map. |
+| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width of all peaks in an SLI profile (image pixel) with a prominence above 8% of the maximum signal amplitude. |
+| `--peakprominence`| Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile. |
+| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two peaks of an SLI profile (image pixel) with a prominence above 8%. All other pixels are set to `-1`. |
+| `--optional`      | Generate additional parameter maps: maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), in-plane direction angles in regions without crossings (`_dir.tiff`). |
 ### Example
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
