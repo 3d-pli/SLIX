@@ -58,7 +58,7 @@ Additional parameters that determine which parameter maps will be generated from
 ### Example
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
-### Resulting feature maps
+### Resulting parameter maps
  
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
 
