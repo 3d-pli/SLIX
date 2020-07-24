@@ -1,5 +1,7 @@
 # SLIX -- Scattered Light Imaging ToolboX
 
+![https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png)
+
 # Introduction 
 
 Scattered Light Imaging (SLI) is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution. The measurement principle was first introduced by [Menzel et. al (2020)](http://dx.doi.org/10.1103/PhysRevX.10.021002). A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different directions of illumination. For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (SLI image stack) in which each image pixel contains a light intensity profile (SLI profile, <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">) with respect to the direction of illumination (azimuthal angle, <img src="https://render.githubusercontent.com/render/math?math=\phi">).
