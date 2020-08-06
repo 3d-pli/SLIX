@@ -17,7 +17,7 @@ PEAKDISTANCE = True
 OPTIONAL = False
 
 
-def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOTHING, MASK_THRESHOLD):
+def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRESHOLD):
     """
     Generates feature maps based on given parameters and write them into an output directory based on the OUTPUT argument.
     Depending on the global set parameters by the argument parser only a subset of the possible feature maps will be generated.
@@ -27,7 +27,6 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOT
         OUTPUT: Output file path without any extension. This path will be extended with the tags of the respective feature maps.
         ROISIZE: Downsampling argument. Will reduce the image dimensions to reduce memory usage and time.
         APPLY_MASK: Generate a mask before evaluating feature maps to remove the background from the remaining tissue. Threshold is based on MASK_THRESHOLD.
-        APPLY_CENTROID: Apply centroid evaluation when calculating peak position.
         APPLY_SMOOTHING: Reduce image noise by applying a Savitzky-Golay filter with a window length of 9 and polynomial order of 2
         MASK_THRESHOLD: Set threshold for the APPLY_MASK parameter.
 
@@ -171,9 +170,9 @@ def create_argument_parser():
                           action='store_true',
                           help='Apply smoothing for individual roi curves for noisy images.'
                                'Recommended for measurements with less than 5 degree between each image.')
-    optional.add_argument('--no_centroid_calculation',
-                          action='store_true',
-                          help='Disable centroid calculation. Not recommended!')
+    #optional.add_argument('--no_centroid_calculation',
+    #                      action='store_true',
+    #                      help='Disable centroid calculation. Not recommended!')
     optional.add_argument(
         '-h',
         '--help',
