@@ -6,6 +6,7 @@ import argparse
 import os
 import multiprocessing
 from PIL import Image
+import numpy
 
 # Default parameters. Will be changed when using the argument parser when calling the program.
 DIRECTION = True
@@ -44,47 +45,93 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOT
         roiset[mask, :] = 0
     print("Roi finished")
 
+    """
+    Corresponding boolean values for selected_parameters
+    0 : Min
+    1 : Max
+    2 : Average
+    3 : Low Prominence Peaks
+    4 : High Prominence Peaks
+    5 : Peakwidth
+    6 : Peakprominence
+    7 : Peakdistance
+    8 : Non Crossing Direction
+    9-11 : Crossing Direction
+    """
+    selected_methods = [OPTIONAL, OPTIONAL, OPTIONAL, PEAKS, PEAKS, PEAKWIDTH, PEAKPROMINENCE, PEAKDISTANCE, OPTIONAL, DIRECTION]
+    parameter_maps = toolbox.experimental(roiset, selected_methods)
+    current_index = 0
     if OPTIONAL:
         # Maximum
-        max_array = toolbox.max_array_from_roiset(roiset)
+        max_array = parameter_maps[:, current_index]
         max_image = toolbox.reshape_array_to_image(max_array, image.shape[0], ROISIZE)
         Image.fromarray(max_image).resize(image.shape[:2][::-1]).save(path_name + '_max.tiff')
         print("Max image written")
+        current_index += 1
 
         # Minimum
-        min_array = toolbox.min_array_from_roiset(roiset)
+        min_array = parameter_maps[:, current_index]
         min_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
         Image.fromarray(min_image).resize(image.shape[:2][::-1]).save(path_name + '_min.tiff')
         print("Min image written")
+        current_index += 1
 
-        # Direction Non Crossing
-        direction_array = toolbox.non_crossing_direction_array_from_roiset(roiset,
-                                                                           low_prominence=toolbox.TARGET_PROMINENCE,
-                                                                           centroid_calculation=APPLY_CENTROID)
-        direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
-        Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name + '_non_crossing_dir.tiff')
-        print("Non Crossing Direction written")
+        # Average
+        avg_array = parameter_maps[:, current_index]
+        avg_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
+        Image.fromarray(avg_image).resize(image.shape[:2][::-1]).save(path_name + '_avg.tiff')
+        print("Avg image written")
+        current_index += 1
 
     if PEAKS:
         # Low Prominence
-        low_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=None,
-                                                              high_prominence=toolbox.TARGET_PROMINENCE,
-                                                              centroid_calculation=False)
-        low_peak_image = toolbox.reshape_array_to_image(low_prominence_array, image.shape[0], ROISIZE)
+        low_prominence_array = parameter_maps[:, current_index]
+        low_peak_image = toolbox.reshape_array_to_image(low_prominence_array.astype('int8'), image.shape[0], ROISIZE)
         Image.fromarray(low_peak_image).resize(image.shape[:2][::-1]).save(path_name + '_low_prominence_peaks.tiff')
         print('Low Peaks Written')
+        current_index += 1
 
         # High Prominence
-        high_prominence_array = toolbox.peak_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE,
-                                                               centroid_calculation=False)
-        high_peak_image = toolbox.reshape_array_to_image(high_prominence_array, image.shape[0], ROISIZE)
+        high_prominence_array = parameter_maps[:, current_index]
+        high_peak_image = toolbox.reshape_array_to_image(high_prominence_array.astype('int8'), image.shape[0], ROISIZE)
         Image.fromarray(high_peak_image).resize(image.shape[:2][::-1]).save(path_name + '_high_prominence_peaks.tiff')
         print('High Peaks Written')
+        current_index += 1
+
+    if PEAKWIDTH:
+        # Peakwidth
+        peakwidth_array = parameter_maps[:, current_index]
+        peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
+        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name + '_peakwidth.tiff')
+        print("Peakwidth written")
+        current_index += 1
+
+    if PEAKPROMINENCE:
+        # Peakprominence
+        peakprominence_array = parameter_maps[:, current_index]
+        peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
+        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1]).save(path_name + '_peakprominence.tiff')
+        print("Peakprominence written")
+        current_index += 1
+
+    if PEAKDISTANCE:
+        distance_array = parameter_maps[:, current_index]
+        distance_image = toolbox.reshape_array_to_image(distance_array, image.shape[0], ROISIZE)
+        Image.fromarray(distance_image).resize(image.shape[:2][::-1]).save(path_name + '_peakdistance.tiff')
+        print("Peakdistance written")
+        current_index += 1
+
+    if OPTIONAL:
+        # Direction Non Crossing
+        direction_array = parameter_maps[:, current_index]
+        direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
+        Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name + '_non_crossing_dir.tiff')
+        print("Non Crossing Direction written")
+        current_index += 1
 
     if DIRECTION:
         # Direction Crossing
-        direction_array = toolbox.crossing_direction_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE,
-                                                                       centroid_calculation=APPLY_CENTROID)
+        direction_array = parameter_maps[:, current_index:]
         dir_1 = toolbox.reshape_array_to_image(direction_array[:, 0], image.shape[0], ROISIZE)
         dir_2 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
         dir_3 = toolbox.reshape_array_to_image(direction_array[:, 2], image.shape[0], ROISIZE)
@@ -92,28 +139,6 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_CENTROID, APPLY_SMOOT
         Image.fromarray(dir_2).resize(image.shape[:2][::-1]).save(path_name + '_dir_2.tiff')
         Image.fromarray(dir_3).resize(image.shape[:2][::-1]).save(path_name + '_dir_3.tiff')
         print("Crossing Directions written")
-
-    if PEAKWIDTH:
-        # Peakwidth
-        peakwidth_array = toolbox.peakwidth_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE)
-        peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name + '_peakwidth.tiff')
-        print("Peakwidth written")
-
-    if PEAKPROMINENCE:
-        # Peakprominence
-        peakprominence_array = toolbox.peakprominence_array_from_roiset(roiset, low_prominence=0.0)
-        peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1]).save(path_name + '_peakprominence.tiff')
-        print("Peakprominence written")
-
-    if PEAKDISTANCE:
-        distance_array = toolbox.distance_array_from_roiset(roiset, low_prominence=toolbox.TARGET_PROMINENCE,
-                                                            centroid_calculation=APPLY_CENTROID)
-        distance_image = toolbox.reshape_array_to_image(distance_array, image.shape[0], ROISIZE)
-        Image.fromarray(distance_image).resize(image.shape[:2][::-1]).save(path_name + '_peakdistance.tiff')
-        print("Peakdistance written")
-
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
