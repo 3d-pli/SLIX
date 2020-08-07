@@ -7,6 +7,7 @@ import os
 import multiprocessing
 from PIL import Image
 import numpy
+import pymp
 
 # Default parameters. Will be changed when using the argument parser when calling the program.
 DIRECTION = True
@@ -58,7 +59,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
     9-11 : Crossing Direction
     """
     selected_methods = [OPTIONAL, OPTIONAL, OPTIONAL, PEAKS, PEAKS, PEAKWIDTH, PEAKPROMINENCE, PEAKDISTANCE, OPTIONAL, DIRECTION]
-    parameter_maps = toolbox.experimental(roiset, selected_methods)
+    parameter_maps = generate_feature_maps(roiset, selected_methods)
     current_index = 0
     if OPTIONAL:
         # Maximum
@@ -138,6 +139,72 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         Image.fromarray(dir_2).resize(image.shape[:2][::-1]).save(path_name + '_dir_2.tiff')
         Image.fromarray(dir_3).resize(image.shape[:2][::-1]).save(path_name + '_dir_3.tiff')
         print("Crossing Directions written")
+
+def generate_feature_maps(roiset, selected_parameters):
+    """
+    Corresponding boolean values for selected_parameters
+    0 : Min
+    1 : Max
+    2 : Average
+    3 : Low Prominence Peaks
+    4 : High Prominence Peaks
+    5 : Peakwidth
+    6 : Peakprominence
+    7 : Peakdistance
+    8 : Non Crossing Direction
+    9-11 : Crossing Direction
+    """
+
+    number_of_parameter_maps = numpy.count_nonzero(selected_parameters)
+    if selected_parameters[-1]:
+        number_of_parameter_maps += 2
+    resulting_parameter_maps = pymp.shared.array((roiset.shape[0], number_of_parameter_maps), dtype=numpy.float)
+
+    with pymp.Parallel(toolbox.CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            current_index = 0
+
+            if numpy.any(selected_parameters[3:]):
+                peaks = toolbox.all_peaks(roi)
+            if numpy.any(selected_parameters[4:6]):
+                peak_positions_high_non_centroid = toolbox.peak_positions(peaks, roi, centroid_calculation=False)
+            if numpy.any(selected_parameters[7:]):
+                peak_positions_high = toolbox.peak_positions(peaks, roi)
+
+            if selected_parameters[0]:
+                resulting_parameter_maps[i, current_index] = roi.min()
+                current_index += 1
+            if selected_parameters[1]:
+                resulting_parameter_maps[i, current_index] = roi.max()
+                current_index += 1
+            if selected_parameters[2]:
+                resulting_parameter_maps[i, current_index] = roi.mean()
+                current_index += 1
+            if selected_parameters[3]:
+                peak_positions_low_non_centroid = toolbox.peak_positions(peaks, roi, 0, toolbox.TARGET_PROMINENCE, centroid_calculation=False)
+                resulting_parameter_maps[i, current_index] = len(peak_positions_low_non_centroid)
+                current_index += 1
+            if selected_parameters[4]:
+                resulting_parameter_maps[i, current_index] = len(peak_positions_high_non_centroid)
+                current_index += 1
+            if selected_parameters[5]:
+                resulting_parameter_maps[i, current_index] = toolbox.peakwidth(peak_positions_high_non_centroid, roi, len(peak_positions_high_non_centroid), len(roi)//2)
+                current_index += 1
+            if selected_parameters[6]:
+                resulting_parameter_maps[i, current_index] = toolbox.prominence(peak_positions_high_non_centroid, roi, len(peak_positions_high_non_centroid))
+                current_index += 1
+            if selected_parameters[7]:
+                resulting_parameter_maps[i, current_index] = toolbox.peakdistance(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                current_index += 1
+            if selected_parameters[8]:
+                resulting_parameter_maps[i, current_index] = toolbox.non_crossing_direction(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                current_index += 1
+            if selected_parameters[9]:
+                resulting_parameter_maps[i, current_index:current_index+3] = toolbox.crossing_direction(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                current_index += 3
+
+    return resulting_parameter_maps
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -254,4 +321,4 @@ if __name__ == '__main__':
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
         full_pipeline(path, args['output'] + '/' + filename_without_extension, args['roisize'], args['with_mask'],
-                      not args['no_centroid_calculation'], args['with_smoothing'], args['mask_threshold'])
+                      args['with_smoothing'], args['mask_threshold'])
