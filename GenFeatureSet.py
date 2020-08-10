@@ -78,7 +78,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
 
         # Average
         avg_array = parameter_maps[:, current_index]
-        avg_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
+        avg_image = toolbox.reshape_array_to_image(avg_array, image.shape[0], ROISIZE)
         Image.fromarray(avg_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_avg.tiff')
         print("Avg image written")
         current_index += 1
