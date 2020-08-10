@@ -17,7 +17,6 @@ NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
-
 def all_peaks(roi, cut_edges=True):
     z = roi.shape[0] // 2
 
@@ -33,6 +32,16 @@ def all_peaks(roi, cut_edges=True):
             maxima = maxima[1:]
 
     return maxima
+
+
+def num_peaks_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
+    return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.int32)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            return_value[i] = len(peak_positions(peaks, roi, low_prominence, high_prominence, False))
+    return return_value
 
 
 def peak_positions(peaks, roi, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, centroid_calculation=True):
@@ -63,9 +72,32 @@ def peakdistance(peaks, num_peaks, number_of_images):
         return BACKGROUND_COLOR
 
 
+def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
+                               centroid_calculation=True):
+    return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            peaks = peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
+            return_value[i] = peakdistance(peaks, len(peaks), len(roi) // 2)
+    return return_value
+
+
 def prominence(peaks, line_profile, num_peaks):
     prominence_roi = normalize(line_profile, kind_of_normalizaion=1)
     return 0 if num_peaks == 0 else numpy.mean(peak_prominences(prominence_roi, peaks)[0])
+
+
+def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+    return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            peaks = peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges, False)
+            return_value[i] = prominence(peaks, roi, len(peaks))
+    return return_value
 
 
 def peakwidth(peaks, line_profile, num_peaks, number_of_images):
@@ -74,6 +106,17 @@ def peakwidth(peaks, line_profile, num_peaks, number_of_images):
         return numpy.mean(widths[0]) * (360.0 / number_of_images)
     else:
         return 0
+
+
+def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+    return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            peaks = peak_positions(peaks, roi, low_prominence, high_prominence, False)
+            return_value[i] = peakwidth(peaks, roi, len(peaks), len(roi) // 2)
+    return return_value
 
 
 def crossing_direction(peaks, num_peaks, number_of_images):
@@ -89,6 +132,17 @@ def crossing_direction(peaks, num_peaks, number_of_images):
     return ret_val
 
 
+def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+    return_value = pymp.shared.array((roiset.shape[0], 3), dtype=numpy.float)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            peaks = peak_positions(peaks, roi, low_prominence, high_prominence, False)
+            return_value[i, :] = crossing_direction(peaks, len(peaks), len(roi) // 2)
+    return return_value
+
+
 def non_crossing_direction(peaks, num_peaks, number_of_images):
     # Scale peaks correctly for direction
     peaks = (peaks - number_of_images // 2) * (360.0 / number_of_images)
@@ -99,6 +153,17 @@ def non_crossing_direction(peaks, num_peaks, number_of_images):
         return (270 - ((peaks[1] + peaks[0]) / 2.0)) % 180
     else:
         return BACKGROUND_COLOR
+
+
+def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+    return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    with pymp.Parallel(CPU_COUNT) as p:
+        for i in p.range(0, len(roiset)):
+            roi = roiset[i]
+            peaks = all_peaks(roi, cut_edges)
+            peaks = peak_positions(peaks, roi, low_prominence, high_prominence, False)
+            return_value[i] = non_crossing_direction(peaks, len(peaks), len(roi) // 2)
+    return return_value
 
 
 def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_prominence=None):
