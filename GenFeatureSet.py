@@ -65,21 +65,21 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Maximum
         max_array = parameter_maps[:, current_index]
         max_image = toolbox.reshape_array_to_image(max_array, image.shape[0], ROISIZE)
-        Image.fromarray(max_image).resize(image.shape[:2][::-1]).save(path_name + '_max.tiff')
+        Image.fromarray(max_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_max.tiff')
         print("Max image written")
         current_index += 1
 
         # Minimum
         min_array = parameter_maps[:, current_index]
         min_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
-        Image.fromarray(min_image).resize(image.shape[:2][::-1]).save(path_name + '_min.tiff')
+        Image.fromarray(min_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_min.tiff')
         print("Min image written")
         current_index += 1
 
         # Average
         avg_array = parameter_maps[:, current_index]
         avg_image = toolbox.reshape_array_to_image(min_array, image.shape[0], ROISIZE)
-        Image.fromarray(avg_image).resize(image.shape[:2][::-1]).save(path_name + '_avg.tiff')
+        Image.fromarray(avg_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_avg.tiff')
         print("Avg image written")
         current_index += 1
 
@@ -87,14 +87,14 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Low Prominence
         low_prominence_array = parameter_maps[:, current_index]
         low_peak_image = toolbox.reshape_array_to_image(low_prominence_array.astype('int8'), image.shape[0], ROISIZE)
-        Image.fromarray(low_peak_image).resize(image.shape[:2][::-1]).save(path_name + '_low_prominence_peaks.tiff')
+        Image.fromarray(low_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_low_prominence_peaks.tiff')
         print('Low Peaks Written')
         current_index += 1
 
         # High Prominence
         high_prominence_array = parameter_maps[:, current_index]
         high_peak_image = toolbox.reshape_array_to_image(high_prominence_array.astype('int8'), image.shape[0], ROISIZE)
-        Image.fromarray(high_peak_image).resize(image.shape[:2][::-1]).save(path_name + '_high_prominence_peaks.tiff')
+        Image.fromarray(high_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_high_prominence_peaks.tiff')
         print('High Peaks Written')
         current_index += 1
 
@@ -102,7 +102,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Peakwidth
         peakwidth_array = parameter_maps[:, current_index]
         peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1]).save(path_name + '_peakwidth.tiff')
+        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakwidth.tiff')
         print("Peakwidth written")
         current_index += 1
 
@@ -110,14 +110,14 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Peakprominence
         peakprominence_array = parameter_maps[:, current_index]
         peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1]).save(path_name + '_peakprominence.tiff')
+        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakprominence.tiff')
         print("Peakprominence written")
         current_index += 1
 
     if PEAKDISTANCE:
         distance_array = parameter_maps[:, current_index]
         distance_image = toolbox.reshape_array_to_image(distance_array, image.shape[0], ROISIZE)
-        Image.fromarray(distance_image).resize(image.shape[:2][::-1]).save(path_name + '_peakdistance.tiff')
+        Image.fromarray(distance_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakdistance.tiff')
         print("Peakdistance written")
         current_index += 1
 
@@ -125,7 +125,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Direction Non Crossing
         direction_array = parameter_maps[:, current_index]
         direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
-        Image.fromarray(direction_image).resize(image.shape[:2][::-1]).save(path_name + '_non_crossing_dir.tiff')
+        Image.fromarray(direction_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_non_crossing_dir.tiff')
         print("Non Crossing Direction written")
         current_index += 1
 
@@ -135,9 +135,9 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         dir_1 = toolbox.reshape_array_to_image(direction_array[:, 0], image.shape[0], ROISIZE)
         dir_2 = toolbox.reshape_array_to_image(direction_array[:, 1], image.shape[0], ROISIZE)
         dir_3 = toolbox.reshape_array_to_image(direction_array[:, 2], image.shape[0], ROISIZE)
-        Image.fromarray(dir_1).resize(image.shape[:2][::-1]).save(path_name + '_dir_1.tiff')
-        Image.fromarray(dir_2).resize(image.shape[:2][::-1]).save(path_name + '_dir_2.tiff')
-        Image.fromarray(dir_3).resize(image.shape[:2][::-1]).save(path_name + '_dir_3.tiff')
+        Image.fromarray(dir_1).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_dir_1.tiff')
+        Image.fromarray(dir_2).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_dir_2.tiff')
+        Image.fromarray(dir_3).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_dir_3.tiff')
         print("Crossing Directions written")
 
 def generate_feature_maps(roiset, selected_parameters):
