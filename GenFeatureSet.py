@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-# Imports
-import Library.ScatterPlotToolbox as toolbox
 import argparse
-import os
 import multiprocessing
-from PIL import Image
+import os
+
 import numpy
 import pymp
+from PIL import Image
+
+# Imports
+import Library.ScatterPlotToolbox as toolbox
 
 # Default parameters. Will be changed when using the argument parser when calling the program.
 DIRECTION = True
@@ -58,7 +60,8 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
     8 : Non Crossing Direction
     9-11 : Crossing Direction
     """
-    selected_methods = [OPTIONAL, OPTIONAL, OPTIONAL, PEAKS, PEAKS, PEAKWIDTH, PEAKPROMINENCE, PEAKDISTANCE, OPTIONAL, DIRECTION]
+    selected_methods = [OPTIONAL, OPTIONAL, OPTIONAL, PEAKS, PEAKS, PEAKWIDTH, PEAKPROMINENCE, PEAKDISTANCE, OPTIONAL,
+                        DIRECTION]
     parameter_maps = generate_feature_maps(roiset, selected_methods)
     current_index = 0
     if OPTIONAL:
@@ -87,14 +90,16 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Low Prominence
         low_prominence_array = parameter_maps[:, current_index]
         low_peak_image = toolbox.reshape_array_to_image(low_prominence_array.astype('int8'), image.shape[0], ROISIZE)
-        Image.fromarray(low_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_low_prominence_peaks.tiff')
+        Image.fromarray(low_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_low_prominence_peaks.tiff')
         print('Low Peaks Written')
         current_index += 1
 
         # High Prominence
         high_prominence_array = parameter_maps[:, current_index]
         high_peak_image = toolbox.reshape_array_to_image(high_prominence_array.astype('int8'), image.shape[0], ROISIZE)
-        Image.fromarray(high_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_high_prominence_peaks.tiff')
+        Image.fromarray(high_peak_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_high_prominence_peaks.tiff')
         print('High Peaks Written')
         current_index += 1
 
@@ -102,7 +107,8 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Peakwidth
         peakwidth_array = parameter_maps[:, current_index]
         peakwidth_image = toolbox.reshape_array_to_image(peakwidth_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakwidth.tiff')
+        Image.fromarray(peakwidth_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_peakwidth.tiff')
         print("Peakwidth written")
         current_index += 1
 
@@ -110,14 +116,16 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Peakprominence
         peakprominence_array = parameter_maps[:, current_index]
         peakprominence_image = toolbox.reshape_array_to_image(peakprominence_array, image.shape[0], ROISIZE)
-        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakprominence.tiff')
+        Image.fromarray(peakprominence_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_peakprominence.tiff')
         print("Peakprominence written")
         current_index += 1
 
     if PEAKDISTANCE:
         distance_array = parameter_maps[:, current_index]
         distance_image = toolbox.reshape_array_to_image(distance_array, image.shape[0], ROISIZE)
-        Image.fromarray(distance_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_peakdistance.tiff')
+        Image.fromarray(distance_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_peakdistance.tiff')
         print("Peakdistance written")
         current_index += 1
 
@@ -125,7 +133,8 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         # Direction Non Crossing
         direction_array = parameter_maps[:, current_index]
         direction_image = toolbox.reshape_array_to_image(direction_array, image.shape[0], ROISIZE)
-        Image.fromarray(direction_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_non_crossing_dir.tiff')
+        Image.fromarray(direction_image).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(
+            path_name + '_non_crossing_dir.tiff')
         print("Non Crossing Direction written")
         current_index += 1
 
@@ -139,6 +148,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
         Image.fromarray(dir_2).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_dir_2.tiff')
         Image.fromarray(dir_3).resize(image.shape[:2][::-1], resample=Image.NEAREST).save(path_name + '_dir_3.tiff')
         print("Crossing Directions written")
+
 
 def generate_feature_maps(roiset, selected_parameters):
     """
@@ -182,29 +192,39 @@ def generate_feature_maps(roiset, selected_parameters):
                 resulting_parameter_maps[i, current_index] = roi.mean()
                 current_index += 1
             if selected_parameters[3]:
-                peak_positions_low_non_centroid = toolbox.peak_positions(peaks, roi, 0, toolbox.TARGET_PROMINENCE, centroid_calculation=False)
+                peak_positions_low_non_centroid = toolbox.peak_positions(peaks, roi, 0, toolbox.TARGET_PROMINENCE,
+                                                                         centroid_calculation=False)
                 resulting_parameter_maps[i, current_index] = len(peak_positions_low_non_centroid)
                 current_index += 1
             if selected_parameters[4]:
                 resulting_parameter_maps[i, current_index] = len(peak_positions_high_non_centroid)
                 current_index += 1
             if selected_parameters[5]:
-                resulting_parameter_maps[i, current_index] = toolbox.peakwidth(peak_positions_high_non_centroid, roi, len(peak_positions_high_non_centroid), len(roi)//2)
+                resulting_parameter_maps[i, current_index] = toolbox.peakwidth(peak_positions_high_non_centroid, roi,
+                                                                               len(peak_positions_high_non_centroid),
+                                                                               len(roi) // 2)
                 current_index += 1
             if selected_parameters[6]:
-                resulting_parameter_maps[i, current_index] = toolbox.prominence(peak_positions_high_non_centroid, roi, len(peak_positions_high_non_centroid))
+                resulting_parameter_maps[i, current_index] = toolbox.prominence(peak_positions_high_non_centroid, roi,
+                                                                                len(peak_positions_high_non_centroid))
                 current_index += 1
             if selected_parameters[7]:
-                resulting_parameter_maps[i, current_index] = toolbox.peakdistance(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                resulting_parameter_maps[i, current_index] = toolbox.peakdistance(peak_positions_high,
+                                                                                  len(peak_positions_high),
+                                                                                  len(roi) // 2)
                 current_index += 1
             if selected_parameters[8]:
-                resulting_parameter_maps[i, current_index] = toolbox.non_crossing_direction(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                resulting_parameter_maps[i, current_index] = toolbox.non_crossing_direction(peak_positions_high,
+                                                                                            len(peak_positions_high),
+                                                                                            len(roi) // 2)
                 current_index += 1
             if selected_parameters[9]:
-                resulting_parameter_maps[i, current_index:current_index+3] = toolbox.crossing_direction(peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                resulting_parameter_maps[i, current_index:current_index + 3] = toolbox.crossing_direction(
+                    peak_positions_high, len(peak_positions_high), len(roi) // 2)
                 current_index += 3
 
     return resulting_parameter_maps
+
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -237,7 +257,7 @@ def create_argument_parser():
                           action='store_true',
                           help='Apply smoothing for individual roi curves for noisy images.'
                                'Recommended for measurements with less than 5 degree between each image.')
-    #optional.add_argument('--no_centroid_calculation',
+    # optional.add_argument('--no_centroid_calculation',
     #                      action='store_true',
     #                      help='Disable centroid calculation. Not recommended!')
     optional.add_argument(
@@ -264,7 +284,7 @@ def create_argument_parser():
     image.add_argument('--direction',
                        action='store_true',
                        help='Add crossing directions (dir_1, dir_2, dir_3)'
-                      )
+                       )
     image.add_argument('--peaks',
                        action='store_true',
                        help='Add number of peaks below prominence and above prominence')
@@ -301,7 +321,7 @@ if __name__ == '__main__':
     print(
         'SLI Feature Generator:\n'
         'Number of threads: ' + str(toolbox.CPU_COUNT) + '\n\n'
-        'Chosen feature maps:\n' +
+                                                         'Chosen feature maps:\n' +
         'Direction maps: ' + str(DIRECTION) + '\n' +
         'Peak maps: ' + str(PEAKS) + '\n' +
         'Peakprominence map: ' + str(PEAKPROMINENCE) + '\n' +

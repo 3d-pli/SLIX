@@ -1,11 +1,11 @@
+import multiprocessing
+
 import nibabel
 import numpy
-import multiprocessing
+import pymp
 import tifffile
 from read_roi import read_roi_zip
 from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominences
-
-import pymp
 
 pymp.config.nested = True
 
@@ -16,6 +16,7 @@ MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
+
 
 def all_peaks(roi, cut_edges=True):
     z = roi.shape[0] // 2
@@ -73,7 +74,7 @@ def peakdistance(peaks, num_peaks, number_of_images):
 
 
 def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
-                               centroid_calculation=True):
+                       centroid_calculation=True):
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
         for i in p.range(0, len(roiset)):
@@ -128,7 +129,7 @@ def crossing_direction(peaks, num_peaks, number_of_images):
     if num_peaks == 1:
         ret_val[0] = (270.0 - peaks[0]) % 180
     elif num_peaks % 2 == 0 and num_peaks <= 6:
-        ret_val[:num_peaks//2] = (270.0 - ((peaks[num_peaks // 2:] + peaks[:num_peaks // 2]) / 2.0)) % 180
+        ret_val[:num_peaks // 2] = (270.0 - ((peaks[num_peaks // 2:] + peaks[:num_peaks // 2]) / 2.0)) % 180
         if num_peaks > 2:
             distances = peaks[num_peaks // 2:] - peaks[:num_peaks // 2]
             ret_val[:len(distances)][numpy.abs(distances - 180) > 35] = BACKGROUND_COLOR
@@ -170,85 +171,85 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
 
 
 def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_prominence=None):
-        reverse_roi = -1 * roi
-        minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
-        centroid_maxima = high_peaks.copy().astype('float32')
+    reverse_roi = -1 * roi
+    minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
+    centroid_maxima = high_peaks.copy().astype('float32')
 
-        for i in range(high_peaks.shape[0]):
-            peak = high_peaks[i]
-            target_peak_height = roi[high_peaks[i]] - roi[high_peaks].max() * (1 - TARGET_PEAK_HEIGHT)
-            minima_distances = peak - minima
+    for i in range(high_peaks.shape[0]):
+        peak = high_peaks[i]
+        target_peak_height = roi[high_peaks[i]] - roi[high_peaks].max() * (1 - TARGET_PEAK_HEIGHT)
+        minima_distances = peak - minima
 
-            lpos = rpos = peak
+        lpos = rpos = peak
 
-            # Check for minima in left and set left position accordingly
-            target_distances = (minima_distances <= MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances > 0)
-            if target_distances.any():
-                lpos = peak - minima_distances[target_distances].min()
-            # Look for peak height
-            below_target_peak_height = numpy.argwhere(
-                roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION: peak] < target_peak_height)
-            if len(below_target_peak_height) > 0:
-                below_target_peak_height = below_target_peak_height.max()
-                tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
-                if tlpos < lpos:
-                    lpos = tlpos
+        # Check for minima in left and set left position accordingly
+        target_distances = (minima_distances <= MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances > 0)
+        if target_distances.any():
+            lpos = peak - minima_distances[target_distances].min()
+        # Look for peak height
+        below_target_peak_height = numpy.argwhere(
+            roi[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION: peak] < target_peak_height)
+        if len(below_target_peak_height) > 0:
+            below_target_peak_height = below_target_peak_height.max()
+            tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
+            if tlpos < lpos:
+                lpos = tlpos
+        else:
+            tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            if tlpos < lpos:
+                lpos = tlpos
+
+        # Repeat for right bound
+        target_distances = (minima_distances >= -MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances < 0)
+        if target_distances.any():
+            rpos = peak - minima_distances[target_distances].min()
+        # Look for 80% of the peak height
+        below_target_peak_height = numpy.argwhere(
+            roi[peak: peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] < target_peak_height)
+        if len(below_target_peak_height) > 0:
+            below_target_peak_height = below_target_peak_height.min()
+            trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
+            if trpos > rpos:
+                rpos = trpos
+        else:
+            trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            if trpos > rpos:
+                rpos = trpos
+
+        # Create sampling to get exact 80% of peak height
+        def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
+            sampling = numpy.interp(numpy.arange(left - 1, right + 1, 1 / 100),
+                                    numpy.arange(left - 1, right + 1), roi[left - 1:right + 1])
+            if roi[left] > target_peak_height:
+                left_bound = number_of_samples
             else:
-                tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-                if tlpos < lpos:
-                    lpos = tlpos
-
-            # Repeat for right bound
-            target_distances = (minima_distances >= -MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances < 0)
-            if target_distances.any():
-                rpos = peak - minima_distances[target_distances].min()
-            # Look for 80% of the peak height
-            below_target_peak_height = numpy.argwhere(
-                roi[peak: peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] < target_peak_height)
-            if len(below_target_peak_height) > 0:
-                below_target_peak_height = below_target_peak_height.min()
-                trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
-                if trpos > rpos:
-                    rpos = trpos
-            else:
-                trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-                if trpos > rpos:
-                    rpos = trpos
-
-            # Create sampling to get exact 80% of peak height
-            def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
-                sampling = numpy.interp(numpy.arange(left - 1, right + 1, 1/100),
-                                        numpy.arange(left - 1, right + 1), roi[left - 1:right + 1])
-                if roi[left] > target_peak_height:
+                choices = numpy.argwhere(sampling[:(peak - left + 1) * number_of_samples] < target_peak_height)
+                if len(choices) > 0:
+                    left_bound = choices.max()
+                else:
                     left_bound = number_of_samples
+            if roi[right] > target_peak_height:
+                right_bound = len(sampling) - number_of_samples
+            else:
+                choices = numpy.argwhere(sampling[(peak - left + 1) * number_of_samples:] < target_peak_height)
+                if len(choices) > 0:
+                    right_bound = (peak - left + 1) * number_of_samples + choices.min()
                 else:
-                    choices = numpy.argwhere(sampling[:(peak - left + 1) * number_of_samples] < target_peak_height)
-                    if len(choices) > 0:
-                        left_bound = choices.max()
-                    else:
-                        left_bound = number_of_samples
-                if roi[right] > target_peak_height:
                     right_bound = len(sampling) - number_of_samples
-                else:
-                    choices = numpy.argwhere(sampling[(peak - left + 1) * number_of_samples:] < target_peak_height)
-                    if len(choices) > 0:
-                        right_bound = (peak - left + 1) * number_of_samples + choices.min()
-                    else:
-                        right_bound = len(sampling) - number_of_samples
 
-                return sampling, left_bound, right_bound
+            return sampling, left_bound, right_bound
 
-            sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
-            int_lpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * lbound
-            int_rpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * rbound
-            # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
-            centroid = numpy.sum(numpy.arange(int_lpos, int_rpos - 1e-10, 0.01) *
-                                 sampling[lbound:rbound]) / numpy.sum(sampling[lbound:rbound])
-            if numpy.abs(centroid - peak) > 1:
-                centroid = peak + numpy.sign(centroid - peak)
-            centroid_maxima[i] = centroid
+        sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
+        int_lpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * lbound
+        int_rpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * rbound
+        # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
+        centroid = numpy.sum(numpy.arange(int_lpos, int_rpos - 1e-10, 0.01) *
+                             sampling[lbound:rbound]) / numpy.sum(sampling[lbound:rbound])
+        if numpy.abs(centroid - peak) > 1:
+            centroid = peak + numpy.sign(centroid - peak)
+        centroid_maxima[i] = centroid
 
-        return centroid_maxima
+    return centroid_maxima
 
 
 def read_image(FILEPATH):
@@ -316,7 +317,7 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
                 y_indices = numpy.arange(left, left + width + 1)
                 rectangle_indices = numpy.array(numpy.meshgrid(x_indices, y_indices)).T.reshape(-1, 2)
                 rectangle_indices = rectangle_indices[(rectangle_indices[:, 0] - center[1]) ** 2 + (
-                            rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
+                        rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
 
                 roi = IMAGE[rectangle_indices[:, 0], rectangle_indices[:, 1], :]
                 average_per_dimension = numpy.average(roi, axis=0).flatten()
@@ -450,6 +451,3 @@ def reshape_array_to_image(image, x, ROISIZE):
     image_reshaped = image.reshape(
         (numpy.ceil(x / ROISIZE).astype('int'), image.shape[0] // numpy.ceil(x / ROISIZE).astype('int')))
     return image_reshaped
-
-
-
