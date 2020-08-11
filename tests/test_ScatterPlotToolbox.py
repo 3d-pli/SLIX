@@ -1,5 +1,5 @@
-import pytest
 from Library.ScatterPlotToolbox import *
+
 
 class TestScatterPlotToolBox:
     def test_all_peaks(self):
@@ -19,7 +19,7 @@ class TestScatterPlotToolBox:
     def test_peak_positions(self):
         # Create an absolute simple peak array
         arr = numpy.array([0, 1, 0, 0.07, 0, 1, 0, 0.07, 0, 1, 0])
-        # Test if high and low prominence seperation is working as intended
+        # Test if high and low prominence separation is working as intended
         high_peaks = numpy.argwhere(arr == 1).flatten()
         low_peaks = numpy.argwhere(arr == 0.07).flatten()
 
@@ -29,9 +29,6 @@ class TestScatterPlotToolBox:
                                            centroid_calculation=False)
         assert numpy.all(high_peaks == toolbox_high_peaks)
         assert numpy.all(low_peaks == toolbox_low_peaks)
-
-        # Test centroid calculation
-        # TODO
 
     def test_peakdistance(self):
         pass
@@ -80,6 +77,21 @@ class TestScatterPlotToolBox:
         peaks = all_peaks(six_peak_arr, cut_edges=False)
         high_peaks = peak_positions(peaks, six_peak_arr, centroid_calculation=False)
         toolbox_direction = crossing_direction(high_peaks, len(high_peaks), len(two_peak_arr))
+        assert numpy.all(expected_direction == toolbox_direction)
+
+        # Test for angle outside of 180°+-35° distance
+        error_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, BACKGROUND_COLOR])
+        peaks = all_peaks(error_arr, cut_edges=False)
+        high_peaks = peak_positions(peaks, error_arr, centroid_calculation=False)
+        toolbox_direction = crossing_direction(high_peaks, len(high_peaks), len(error_arr))
+        assert numpy.all(expected_direction == toolbox_direction)
+
+        error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
+        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, 60])
+        peaks = all_peaks(error_arr, cut_edges=False)
+        high_peaks = peak_positions(peaks, error_arr, centroid_calculation=False)
+        toolbox_direction = crossing_direction(high_peaks, len(high_peaks), len(error_arr))
         assert numpy.all(expected_direction == toolbox_direction)
 
     def test_crossing_direction_image(self):
@@ -138,5 +150,3 @@ class TestScatterPlotToolBox:
 
     def test_reshape_array_to_image(self):
         pass
-
-

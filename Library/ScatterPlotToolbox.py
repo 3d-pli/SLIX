@@ -123,13 +123,15 @@ def crossing_direction(peaks, num_peaks, number_of_images):
     # Scale peaks correctly for direction
     peaks = (peaks - number_of_images // 2) * (360.0 / number_of_images)
     # Change behaviour based on amount of peaks (steep, crossing, ...)
-    ret_val = numpy.full(3, BACKGROUND_COLOR)
+    ret_val = numpy.full(3, BACKGROUND_COLOR, dtype=numpy.float)
 
     if num_peaks == 1:
-        ret_val[0] = (270 - peaks[0]) % 180
+        ret_val[0] = (270.0 - peaks[0]) % 180
     elif num_peaks % 2 == 0 and num_peaks <= 6:
-        ret_val[:num_peaks//2] = (270 - ((peaks[num_peaks // 2:] + peaks[:num_peaks // 2]) / 2.0)) % 180
-        # TODO: Check for 180° +- 35°
+        ret_val[:num_peaks//2] = (270.0 - ((peaks[num_peaks // 2:] + peaks[:num_peaks // 2]) / 2.0)) % 180
+        if num_peaks > 2:
+            distances = peaks[num_peaks // 2:] - peaks[:num_peaks // 2]
+            ret_val[:len(distances)][numpy.abs(distances - 180) > 35] = BACKGROUND_COLOR
     return ret_val
 
 
