@@ -129,6 +129,7 @@ def crossing_direction(peaks, num_peaks, number_of_images):
         ret_val[0] = (270 - peaks[0]) % 180
     elif num_peaks % 2 == 0 and num_peaks <= 6:
         ret_val[:num_peaks//2] = (270 - ((peaks[num_peaks // 2:] + peaks[:num_peaks // 2]) / 2.0)) % 180
+        # TODO: Check for 180° +- 35°
     return ret_val
 
 
