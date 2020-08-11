@@ -1,0 +1,26 @@
+image: "python:3.7"
+
+before_script:
+    - python --version
+    - pip install -r requirements.txt
+
+stages:
+    - Analysis
+    - Test
+
+flake8:
+    stage: Analysis
+    script:
+        - flake8 --max-line-length=120 *.py */*.py
+
+pylint:
+  stage: Analysis
+  allow_failure: true
+  script:
+  - pylint -d C0301 *.py */*.py
+
+# run tests
+pytest:
+    stage: Test
+    script:
+        - pytest
