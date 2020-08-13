@@ -1,4 +1,4 @@
-from Library.ScatterPlotToolbox import *
+from slix.toolbox import *
 
 
 class TestScatterPlotToolBox:
@@ -12,9 +12,6 @@ class TestScatterPlotToolBox:
         # cut_edges should remove the peak position 1
         toolbox_peaks = all_peaks(arr)
         assert numpy.all(toolbox_peaks == real_peaks[1:])
-
-    def test_num_peaks_image(self):
-        pass
 
     def test_peak_positions(self):
         # Create an absolute simple peak array
@@ -31,28 +28,29 @@ class TestScatterPlotToolBox:
         assert numpy.all(low_peaks == toolbox_low_peaks)
 
     def test_peakdistance(self):
-        pass
+        test_arr = numpy.array([0, 0, 1, 0, 0, 0, 0, 1, 0] + [0] * 15)
+        expected_distance = 75
 
-    def test_peakdistance_image(self):
-        pass
+        toolbox_peaks = all_peaks(test_arr, cut_edges=False)
+        toolbox_distance = peakdistance(toolbox_peaks, 2, 24)
+        assert toolbox_distance == expected_distance
 
     def test_prominence(self):
         # Create an absolute simple peak array
-        arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0])
-        comparison = normalize(arr, kind_of_normalizaion=1)
+        test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0])
+        comparison = normalize(test_arr, kind_of_normalizaion=1)
 
-        toolbox_peaks = all_peaks(arr, cut_edges=False)
-        toolbox_prominence = prominence(toolbox_peaks, arr, len(toolbox_peaks))
+        toolbox_peaks = all_peaks(test_arr, cut_edges=False)
+        toolbox_prominence = prominence(toolbox_peaks, test_arr, len(toolbox_peaks))
         assert numpy.isclose(toolbox_prominence, numpy.mean(comparison[comparison > 0]))
 
-    def test_prominence_image(self):
-        pass
-
     def test_peakwidth(self):
-        pass
+        test_arr = numpy.array([0, 0.5, 1, 0.5, 0] + [0] * 19)
+        expected_width = 30
 
-    def test_peakwidth_image(self):
-        pass
+        toolbox_peaks = all_peaks(test_arr, cut_edges=False)
+        toolbox_width = peakwidth(toolbox_peaks, test_arr, 1, 24)
+        assert toolbox_width == expected_width
 
     def test_crossing_direction(self):
         # Test for one direction with 180°+-35° distance
@@ -94,9 +92,6 @@ class TestScatterPlotToolBox:
         toolbox_direction = crossing_direction(high_peaks, len(high_peaks), len(error_arr))
         assert numpy.all(expected_direction == toolbox_direction)
 
-    def test_crossing_direction_image(self):
-        pass
-
     def test_non_crossing_direction(self):
         # Test for one peak
         one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -122,14 +117,38 @@ class TestScatterPlotToolBox:
         toolbox_direction = non_crossing_direction(high_peaks, len(high_peaks), len(two_peak_arr))
         assert expected_direction == toolbox_direction
 
-    def test_non_crossing_direction_image(self):
-        pass
-
     def test_centroid_correction(self):
-        pass
+        # simple test case: one distinct peak
+        test_array = numpy.array([0] * 9 + [1] + [0] * 14)
+        test_high_peaks = numpy.array([9])
+        expected_centroid = numpy.array([9])
 
-    def test_read_image(self):
-        pass
+        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
+        assert expected_centroid == toolbox_centroid
+
+        # simple test case: one distinct peak
+        test_array = numpy.array([0] * 8 + [0.5, 1, 0.5] + [0] * 13)
+        test_high_peaks = numpy.array([9])
+        expected_centroid = numpy.array([9])
+
+        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
+        assert expected_centroid == toolbox_centroid
+
+        # simple test case: centroid is between two measurements
+        test_array = numpy.array([0] * 8 + [1, 1] + [0] * 14)
+        test_high_peaks = numpy.array([8])
+        expected_centroid = numpy.array([8.5])
+
+        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
+        assert expected_centroid == toolbox_centroid
+
+        # more complicated test case: wide peak plateau
+        test_array = numpy.array([0] * 8 + [1, 1, 1] + [0] * 13)
+        test_high_peaks = numpy.array([8])
+        expected_centroid = numpy.array([9])
+
+        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
+        assert numpy.isclose(expected_centroid, toolbox_centroid, 1e-2, 1e-2)
 
     def test_create_background_mask(self):
         test_array = (numpy.random.random(10000) * 256).astype('int')
@@ -149,4 +168,21 @@ class TestScatterPlotToolBox:
         assert numpy.all(numpy.isclose(expected_array, normalized_array))
 
     def test_reshape_array_to_image(self):
-        pass
+        test_array = numpy.array([i for i in range(0, 100)])
+
+        # Test reshape for no roi size
+        toolbox_image = reshape_array_to_image(test_array, 10, 1)
+        assert toolbox_image.shape == (10, 10)
+
+        # test if content of array is as expected
+        for i in range(0, 10):
+            for j in range(0, 10):
+                assert toolbox_image[i, j] == test_array[i * 10 + j]
+
+        # Test reshape for roi size of two
+        toolbox_image = reshape_array_to_image(test_array, 10, 2)
+        assert toolbox_image.shape == (5, 20)
+
+        for i in range(0, 5):
+            for j in range(0, 20):
+                assert toolbox_image[i, j] == test_array[i * 20 + j]

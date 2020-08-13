@@ -13,13 +13,13 @@ flake8:
     stage: Analysis
     allow_failure: true
     script:
-        - flake8 --max-line-length=120 *.py Library/*.py
+        - flake8 --max-line-length=120 bin/* slix/*.py
 
 pylint:
   stage: Analysis
   allow_failure: true
   script:
-  - pylint -d C0301 *.py Library/*.py
+  - pylint -d C0301 bin/* slix/*.py
 
 pytest:
     stage: Test

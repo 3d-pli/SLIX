@@ -63,8 +63,8 @@ def peakdistance(peaks, num_peaks, number_of_images):
     # Compute peak distance for curves with 1-2 detected peaks
     if num_peaks == 1:  # distance for one peak = 0
         return 0
-    elif num_peaks >= 2 and num_peaks % 2 == 0:
-        distances = peaks[::2] - peaks[1::2]
+    if num_peaks >= 2 and num_peaks % 2 == 0:
+        distances = numpy.abs(peaks[::2] - peaks[1::2])
         dist = distances.mean()
         if dist > 180:
             dist = 360 - dist
@@ -170,6 +170,30 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
     return return_value
 
 
+# Create sampling to get exact 80% of peak height
+def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
+    sampling = numpy.interp(numpy.arange(left - 1, right + 1, 1 / 100),
+                            numpy.arange(left - 1, right + 1), roi[left - 1:right + 1])
+    if roi[left] > target_peak_height:
+        left_bound = number_of_samples
+    else:
+        choices = numpy.argwhere(sampling[:(peak - left + 1) * number_of_samples] < target_peak_height)
+        if len(choices) > 0:
+            left_bound = choices.max()
+        else:
+            left_bound = number_of_samples
+    if roi[right] > target_peak_height:
+        right_bound = len(sampling) - number_of_samples
+    else:
+        choices = numpy.argwhere(sampling[(peak - left + 1) * number_of_samples:] < target_peak_height)
+        if len(choices) > 0:
+            right_bound = (peak - left + 1) * number_of_samples + choices.min()
+        else:
+            right_bound = len(sampling) - number_of_samples
+
+    return sampling, left_bound, right_bound
+
+
 def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_prominence=None):
     reverse_roi = -1 * roi
     minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
@@ -216,29 +240,6 @@ def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_
             if trpos > rpos:
                 rpos = trpos
 
-        # Create sampling to get exact 80% of peak height
-        def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
-            sampling = numpy.interp(numpy.arange(left - 1, right + 1, 1 / 100),
-                                    numpy.arange(left - 1, right + 1), roi[left - 1:right + 1])
-            if roi[left] > target_peak_height:
-                left_bound = number_of_samples
-            else:
-                choices = numpy.argwhere(sampling[:(peak - left + 1) * number_of_samples] < target_peak_height)
-                if len(choices) > 0:
-                    left_bound = choices.max()
-                else:
-                    left_bound = number_of_samples
-            if roi[right] > target_peak_height:
-                right_bound = len(sampling) - number_of_samples
-            else:
-                choices = numpy.argwhere(sampling[(peak - left + 1) * number_of_samples:] < target_peak_height)
-                if len(choices) > 0:
-                    right_bound = (peak - left + 1) * number_of_samples + choices.min()
-                else:
-                    right_bound = len(sampling) - number_of_samples
-
-            return sampling, left_bound, right_bound
-
         sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
         int_lpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * lbound
         int_rpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * rbound
@@ -255,12 +256,13 @@ def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_
 def read_image(FILEPATH):
     """
     Reads iamge file and returns it.
-    
+
     Arguments:
         FILEPATH {str} -- Path to image
 
     Returns:
-        numpy.array -- Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number of images
+        numpy.array -- Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number
+                       of images
     """
     # Load NIfTI dataset
     if FILEPATH.endswith('.nii'):
@@ -277,13 +279,13 @@ def create_background_mask(IMAGE, threshold=10):
     """Creates a background mask based on given threshold. As all background pixels are near zero when looking through
     the z-axis plot this method should remove most of the background allowing better approximations using the available
     features. It is advised to use this function.
-    
+
     Arguments:
         IMAGE {numpy.array} -- 2D/3D-image containing the z-axis in the last dimension
-    
+
     Keyword Arguments:
         threshold {int} -- Threshhold for mask creation (default: {10})
-    
+
     Returns:
         numpy.array -- 1D/2D-image which masks the background as True and foreground as False
     """
@@ -293,7 +295,7 @@ def create_background_mask(IMAGE, threshold=10):
 
 def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
     rois = read_roi_zip(PATH_TO_ROISET)
-    x, y, z = IMAGE.shape[0], IMAGE.shape[1], IMAGE.shape[2]
+    z = IMAGE.shape[2]
 
     if extend:
         roi_set = pymp.shared.array((len(rois.items()), 2 * z), dtype='float32')
@@ -317,7 +319,7 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
                 y_indices = numpy.arange(left, left + width + 1)
                 rectangle_indices = numpy.array(numpy.meshgrid(x_indices, y_indices)).T.reshape(-1, 2)
                 rectangle_indices = rectangle_indices[(rectangle_indices[:, 0] - center[1]) ** 2 + (
-                        rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
+                    rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
 
                 roi = IMAGE[rectangle_indices[:, 0], rectangle_indices[:, 1], :]
                 average_per_dimension = numpy.average(roi, axis=0).flatten()
@@ -338,11 +340,11 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     specified ROISIZE. The returned image will have twice the size in the z-axis as the both halfs will be doubled for
     the peak detection.
 
-    
+
     Arguments:
         IMAGE {numpy.memmap} -- Image containing multiple images in a z-stack 
         ROISIZE {int} -- Size in pixels which are used to create the region of interest image
-    
+
     Returns:
         numpy.array -- Image with shape [x/ROISIZE, y/ROISIZE, 2*z] containing the average value of the given roiset for
         each image in z-axis.
@@ -410,15 +412,15 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
 
 def normalize(roi, kind_of_normalizaion=0):
     """
-    Normalize given line profile by using different normalization techniques based on the kind_of_normalization parameter
+    Normalize given line profile by using a normalization technique based on the kind_of_normalization parameter
 
     0 : Scale line profile to be between 0 and 1
     1 : Divide line profile through it's mean value
-    
+
     Arguments:
         roi {numpy.memmap} -- Line profile of a singular pixel / region of interest
         kind_of_normalization {int} -- Normalization technique which will be used for the calculation 
-    
+
     Returns:
         numpy.array -- Normalized line profile of the given roi parameter
     """
@@ -439,12 +441,12 @@ def normalize(roi, kind_of_normalizaion=0):
 def reshape_array_to_image(image, x, ROISIZE):
     """
     Convert array back to image keeping the lower resolution based on the ROISIZE.
-    
+
     Arguments:
         image {numpy.array} -- Array created by other methods with lower resolution based on ROISIZE
         x {int} -- Size of original image in x-dimension
         ROISIZE {int} -- Size of the ROI used for evaluating the roiset
-    
+
     Returns:
         numpy.array -- Reshaped image based on the input array
     """

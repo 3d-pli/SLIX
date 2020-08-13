@@ -9,7 +9,7 @@ import pymp
 from PIL import Image
 
 # Imports
-import Library.ScatterPlotToolbox as toolbox
+import slix.toolbox as toolbox
 
 # Default parameters. Will be changed when using the argument parser when calling the program.
 DIRECTION = True
