@@ -356,7 +356,7 @@ class ParameterEstimator():
         mask_c[:, :, 1] = self.__crossing_substance_mask   
         mask_c[:, :, 2] = self.__crossing_substance_mask
         
-        mask_r = numpy.where(mask_c > 0, [0, 0.75, 1] * mask_r, [1, 0.65, 0] * mask_r)
+        mask_r = numpy.where(mask_c > 0, [0.054, 0.054, 0.561], [0.93, 0.498, 0.067])
         plt.imshow(mask_r)
         plt.axis('off')
         plt.savefig('ret_crossing.png', dpi=600, bbox_inches='tight')
