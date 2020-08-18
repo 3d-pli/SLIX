@@ -13,7 +13,7 @@ This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 
-# If a virtual environment is needed:
+# A virtual environment is recommended:
 python3 -m venv venv
 source venv/bin/activate
 
