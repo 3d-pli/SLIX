@@ -8,7 +8,7 @@ Scattered Light Imaging (SLI) is a novel neuroimaging technique that resolves th
 
 This repository contains the toolbox (SLIX) that allows an automated evaluation of SLI measurements and generates different parameter maps. For a given SLI image stack, `GenFeatureSet.py` is able to calculate up to 11 (8 + 3 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `GenLinePlotFeatureSet.py`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding feature set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
 
-## How to install SLIX
+## How to install SLIX locally
 ```
 git clone git@jugit.fz-juelich.de:j.reuter/slix.git
 cd SLIX
@@ -20,12 +20,20 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
+## Install SLIX as a Python package
+```
+git clone git@jugit.fz-juelich.de:j.reuter/slix.git
+cd SLIX
+
+python setup.py --install
+```
+
 ## `GenFeatureSet.py`
 
 Main tool to create desired parameter maps from an SLI image stack.
 
 ```
-./GenFeatureSet.py -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
+./bin/SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
 ### Required Parameters
