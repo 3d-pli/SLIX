@@ -25,7 +25,7 @@ pip3 install -r requirements.txt
 git clone git@jugit.fz-juelich.de:j.reuter/slix.git
 cd SLIX
 
-python setup.py --install
+python3 setup.py --install
 ```
 
 ## `GenFeatureSet.py`
@@ -92,7 +92,7 @@ Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 Evaluation of SLI profiles (txt-files with list of intensity values): max/min, number of peaks, peak positions
 
 ```
-./GenLinePlotFeatureSet.py -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
+./bin/SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
 | Parameter      | Function                                                                    |
