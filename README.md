@@ -68,6 +68,8 @@ Additional parameters that determine which parameter maps will be generated from
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
 ### Resulting parameter maps
+
+The following parameter maps have been generated from the SLI image stack of a coronal vervet monkey brain section (upper left corner) available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii). More data (SLI image stacks and parameter maps) are available on the [EBRAINS data repository](https://doi.org/10.25493/XA4S-XXZ).
  
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
 
