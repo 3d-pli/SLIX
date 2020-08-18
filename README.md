@@ -1,11 +1,12 @@
-# SLIX -- Scattered Light Imaging ToolboX
+# SLIX - Scattered Light Imaging ToolboX
 
 ![https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png)
 
 # Introduction 
 
-*Scattered Light Imaging (SLI)* is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037)). The measurement principle was first introduced by [Menzel et al. (2020a)](http://dx.doi.org/10.1103/PhysRevX.10.021002). A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different directions of illumination (azimuthal angles, <img src="https://render.githubusercontent.com/render/math?math=\phi">). For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (SLI image stack) in which each image pixel contains a light intensity profile (SLI profile, <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">).
-This repository contains the *Scattered Light Imaging ToolboX* (SLIX) -- an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. For a given SLI image stack, `SLIXParameterGenerator` is able to calculate up to 11 (8 + 3 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `SLIXLineplotParameterGenerator`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding parameter set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
+*Scattered Light Imaging (SLI)* is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037)). The measurement principle was first introduced by [Menzel et al. (2020a)](http://dx.doi.org/10.1103/PhysRevX.10.021002): A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different azimuthal angles (*directions of illumination* <img src="https://render.githubusercontent.com/render/math?math=\phi">). For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (*SLI image stack*) in which each image pixel contains a light intensity profile (*SLI profile* <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">).
+
+This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. For a given SLI image stack, `SLIXParameterGenerator` is able to compute up to 11 (8 + 3 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `SLIXLineplotParameterGenerator`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding parameter set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
 
 ## How to install SLIX locally
 ```
@@ -19,7 +20,7 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-## How to install SLIX as a Python package
+## How to install SLIX as Python package
 ```
 git clone git@jugit.fz-juelich.de:j.reuter/slix.git
 cd SLIX
@@ -35,7 +36,7 @@ Main tool to create desired parameter maps from an SLI image stack.
 ./bin/SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
-### Required Parameters
+### Required parameters
 
 | Parameter        | Function                                                |
 | ---------------- | ------------------------------------------------------- |
@@ -88,7 +89,7 @@ Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 ## Additional tools
 
 ### `SLIXLineplotParameterGenerator`
-Evaluation of SLI profiles (txt-files with list of intensity values): max/min, number of peaks, peak positions
+Individual evaluation of SLI profiles (txt-files with list of intensity values): max/min, number of peaks, peak positions
 
 ```
 ./bin/SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
@@ -100,7 +101,7 @@ Evaluation of SLI profiles (txt-files with list of intensity values): max/min, n
 | `-o, --output` | Output folder used to store the FeatureSet (txt-file containing the characteristics of the SLI profiles): max, min, num_peaks, peak_positions. Will be created if not existing. |
 | `--smoothing`  | Smoothing of SLI profiles before evaluation. |
 | `--with_plots` | Generates png-files showing the SLI profiles and the determined peak positions (with/without correction). |
-| `--target_peak_height` | Change peak height used for correcting the peak positions (Default: 6% of peak height). Not recommended! |
+| `--target_peak_height` | Change peak height used for correcting the peak positions (Default: 6% of peak height). Only recommended for experienced users! |
 
 ## Authors
 - Jan André Reuter
@@ -118,8 +119,8 @@ This open source software code was developed in part or in whole in the Human Br
 ## License
 This software is released under MIT License
 ```
-Copyright (c) 2020 Jan André Reuter.
-Copyright (c) 2020 Miriam Menzel.
+Copyright (c) 2020 Forschungszentrum Jülich / Jan André Reuter.
+Copyright (c) 2020 Forschungszentrum Jülich / Miriam Menzel.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
