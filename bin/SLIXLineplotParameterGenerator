@@ -8,7 +8,7 @@ import tqdm
 from matplotlib import pyplot as plt
 from scipy.signal import savgol_filter
 
-import slix.toolbox as toolbox
+import SLIX.toolbox as toolbox
 
 def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
     roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')

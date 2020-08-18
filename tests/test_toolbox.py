@@ -1,7 +1,7 @@
-from slix.toolbox import *
+from SLIX.toolbox import *
 
 
-class TestScatterPlotToolBox:
+class TestToolbox:
     def test_all_peaks(self):
         # Create an absolute simple peak array
         arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0])

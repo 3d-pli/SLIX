@@ -8,9 +8,9 @@
 
 This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. For a given SLI image stack, `SLIXParameterGenerator` is able to compute up to 11 (8 + 3 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `SLIXLineplotParameterGenerator`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding parameter set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
 
-## How to install SLIX locally
+## How to clone SLIX
 ```
-git clone git@jugit.fz-juelich.de:j.reuter/slix.git
+git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 
 # If a virtual environment is needed:
@@ -22,10 +22,10 @@ pip3 install -r requirements.txt
 
 ## How to install SLIX as Python package
 ```
-git clone git@jugit.fz-juelich.de:j.reuter/slix.git
+git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 
-python3 setup.py --install
+python3 setup.py install
 ```
 
 ## `SLIXParameterGenerator`
@@ -33,7 +33,7 @@ python3 setup.py --install
 Main tool to create desired parameter maps from an SLI image stack.
 
 ```
-./bin/SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
+SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
 ### Required parameters
@@ -92,7 +92,7 @@ Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 Individual evaluation of SLI profiles (txt-files with list of intensity values): max/min, number of peaks, peak positions
 
 ```
-./bin/SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
+SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
 | Parameter      | Function                                                                    |
