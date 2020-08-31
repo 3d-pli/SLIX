@@ -112,7 +112,8 @@ def peakdistance(peak_positions, number_of_measurements):
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one
+    line profile.
 
     Returns
     -------
@@ -138,7 +139,8 @@ def peakdistance(peak_positions, number_of_measurements):
 def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
                        centroid_calculation=True):
     """
-    Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image series.
+    Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image
+    series.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
     parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
 
@@ -179,7 +181,7 @@ def prominence(peak_positions, line_profile):
 
     Returns
     -------
-    NumPy array where each entry corresponds to the mean peak prominence of the line profile.
+    Floating point value containing the mean peak prominence of the line profile in degrees.
     """
     num_peaks = len(peak_positions)
     prominence_roi = normalize(line_profile, kind_of_normalization=1)
@@ -188,8 +190,8 @@ def prominence(peak_positions, line_profile):
 
 def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
-    Calculate the mean peak prominence of all given peak positions for each line profile in an SLI image series. Each line
-    profile will be normalized by dividing the line profile through its mean value. Therefore, values above 1 are
+    Calculate the mean peak prominence of all given peak positions for each line profile in an SLI image series. Each
+    line profile will be normalized by dividing the line profile through its mean value. Therefore, values above 1 are
     possible.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
     parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
@@ -223,11 +225,12 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
     peak_positions: Detected peak positions of the 'all_peaks' method.
     line_profile: Original line profile used to detect all peaks. This array will be further
     analyzed to better determine the peak positions.
-    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one line
+    profile.
 
     Returns
     -------
-    NumPy array where each entry corresponds to the mean peak width of the line profile.
+    Floating point value containing the mean peak width of the line profile in degrees.
     """
     num_peaks = len(peak_positions)
     if num_peaks > 0:
@@ -274,7 +277,8 @@ def crossing_direction(peak_positions, number_of_measurements):
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line
+    profile.
 
     Returns
     -------
@@ -318,7 +322,8 @@ def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prom
     Returns
     -------
     NumPy array with the shape (x, 3) containing up to three direction angles. 
-    x equals the number of pixels of the SLI image series. If a direction angle is invalid or missing, the array entry will be BACKGROUND_COLOR instead.
+    x equals the number of pixels of the SLI image series. If a direction angle is invalid or missing, the array entry
+    will be BACKGROUND_COLOR instead.
 
     """
     return_value = pymp.shared.array((roiset.shape[0], 3), dtype=numpy.float)
@@ -340,7 +345,8 @@ def non_crossing_direction(peak_positions, number_of_measurements):
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line
+    profile.
 
     Returns
     -------
@@ -533,8 +539,8 @@ def read_image(FILEPATH):
 def create_background_mask(IMAGE, threshold=10):
     """
     Creates a background mask based on given threshold. As all background pixels are near zero when looking through
-    the z-axis plot, this method should remove most of the background allowing for better approximations using the available
-    features. It is advised to use this function.
+    the z-axis plot, this method should remove most of the background allowing for better approximations using the
+    available features. It is advised to use this function.
 
     Arguments:
         IMAGE: 2D/3D-image containing the z-axis in the last dimension

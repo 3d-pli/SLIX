@@ -230,8 +230,7 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
                 current_index += 1
             # Peak prominence
             if selected_parameter_maps[6]:
-                resulting_parameter_maps[i, current_index] = toolbox.prominence(peak_positions_high_non_centroid, roi,
-                                                                                len(peak_positions_high_non_centroid))
+                resulting_parameter_maps[i, current_index] = toolbox.prominence(peak_positions_high_non_centroid, roi)
                 current_index += 1
             # Peak distance
             if selected_parameter_maps[7]:
