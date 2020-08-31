@@ -9,6 +9,7 @@ from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominence
 
 pymp.config.nested = True
 
+# DEFAULT PARAMETERS
 BACKGROUND_COLOR = -1
 CPU_COUNT = min(16, multiprocessing.cpu_count())
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
@@ -19,7 +20,7 @@ TARGET_PROMINENCE = 0.08
 
 
 def all_peaks(roi, cut_edges=True):
-    z = roi.shape[0] // 2
+    number_of_measurements = roi.shape[0] // 2
 
     roi = normalize(roi)
     # Generate peaks
@@ -27,9 +28,9 @@ def all_peaks(roi, cut_edges=True):
 
     # Only consider peaks which are in bounds
     if cut_edges:
-        maxima = maxima[(maxima >= z // 2) & (maxima <= len(roi) - z // 2)]
+        maxima = maxima[(maxima >= number_of_measurements // 2) & (maxima <= len(roi) - number_of_measurements // 2)]
         # Filter double peak
-        if numpy.all(numpy.isin([z // 2, len(roi) - z // 2], maxima)):
+        if numpy.all(numpy.isin([number_of_measurements // 2, len(roi) - number_of_measurements // 2], maxima)):
             maxima = maxima[1:]
 
     return maxima
@@ -171,7 +172,7 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
 
 
 # Create sampling to get exact 80% of peak height
-def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples):
+def create_sampling(roi, peak, left, right, target_peak_height, number_of_samples=NUMBER_OF_SAMPLES):
     sampling = numpy.interp(numpy.arange(left - 1, right + 1, 1 / 100),
                             numpy.arange(left - 1, right + 1), roi[left - 1:right + 1])
     if roi[left] > target_peak_height:
@@ -240,7 +241,7 @@ def centroid_correction(roi, high_peaks, low_prominence=TARGET_PROMINENCE, high_
             if trpos > rpos:
                 rpos = trpos
 
-        sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height, NUMBER_OF_SAMPLES)
+        sampling, lbound, rbound = create_sampling(roi, peak, lpos, rpos, target_peak_height)
         int_lpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * lbound
         int_rpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * rbound
         # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
@@ -258,11 +259,11 @@ def read_image(FILEPATH):
     Reads iamge file and returns it.
 
     Arguments:
-        FILEPATH {str} -- Path to image
+        FILEPATH: Path to image
 
     Returns:
-        numpy.array -- Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number
-                       of images
+        numpy.array: Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number
+                     of measurements
     """
     # Load NIfTI dataset
     if FILEPATH.endswith('.nii'):
@@ -276,18 +277,19 @@ def read_image(FILEPATH):
 
 
 def create_background_mask(IMAGE, threshold=10):
-    """Creates a background mask based on given threshold. As all background pixels are near zero when looking through
+    """
+    Creates a background mask based on given threshold. As all background pixels are near zero when looking through
     the z-axis plot this method should remove most of the background allowing better approximations using the available
     features. It is advised to use this function.
 
     Arguments:
-        IMAGE {numpy.array} -- 2D/3D-image containing the z-axis in the last dimension
+        IMAGE: 2D/3D-image containing the z-axis in the last dimension
 
     Keyword Arguments:
-        threshold {int} -- Threshhold for mask creation (default: {10})
+        threshold: Threshhold for mask creation (default: {10})
 
     Returns:
-        numpy.array -- 1D/2D-image which masks the background as True and foreground as False
+        numpy.array: 1D/2D-image which masks the background as True and foreground as False
     """
     mask = numpy.max(IMAGE < threshold, axis=-1)
     return mask
@@ -295,12 +297,12 @@ def create_background_mask(IMAGE, threshold=10):
 
 def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
     rois = read_roi_zip(PATH_TO_ROISET)
-    z = IMAGE.shape[2]
+    number_of_measurements = IMAGE.shape[2]
 
     if extend:
-        roi_set = pymp.shared.array((len(rois.items()), 2 * z), dtype='float32')
+        roi_set = pymp.shared.array((len(rois.items()), 2 * number_of_measurements), dtype='float32')
     else:
-        roi_set = pymp.shared.array((len(rois.items()), z), dtype='float32')
+        roi_set = pymp.shared.array((len(rois.items()), number_of_measurements), dtype='float32')
 
     roi_values = list(dict(rois.items()).values())
     name_set = list(dict(rois.items()).keys())
@@ -319,13 +321,13 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
                 y_indices = numpy.arange(left, left + width + 1)
                 rectangle_indices = numpy.array(numpy.meshgrid(x_indices, y_indices)).T.reshape(-1, 2)
                 rectangle_indices = rectangle_indices[(rectangle_indices[:, 0] - center[1]) ** 2 + (
-                    rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
+                        rectangle_indices[:, 1] - center[0]) ** 2 < width * height]
 
                 roi = IMAGE[rectangle_indices[:, 0], rectangle_indices[:, 1], :]
                 average_per_dimension = numpy.average(roi, axis=0).flatten()
                 if extend:
                     average_per_dimension = numpy.concatenate(
-                        (average_per_dimension[-z // 2:], average_per_dimension, average_per_dimension[:z // 2]))
+                        (average_per_dimension[-number_of_measurements // 2:], average_per_dimension, average_per_dimension[:number_of_measurements // 2]))
                 name_set[i] = name
                 roi_set[i] = average_per_dimension
             else:
@@ -337,29 +339,28 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
 def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     """
     Create z-axis profile of given image by creating a roiset image containing the average value of pixels within the
-    specified ROISIZE. The returned image will have twice the size in the z-axis as the both halfs will be doubled for
+    specified ROISIZE. The returned image will have twice the size in the third axis as the both half will be doubled for
     the peak detection.
 
-
     Arguments:
-        IMAGE {numpy.memmap} -- Image containing multiple images in a z-stack 
-        ROISIZE {int} -- Size in pixels which are used to create the region of interest image
+        IMAGE: Image containing multiple images in a 3D-stack
+        ROISIZE: Size in pixels which are used to create the region of interest image
 
     Returns:
-        numpy.array -- Image with shape [x/ROISIZE, y/ROISIZE, 2*z] containing the average value of the given roiset for
-        each image in z-axis.
+        numpy.array: Image with shape [x/ROISIZE, y/ROISIZE, 2*'number of measurements'] containing the average value
+        of the given roi for each image in z-axis.
     """
     # Get image dimensions
     x = IMAGE.shape[0]
     y = IMAGE.shape[1]
-    z = IMAGE.shape[2]
+    number_of_measurements = IMAGE.shape[2]
     nx = numpy.ceil(x / ROISIZE).astype('int')
     ny = numpy.ceil(y / ROISIZE).astype('int')
 
     if extend:
-        roi_set = pymp.shared.array((nx * ny, 2 * z), dtype='float32')
+        roi_set = pymp.shared.array((nx * ny, 2 * number_of_measurements), dtype='float32')
     else:
-        roi_set = pymp.shared.array((nx * ny, z), dtype='float32')
+        roi_set = pymp.shared.array((nx * ny, number_of_measurements), dtype='float32')
 
     # ROISIZE == 1 is exactly the same as the original image
     if ROISIZE > 1:
@@ -371,7 +372,7 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
                     average_per_dimension = numpy.average(numpy.average(roi, axis=1), axis=0).flatten()
                     if extend:
                         average_per_dimension = numpy.concatenate(
-                            (average_per_dimension[-z // 2:], average_per_dimension, average_per_dimension[:z // 2]))
+                            (average_per_dimension[-number_of_measurements // 2:], average_per_dimension, average_per_dimension[:number_of_measurements // 2]))
                     roi_set[i * ny + j] = average_per_dimension
     else:
         with pymp.Parallel(CPU_COUNT) as p:
@@ -379,7 +380,7 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
                 for j in range(0, ny):
                     roi = IMAGE[i, j, :]
                     if extend:
-                        roi = numpy.concatenate((roi[-z // 2:], roi, roi[:z // 2]))
+                        roi = numpy.concatenate((roi[-number_of_measurements // 2:], roi, roi[:number_of_measurements // 2]))
                     roi_set[i * ny + j] = roi
 
     return roi_set
@@ -390,11 +391,11 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
     Applies Savitzky-Golay filter to given roiset and returns the smoothened measurement.
 
     Args:
-        roiset: numpy.array -- Flattened image with the dimensions [x*y, z] where z equals the number of measurements
-        range: int -- Used window length for the Savitzky-Golay filter
-        polynom_order: int -- Used polynomial order for the Savitzky-Golay filter
+        roiset: Flattened image with the dimensions [x*y, z] where z equals the number of measurements
+        range: Used window length for the Savitzky-Golay filter
+        polynom_order: Used polynomial order for the Savitzky-Golay filter
 
-    Returns: numpy.array -- Roi set with applied Savitzky-Golay filter and the same shape as the original roiset.
+    Returns: Line profiles with applied Savitzky-Golay filter and the same shape as the original roi set.
 
     """
     roiset_rolled = pymp.shared.array(roiset.shape, dtype='float32')
@@ -410,7 +411,7 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
     return roiset_rolled
 
 
-def normalize(roi, kind_of_normalizaion=0):
+def normalize(roi, kind_of_normalization=0):
     """
     Normalize given line profile by using a normalization technique based on the kind_of_normalization parameter
 
@@ -418,8 +419,8 @@ def normalize(roi, kind_of_normalizaion=0):
     1 : Divide line profile through it's mean value
 
     Arguments:
-        roi {numpy.memmap} -- Line profile of a singular pixel / region of interest
-        kind_of_normalization {int} -- Normalization technique which will be used for the calculation 
+        roi: Line profile of a singular pixel / region of interest
+        kind_of_normalization: Normalization technique which will be used for the calculation
 
     Returns:
         numpy.array -- Normalized line profile of the given roi parameter
@@ -429,9 +430,9 @@ def normalize(roi, kind_of_normalizaion=0):
         if roi.max() == roi.min():
             normalized_roi = numpy.ones(roi.shape)
         else:
-            if kind_of_normalizaion == 0:
+            if kind_of_normalization == 0:
                 normalized_roi = (roi - roi.min()) / (roi.max() - roi.min())
-            elif kind_of_normalizaion == 1:
+            elif kind_of_normalization == 1:
                 normalized_roi = roi / numpy.mean(roi)
         return normalized_roi
     else:
@@ -443,9 +444,9 @@ def reshape_array_to_image(image, x, ROISIZE):
     Convert array back to image keeping the lower resolution based on the ROISIZE.
 
     Arguments:
-        image {numpy.array} -- Array created by other methods with lower resolution based on ROISIZE
-        x {int} -- Size of original image in x-dimension
-        ROISIZE {int} -- Size of the ROI used for evaluating the roiset
+        image: Array created by other methods with lower resolution based on ROISIZE
+        x: Size of original image in x-dimension
+        ROISIZE: Size of the ROI used for evaluating the roiset
 
     Returns:
         numpy.array -- Reshaped image based on the input array

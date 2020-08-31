@@ -10,48 +10,70 @@ from scipy.signal import savgol_filter
 
 import SLIX.toolbox as toolbox
 
-def full_pipeline(PATH, NAME, with_smoothing=True, with_plots=False):
-    roiset = numpy.fromfile(PATH, dtype=numpy.float, sep='\n')
-    if with_smoothing:
-        roiset = numpy.concatenate((roiset, roiset, roiset))
-        roiset_rolled = savgol_filter(roiset, 45, 2)
-        z_begin = len(roiset_rolled) // 3 // 2
-        z_end = len(roiset_rolled) - z_begin
-        roiset_rolled = roiset_rolled[z_begin:z_end]
-        roiset_rolled = numpy.expand_dims(roiset_rolled, axis=0)
-        z = z_begin
-    else:
-        roiset = numpy.concatenate((roiset[-len(roiset) // 2:], roiset, roiset[:len(roiset) // 2]))
-        roiset_rolled = numpy.expand_dims(roiset, axis=0)
-        z = len(roiset) // 4
 
-    peaks = toolbox.all_peaks(roiset_rolled.flatten())
-    max_array = roiset_rolled.max()
-    min_array = roiset_rolled.min()
+def full_pipeline(filepath, output_filename, with_smoothing=True, with_plots=False):
+    """
+    Example pipeline how a single line profile can be processed using SLIX. Here, significant values like the number of
+    peaks and their peak positions are determined using the SLIX library. Resulting features are written into a
+    non-binary text file allowing further studies.
+
+    Args:
+        filepath: Input path for line profile.
+        output_filename: Output file pattern for generated features. A file with 'output_filename'.txt will be
+         generated. If 'with_plots' is True 'output_filename'.png will also be generated
+        with_smoothing: Apply the Savitzky-Golay filter with a polynomial order of 2 and window length of 45 to
+        the given line profile.
+        with_plots: Create two plots where the line profile as well as all detected peak positions are shown.
+        If the parameter 'with_smoothing' is used both the smoothed and original line profile is shown.
+
+    Returns: None
+    """
+    line_profile = numpy.fromfile(filepath, dtype=numpy.float, sep='\n')
+    # When line profiles are smoothed
+    if with_smoothing:
+        line_profile_expanded = numpy.concatenate((line_profile, line_profile, line_profile))
+        line_profile_smoothed = savgol_filter(line_profile_expanded, 45, 2)
+        first_measurement = len(line_profile_smoothed) // 3 // 2
+        last_measurement = len(line_profile_smoothed) - first_measurement
+        line_profile_smoothed = line_profile_smoothed[first_measurement:last_measurement]
+        line_profile_smoothed = numpy.expand_dims(line_profile_smoothed, axis=0)
+        num_measurements = first_measurement
+    else:
+        line_profile_expanded = numpy.concatenate(
+            (line_profile[-len(line_profile) // 2:], line_profile, line_profile[:len(line_profile) // 2]))
+        line_profile_smoothed = numpy.expand_dims(line_profile_expanded, axis=0)
+        num_measurements = len(line_profile) // 4
+
+    peaks = toolbox.all_peaks(line_profile_smoothed.flatten())
+    max_array = line_profile_smoothed.max()
+    min_array = line_profile_smoothed.min()
     if with_plots:
         if with_smoothing:
-            plt.plot(roiset[2 * z:-2 * z + 3])
-            plt.plot(roiset_rolled.flatten()[z:-z + 3])
+            plt.plot(line_profile[2 * num_measurements:-2 * num_measurements + 3])
+            plt.plot(line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3])
         else:
-            plt.plot(roiset[z:-z + 3])
-        peaks = toolbox.peak_positions(peaks, roiset_rolled.flatten(), centroid_calculation=False)
-        peaks = peaks - z
-        plt.plot(peaks, roiset_rolled.flatten()[z:-z + 3][peaks], 'o')
-    peaks = toolbox.peak_positions(peaks, roiset_rolled.flatten(), centroid_calculation=True)
-    peaks = peaks - z
+            plt.plot(line_profile[num_measurements:-num_measurements + 3])
+        peaks = toolbox.peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=False)
+        peaks = peaks - num_measurements
+        plt.plot(peaks, line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][peaks], 'o')
+    peaks = toolbox.peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=True)
+    peaks = peaks - num_measurements
     if with_plots:
-        plt.plot(peaks, [roiset_rolled.flatten()[z:-z + 3][int(numpy.floor(peak))] + (peak - int(peak)) * (
-                roiset_rolled.flatten()[z:-z + 3][int(numpy.ceil(peak))] - roiset_rolled.flatten()[z:-z + 3][
-            int(numpy.floor(peak))]) for peak in peaks], 'x')
-        plt.savefig(NAME + '.png', dpi=600)
+        plt.plot(peaks, [
+            line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][int(numpy.floor(peak))] + (
+                        peak - int(peak)) * (
+                    line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][int(numpy.ceil(peak))] -
+                    line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][
+                        int(numpy.floor(peak))]) for peak in peaks], 'x')
+        plt.savefig(output_filename + '.png', dpi=600)
         plt.close()
-    # Convert peak calculation to angle
-    peaks = (peaks * 180.0 / z) % 360
+    # Convert peak calculation to angle for simplified comparison with 3D-PLI measurements
+    peaks = (peaks * 180.0 / num_measurements) % 360
 
     # Generate output parameters for file
     output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(len(peaks)) + \
              '\nPeak_Pos: [' + " ".join(str(x) for x in peaks) + ']'
-    with open(NAME + '.txt', 'w') as f:
+    with open(output_filename + '.txt', 'w') as f:
         f.write(output)
         f.flush()
 
