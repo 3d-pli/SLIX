@@ -42,7 +42,7 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
     image = toolbox.read_image(PATH)
     print(PATH)
     path_name = OUTPUT
-    roiset = toolbox.zaxis_roiset(image, ROISIZE)
+    roiset = toolbox.create_roiset(image, ROISIZE)
     if APPLY_SMOOTHING:
         print('Smoothing will be applied.')
         roiset = toolbox.smooth_roiset(roiset, 9, 2)

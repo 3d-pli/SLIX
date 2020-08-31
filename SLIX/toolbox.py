@@ -107,6 +107,7 @@ def accurate_peak_positions(peak_positions, line_profile, low_prominence=TARGET_
 
 def peakdistance(peak_positions, number_of_measurements):
     """
+    Calculate the mean peak distance in degree between two corresponding peaks within a line profile.
 
     Parameters
     ----------
@@ -115,7 +116,7 @@ def peakdistance(peak_positions, number_of_measurements):
 
     Returns
     -------
-
+    NumPy array where each entry corresponds to the mean peak distance of the line profile.
     """
     # Scale peaks correctly for direction
     peak_positions = (peak_positions - number_of_measurements // 2) * (360.0 / number_of_measurements)
@@ -137,6 +138,9 @@ def peakdistance(peak_positions, number_of_measurements):
 def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
                        centroid_calculation=True):
     """
+    Calculate the mean peak distance in degree between two corresponding peaks within a line profile for a whole roiset.
+    Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
+    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
@@ -156,13 +160,16 @@ def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
-            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges, centroid_calculation)
+            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges,
+                                            centroid_calculation)
             return_value[i] = peakdistance(peaks, len(peaks), len(roi) // 2)
     return return_value
 
 
 def prominence(peak_positions, line_profile):
     """
+    Calculate the mean peak prominence of all given peak positions within a line profile. The line profile will be
+    normalized by dividing the line profile through its mean value. Therefore values above 1 are possible.
 
     Parameters
     ----------
@@ -172,7 +179,7 @@ def prominence(peak_positions, line_profile):
 
     Returns
     -------
-
+    NumPy array where each entry corresponds to the mean peak prominence of the line profile.
     """
     num_peaks = len(peak_positions)
     prominence_roi = normalize(line_profile, kind_of_normalization=1)
@@ -181,6 +188,11 @@ def prominence(peak_positions, line_profile):
 
 def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
+    Calculate the mean peak prominence of all given peak positions within a line profile for a whole roi set. The line
+    profile will be normalized by dividing the line profile through its mean value. Therefore values above 1 are
+    possible.
+    Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
+    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
@@ -191,7 +203,7 @@ def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=N
 
     Returns
     -------
-
+    NumPy array where each entry corresponds to the mean peak prominence of the line profile.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -211,11 +223,11 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
     peak_positions: Detected peak positions of the 'all_peaks' method.
     line_profile: Original line profile used to detect all peaks. This array will be further
     analyzed to better determine the peak positions.
-    number_of_measurements
+    number_of_measurements: Number of measurements during a full SLIX measurement i.e. the length of one line profile.
 
     Returns
     -------
-
+    NumPy array where each entry corresponds to the mean peak width of the line profile.
     """
     num_peaks = len(peak_positions)
     if num_peaks > 0:
@@ -227,6 +239,8 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
 
 def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
+    Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
+    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
@@ -237,7 +251,7 @@ def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=No
 
     Returns
     -------
-
+    NumPy array where each entry corresponds to the mean peak width of the line profile.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -251,6 +265,11 @@ def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=No
 
 def crossing_direction(peak_positions, number_of_measurements):
     """
+    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present no
+    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    The peak positions are determined by the position of the corresponding peak pairs (i.e. 6 peaks: 1+4, 2+5, 3+6).
+    If two peaks are too far away or too near (outside of 180°±35°) the direction angle is considered invalid
+    resulting in a direction angle of BACKGROUND_COLOR.
 
     Parameters
     ----------
@@ -259,7 +278,8 @@ def crossing_direction(peak_positions, number_of_measurements):
 
     Returns
     -------
-
+    NumPy array with the shape (3,) containing up to three direction angles. If a direction angle is invalid or missing
+    the array entry is BACKGROUND_COLOR instead.
     """
     num_peaks = len(peak_positions)
     # Scale peaks correctly for direction
@@ -280,6 +300,13 @@ def crossing_direction(peak_positions, number_of_measurements):
 
 def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
+    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present no
+    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    The peak positions are determined by the position of the corresponding peak pairs (i.e. 6 peaks: 1+4, 2+5, 3+6).
+    If two peaks are too far away or too near (outside of 180°±35°) the direction angle is considered invalid
+    resulting in a direction angle of BACKGROUND_COLOR.
+    Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
+    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
@@ -304,6 +331,9 @@ def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prom
 
 def non_crossing_direction(peak_positions, number_of_measurements):
     """
+    Calculate one direction angles based on the given peak positions. If more than two peaks are present no
+    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    The peak positions are determined by the position of the corresponding peak pair.
 
     Parameters
     ----------
@@ -312,7 +342,8 @@ def non_crossing_direction(peak_positions, number_of_measurements):
 
     Returns
     -------
-
+    Floating point value containing the direction angle in degree.
+    If a direction angle is invalid or missing, the returned value is BACKGROUND_COLOR instead.
     """
     num_peaks = len(peak_positions)
     # Scale peaks correctly for direction
@@ -328,6 +359,11 @@ def non_crossing_direction(peak_positions, number_of_measurements):
 
 def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
+    Calculate one direction angles based on the given peak positions. If more than two peaks are present no
+    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    The peak positions are determined by the position of the corresponding peak pair.
+    Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
+    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
@@ -338,7 +374,8 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
 
     Returns
     -------
-
+    NumPy array of floating point values containing the direction angle in degree.
+    If a direction angle is invalid or missing, the returned value is BACKGROUND_COLOR instead.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -350,22 +387,22 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
     return return_value
 
 
-# Create sampling to get exact 80% of peak height
-def create_sampling(line_profile, peak_positions, left_bound, right_bound, target_peak_height, number_of_samples=NUMBER_OF_SAMPLES):
+def create_sampling(line_profile, peak_positions, left_bound, right_bound, target_peak_height,
+                    number_of_samples=NUMBER_OF_SAMPLES):
     """
-
     Parameters
     ----------
     line_profile: Original line profile used to detect all peaks. This array will be further
     analyzed to better determine the peak positions.
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    left_bound
-    right_bound
-    target_peak_height
-    number_of_samples
+    left_bound: Left bound for linear interpolation
+    right_bound: Right bound for linear interpolation
+    target_peak_height: Targeted peak height for centroid calculation
+    number_of_samples: Number of samples used for linear interpolation
 
     Returns
     -------
+    Linear interpolated array, new left bound, new right bound for centroid calculation.
 
     """
     sampling = numpy.interp(numpy.arange(left_bound - 1, right_bound + 1, 1 / 100),
@@ -392,6 +429,9 @@ def create_sampling(line_profile, peak_positions, left_bound, right_bound, targe
 
 def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROMINENCE, high_prominence=None):
     """
+    Correct peak positions from a line profile by looking at only the peak peak with a given threshold using a centroid
+    calculation. If a minimum is found in the considered interval, this minimum is used as the limit instead.
+    The range for the peak correction is limited by MAX_DISTANCE_FOR_CENTROID_ESTIMATION.
 
     Parameters
     ----------
@@ -403,7 +443,7 @@ def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROM
 
     Returns
     -------
-
+    NumPy array with the positions of all detected peak positions corrected with centroid calculation
     """
     reverse_roi = -1 * line_profile
     minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
@@ -411,51 +451,53 @@ def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROM
 
     for i in range(peak_positions.shape[0]):
         peak = peak_positions[i]
-        target_peak_height = line_profile[peak_positions[i]] - line_profile[peak_positions].max() * (1 - TARGET_PEAK_HEIGHT)
+        target_peak_height = line_profile[peak_positions[i]] - line_profile[peak_positions].max() * \
+                             (1 - TARGET_PEAK_HEIGHT)
         minima_distances = peak - minima
 
-        lpos = rpos = peak
+        left_position = right_position = peak
 
         # Check for minima in left and set left position accordingly
         target_distances = (minima_distances <= MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances > 0)
         if target_distances.any():
-            lpos = peak - minima_distances[target_distances].min()
+            left_position = peak - minima_distances[target_distances].min()
         # Look for peak height
         below_target_peak_height = numpy.argwhere(
             line_profile[peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION: peak] < target_peak_height)
         if len(below_target_peak_height) > 0:
             below_target_peak_height = below_target_peak_height.max()
-            tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
-            if tlpos < lpos:
-                lpos = tlpos
+            temp_left_position = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION + below_target_peak_height
+            if temp_left_position < left_position:
+                left_position = temp_left_position
         else:
-            tlpos = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-            if tlpos < lpos:
-                lpos = tlpos
+            temp_left_position = peak - MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            if temp_left_position < left_position:
+                left_position = temp_left_position
 
         # Repeat for right bound
         target_distances = (minima_distances >= -MAX_DISTANCE_FOR_CENTROID_ESTIMATION) & (minima_distances < 0)
         if target_distances.any():
-            rpos = peak - minima_distances[target_distances].min()
+            right_position = peak - minima_distances[target_distances].min()
         # Look for 80% of the peak height
         below_target_peak_height = numpy.argwhere(
             line_profile[peak: peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION] < target_peak_height)
         if len(below_target_peak_height) > 0:
             below_target_peak_height = below_target_peak_height.min()
-            trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
-            if trpos > rpos:
-                rpos = trpos
+            temp_right_position = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION - below_target_peak_height
+            if temp_right_position > right_position:
+                right_position = temp_right_position
         else:
-            trpos = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-            if trpos > rpos:
-                rpos = trpos
+            temp_right_position = peak + MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            if temp_right_position > right_position:
+                right_position = temp_right_position
 
-        sampling, lbound, rbound = create_sampling(line_profile, peak, lpos, rpos, target_peak_height)
-        int_lpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * lbound
-        int_rpos = (lpos - 1) + 1 / NUMBER_OF_SAMPLES * rbound
-        # Move at max one entry on the x-coordinate axis to the left or right to prevent too much movement
-        centroid = numpy.sum(numpy.arange(int_lpos, int_rpos - 1e-10, 0.01) *
-                             sampling[lbound:rbound]) / numpy.sum(sampling[lbound:rbound])
+        sampling, left_bound, right_bound = create_sampling(line_profile, peak, left_position, right_position,
+                                                            target_peak_height)
+        integer_left_pos = (left_position - 1) + 1 / NUMBER_OF_SAMPLES * left_bound
+        integer_right_pos = (left_position - 1) + 1 / NUMBER_OF_SAMPLES * right_bound
+        # Move at max one step size on the x-coordinate axis to the left or right to prevent too much movement
+        centroid = numpy.sum(numpy.arange(integer_left_pos, integer_right_pos - 1e-10, 0.01) *
+                             sampling[left_bound:right_bound]) / numpy.sum(sampling[left_bound:right_bound])
         if numpy.abs(centroid - peak) > 1:
             centroid = peak + numpy.sign(centroid - peak)
         centroid_maxima[i] = centroid
@@ -465,7 +507,8 @@ def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROM
 
 def read_image(FILEPATH):
     """
-    Reads iamge file and returns it.
+    Reads image file and returns it.
+    Supported file formats: NIFTI, Tiff.
 
     Arguments:
         FILEPATH: Path to image
@@ -504,9 +547,9 @@ def create_background_mask(IMAGE, threshold=10):
     return mask
 
 
-def zaxis_roiset(IMAGE, ROISIZE, extend=True):
+def create_roiset(IMAGE, ROISIZE, extend=True):
     """
-    Create z-axis profile of given image by creating a roiset image containing the average value of pixels within the
+    Create roi set of given image by creating an image containing the average value of pixels within the
     specified ROISIZE. The returned image will have twice the size in the third axis as the both half will be doubled
     for the peak detection.
 
