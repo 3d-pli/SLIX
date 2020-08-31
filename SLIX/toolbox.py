@@ -20,17 +20,17 @@ TARGET_PROMINENCE = 0.08
 
 def all_peaks(line_profile, cut_edges=True):
     """
-    Detect all peaks from a given line profile from a SLIX measurement. Peaks will not be filtered in any way.
-    To detect only significant peaks use the peak_positions method and apply thresholds.
+    Detect all peaks from a given line profile in an SLI measurement. Peaks will not be filtered in any way.
+    To detect only significant peaks, use the 'peak_positions' method and apply thresholds.
 
     Parameters
     ----------
-    line_profile: 1D-NumPy array with all measurements of a single pixel
-    cut_edges: When True only consider peaks within the second third of all detected peaks
+    line_profile: 1D-NumPy array with all measurements of a single pixel.
+    cut_edges: When True only consider peaks within the second third of all detected peaks.
 
     Returns
     -------
-    List with the positions of all detected peak positions
+    List with the positions of all detected peak positions.
     """
     number_of_measurements = line_profile.shape[0] // 2
 
@@ -51,19 +51,19 @@ def all_peaks(line_profile, cut_edges=True):
 
 def num_peaks_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
     """
-    Calculate the number of peaks found in a full SLIX measurement by detecting all peaks and applying thresholds to
+    Calculate the number of peaks from each line profile in an SLI image series by detecting all peaks and applying thresholds to
     remove unwanted peaks.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
 
     Returns
     -------
-    NumPy array where each entry corresponds to the number of detected peaks within the first dimension of the roi set.
+    NumPy array where each entry corresponds to the number of detected peaks within the first dimension of the SLI image series.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.int32)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -78,7 +78,7 @@ def accurate_peak_positions(peak_positions, line_profile, low_prominence=TARGET_
                             centroid_calculation=True):
     """
     Post-processing method after peaks have been calculated using the 'all_peaks' method. The peak are filtered based
-    on their peak prominence. Additionally peak positions can be corrected by applying centroid corrections based on the
+    on their peak prominence. Additionally, peak positions can be corrected by applying centroid corrections based on the
     line profile.
 
     Parameters
@@ -88,12 +88,12 @@ def accurate_peak_positions(peak_positions, line_profile, low_prominence=TARGET_
     analyzed to better determine the peak positions.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
-    centroid_calculation: Use centroid calculation to better determine the peak position regardless of the angle between
-    measurements.
+    centroid_calculation: Use centroid calculation to better determine the peak position regardless of the number of
+    measurements / illumination angles used.
 
     Returns
     -------
-    NumPy array with the positions of all detected peak positions
+    NumPy array with the positions of all detected peak positions.
     """
     n_roi = normalize(line_profile)
     peak_prominence = numpy.array(peak_prominences(n_roi, peak_positions)[0])
@@ -107,16 +107,16 @@ def accurate_peak_positions(peak_positions, line_profile, low_prominence=TARGET_
 
 def peakdistance(peak_positions, number_of_measurements):
     """
-    Calculate the mean peak distance in degree between two corresponding peaks within a line profile.
+    Calculate the mean peak distance in degrees between two corresponding peaks within a line profile.
 
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLIX measurement i.e. the length of one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one line profile.
 
     Returns
     -------
-    NumPy array where each entry corresponds to the mean peak distance of the line profile.
+    Floating point value containing the mean peak distance of the line profile in degrees.
     """
     # Scale peaks correctly for direction
     peak_positions = (peak_positions - number_of_measurements // 2) * (360.0 / number_of_measurements)
@@ -138,22 +138,22 @@ def peakdistance(peak_positions, number_of_measurements):
 def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
                        centroid_calculation=True):
     """
-    Calculate the mean peak distance in degree between two corresponding peaks within a line profile for a whole roiset.
+    Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image series.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
-    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
+    parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
-    centroid_calculation: Use centroid calculation to better determine the peak position regardless of the angle between
-    measurements.
+    centroid_calculation: Use centroid calculation to better determine the peak position regardless of the number of
+    measurements / illumination angles used.
 
     Returns
     -------
-
+    NumPy array of floating point values containing the mean peak distance of the line profiles in degrees.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -169,7 +169,7 @@ def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence
 def prominence(peak_positions, line_profile):
     """
     Calculate the mean peak prominence of all given peak positions within a line profile. The line profile will be
-    normalized by dividing the line profile through its mean value. Therefore values above 1 are possible.
+    normalized by dividing the line profile through its mean value. Therefore, values above 1 are possible.
 
     Parameters
     ----------
@@ -188,15 +188,15 @@ def prominence(peak_positions, line_profile):
 
 def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
-    Calculate the mean peak prominence of all given peak positions within a line profile for a whole roi set. The line
-    profile will be normalized by dividing the line profile through its mean value. Therefore values above 1 are
+    Calculate the mean peak prominence of all given peak positions for each line profile in an SLI image series. Each line
+    profile will be normalized by dividing the line profile through its mean value. Therefore, values above 1 are
     possible.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
-    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
+    parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
@@ -223,7 +223,7 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
     peak_positions: Detected peak positions of the 'all_peaks' method.
     line_profile: Original line profile used to detect all peaks. This array will be further
     analyzed to better determine the peak positions.
-    number_of_measurements: Number of measurements during a full SLIX measurement i.e. the length of one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in one line profile.
 
     Returns
     -------
@@ -240,11 +240,11 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
 def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
-    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
+    parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
@@ -265,21 +265,21 @@ def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=No
 
 def crossing_direction(peak_positions, number_of_measurements):
     """
-    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present no
-    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present, no
+    direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
     The peak positions are determined by the position of the corresponding peak pairs (i.e. 6 peaks: 1+4, 2+5, 3+6).
-    If two peaks are too far away or too near (outside of 180°±35°) the direction angle is considered invalid
+    If two peaks are too far away or too near (outside of 180°±35°), the direction angle will be considered as invalid,
     resulting in a direction angle of BACKGROUND_COLOR.
 
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLIX measurement i.e. the length of one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line profile.
 
     Returns
     -------
-    NumPy array with the shape (3,) containing up to three direction angles. If a direction angle is invalid or missing
-    the array entry is BACKGROUND_COLOR instead.
+    NumPy array with the shape (3,) containing up to three direction angles. If a direction angle is invalid or missing,
+    the array entry will be BACKGROUND_COLOR instead.
     """
     num_peaks = len(peak_positions)
     # Scale peaks correctly for direction
@@ -300,23 +300,25 @@ def crossing_direction(peak_positions, number_of_measurements):
 
 def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
-    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present no
-    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    Calculate up to three direction angles based on the given peak positions. If more than six peaks are present, no
+    direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
     The peak positions are determined by the position of the corresponding peak pairs (i.e. 6 peaks: 1+4, 2+5, 3+6).
-    If two peaks are too far away or too near (outside of 180°±35°) the direction angle is considered invalid
+    If two peaks are too far away or too near (outside of 180°±35°), the direction angle will be considered as invalid,
     resulting in a direction angle of BACKGROUND_COLOR.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
-    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
+    parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (image series) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
 
     Returns
     -------
+    NumPy array with the shape (x, 3) containing up to three direction angles. 
+    x equals the number of pixels of the SLI image series. If a direction angle is invalid or missing, the array entry will be BACKGROUND_COLOR instead.
 
     """
     return_value = pymp.shared.array((roiset.shape[0], 3), dtype=numpy.float)
@@ -331,19 +333,19 @@ def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prom
 
 def non_crossing_direction(peak_positions, number_of_measurements):
     """
-    Calculate one direction angles based on the given peak positions. If more than two peaks are present no
-    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    Calculate one direction angle based on the given peak positions. If more than two peaks are present, no
+    direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
     The peak positions are determined by the position of the corresponding peak pair.
 
     Parameters
     ----------
     peak_positions: Detected peak positions of the 'all_peaks' method.
-    number_of_measurements: Number of measurements during a full SLIX measurement i.e. the length of one line profile.
+    number_of_measurements: Number of measurements during a full SLI measurement, i.e. the number of points in the line profile.
 
     Returns
     -------
-    Floating point value containing the direction angle in degree.
-    If a direction angle is invalid or missing, the returned value is BACKGROUND_COLOR instead.
+    Floating point value containing the direction angle in degrees.
+    If a direction angle is invalid or missing, the returned value will be BACKGROUND_COLOR instead.
     """
     num_peaks = len(peak_positions)
     # Scale peaks correctly for direction
@@ -359,15 +361,15 @@ def non_crossing_direction(peak_positions, number_of_measurements):
 
 def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
     """
-    Calculate one direction angles based on the given peak positions. If more than two peaks are present no
-    direction angle will be calculated to avoid errors. This will result in an direction angle of BACKGROUND_COLOR.
+    Calculate one direction angle based on the given peak positions. If more than two peaks are present, no
+    direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
     The peak positions are determined by the position of the corresponding peak pair.
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
-    parameter maps. It's faster to write a simple pipeline as seen in SLIXParameterGenerator.
+    parameter maps. In this case, it is faster to write a simple pipeline as seen in SLIXParameterGenerator.
 
     Parameters
     ----------
-    roiset: Full SLIX measurement which is prepared for the pipeline using the SLIX toolbox methods.
+    roiset: Full SLI measurement (image series) which is prepared for the pipeline using the SLIX toolbox methods.
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
     cut_edges: When True only consider peaks within the second third of all detected peaks.
@@ -375,7 +377,7 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
     Returns
     -------
     NumPy array of floating point values containing the direction angle in degree.
-    If a direction angle is invalid or missing, the returned value is BACKGROUND_COLOR instead.
+    If a direction angle is invalid or missing, the returned value will be BACKGROUND_COLOR instead.
     """
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
     with pymp.Parallel(CPU_COUNT) as p:
@@ -429,8 +431,8 @@ def create_sampling(line_profile, peak_positions, left_bound, right_bound, targe
 
 def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROMINENCE, high_prominence=None):
     """
-    Correct peak positions from a line profile by looking at only the peak peak with a given threshold using a centroid
-    calculation. If a minimum is found in the considered interval, this minimum is used as the limit instead.
+    Correct peak positions from a line profile by looking at only the peak with a given threshold using a centroid
+    calculation. If a minimum is found in the considered interval, this minimum will be used as the limit instead.
     The range for the peak correction is limited by MAX_DISTANCE_FOR_CENTROID_ESTIMATION.
 
     Parameters
@@ -443,7 +445,7 @@ def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROM
 
     Returns
     -------
-    NumPy array with the positions of all detected peak positions corrected with centroid calculation
+    NumPy array with the positions of all detected peak positions corrected with the centroid calculation.
     """
     reverse_roi = -1 * line_profile
     minima, _ = find_peaks(reverse_roi, prominence=(low_prominence, high_prominence))
@@ -508,7 +510,7 @@ def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROM
 def read_image(FILEPATH):
     """
     Reads image file and returns it.
-    Supported file formats: NIFTI, Tiff.
+    Supported file formats: NIfTI, Tiff.
 
     Arguments:
         FILEPATH: Path to image
@@ -531,7 +533,7 @@ def read_image(FILEPATH):
 def create_background_mask(IMAGE, threshold=10):
     """
     Creates a background mask based on given threshold. As all background pixels are near zero when looking through
-    the z-axis plot this method should remove most of the background allowing better approximations using the available
+    the z-axis plot, this method should remove most of the background allowing for better approximations using the available
     features. It is advised to use this function.
 
     Arguments:
@@ -550,7 +552,7 @@ def create_background_mask(IMAGE, threshold=10):
 def create_roiset(IMAGE, ROISIZE, extend=True):
     """
     Create roi set of given image by creating an image containing the average value of pixels within the
-    specified ROISIZE. The returned image will have twice the size in the third axis as the both half will be doubled
+    specified ROISIZE. The returned image will have twice the size in the third axis as the both halfs will be doubled
     for the peak detection.
 
     Arguments:
@@ -626,13 +628,13 @@ def smooth_roiset(roiset, range=45, polynom_order=2):
 
 def normalize(roi, kind_of_normalization=0):
     """
-    Normalize given line profile by using a normalization technique based on the kind_of_normalization parameter
+    Normalize given line profile by using a normalization technique based on the kind_of_normalization parameter.
 
     0 : Scale line profile to be between 0 and 1
-    1 : Divide line profile through it's mean value
+    1 : Divide line profile through its mean value
 
     Arguments:
-        roi: Line profile of a singular pixel / region of interest
+        roi: Line profile of a single pixel / region of interest
         kind_of_normalization: Normalization technique which will be used for the calculation
 
     Returns:
