@@ -196,9 +196,9 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
             if numpy.any(selected_parameter_maps[3:]):
                 peaks = toolbox.all_peaks(roi)
             if numpy.any(selected_parameter_maps[4:6]):
-                peak_positions_high_non_centroid = toolbox.peak_positions(peaks, roi, centroid_calculation=False)
+                peak_positions_high_non_centroid = toolbox.accurate_peak_positions(peaks, roi, centroid_calculation=False)
             if numpy.any(selected_parameter_maps[7:]):
-                peak_positions_high = toolbox.peak_positions(peaks, roi)
+                peak_positions_high = toolbox.accurate_peak_positions(peaks, roi)
 
             # Min
             if selected_parameter_maps[0]:
@@ -214,8 +214,9 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
                 current_index += 1
             # Low prominence peaks
             if selected_parameter_maps[3]:
-                peak_positions_low_non_centroid = toolbox.peak_positions(peaks, roi, 0, toolbox.TARGET_PROMINENCE,
-                                                                         centroid_calculation=False)
+                peak_positions_low_non_centroid = toolbox.accurate_peak_positions(peaks, roi, 0,
+                                                                                  toolbox.TARGET_PROMINENCE,
+                                                                                  centroid_calculation=False)
                 resulting_parameter_maps[i, current_index] = len(peak_positions_low_non_centroid)
                 current_index += 1
             # High prominence peaks
@@ -225,7 +226,6 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
             # Peak width
             if selected_parameter_maps[5]:
                 resulting_parameter_maps[i, current_index] = toolbox.peakwidth(peak_positions_high_non_centroid, roi,
-                                                                               len(peak_positions_high_non_centroid),
                                                                                len(roi) // 2)
                 current_index += 1
             # Peak prominence
@@ -236,19 +236,17 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
             # Peak distance
             if selected_parameter_maps[7]:
                 resulting_parameter_maps[i, current_index] = toolbox.peakdistance(peak_positions_high,
-                                                                                  len(peak_positions_high),
                                                                                   len(roi) // 2)
                 current_index += 1
             # Non-crossing direction
             if selected_parameter_maps[8]:
                 resulting_parameter_maps[i, current_index] = toolbox.non_crossing_direction(peak_positions_high,
-                                                                                            len(peak_positions_high),
                                                                                             len(roi) // 2)
                 current_index += 1
             # Crossing directions
             if selected_parameter_maps[9]:
                 resulting_parameter_maps[i, current_index:current_index + 3] = toolbox.crossing_direction(
-                    peak_positions_high, len(peak_positions_high), len(roi) // 2)
+                    peak_positions_high, len(roi) // 2)
                 current_index += 3
 
     return resulting_parameter_maps

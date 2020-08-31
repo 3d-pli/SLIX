@@ -53,10 +53,10 @@ def full_pipeline(filepath, output_filename, with_smoothing=True, with_plots=Fal
             plt.plot(line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3])
         else:
             plt.plot(line_profile[num_measurements:-num_measurements + 3])
-        peaks = toolbox.peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=False)
+        peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=False)
         peaks = peaks - num_measurements
         plt.plot(peaks, line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][peaks], 'o')
-    peaks = toolbox.peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=True)
+    peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=True)
     peaks = peaks - num_measurements
     if with_plots:
         plt.plot(peaks, [
