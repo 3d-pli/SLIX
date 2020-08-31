@@ -102,7 +102,7 @@ if __name__ == '__main__':
     args = vars(arguments)
 
     paths = args['input']
-    if not type(paths) is list:
+    if not isinstance(paths, list):
         paths = [paths]
 
     if not os.path.exists(args['output']):

@@ -327,7 +327,8 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
                 average_per_dimension = numpy.average(roi, axis=0).flatten()
                 if extend:
                     average_per_dimension = numpy.concatenate(
-                        (average_per_dimension[-number_of_measurements // 2:], average_per_dimension, average_per_dimension[:number_of_measurements // 2]))
+                        (average_per_dimension[-number_of_measurements // 2:], average_per_dimension,
+                         average_per_dimension[:number_of_measurements // 2]))
                 name_set[i] = name
                 roi_set[i] = average_per_dimension
             else:
@@ -339,8 +340,8 @@ def zaxis_from_imagej_roiset(IMAGE, PATH_TO_ROISET, extend=True):
 def zaxis_roiset(IMAGE, ROISIZE, extend=True):
     """
     Create z-axis profile of given image by creating a roiset image containing the average value of pixels within the
-    specified ROISIZE. The returned image will have twice the size in the third axis as the both half will be doubled for
-    the peak detection.
+    specified ROISIZE. The returned image will have twice the size in the third axis as the both half will be doubled
+    for the peak detection.
 
     Arguments:
         IMAGE: Image containing multiple images in a 3D-stack
@@ -372,7 +373,8 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
                     average_per_dimension = numpy.average(numpy.average(roi, axis=1), axis=0).flatten()
                     if extend:
                         average_per_dimension = numpy.concatenate(
-                            (average_per_dimension[-number_of_measurements // 2:], average_per_dimension, average_per_dimension[:number_of_measurements // 2]))
+                            (average_per_dimension[-number_of_measurements // 2:], average_per_dimension,
+                             average_per_dimension[:number_of_measurements // 2]))
                     roi_set[i * ny + j] = average_per_dimension
     else:
         with pymp.Parallel(CPU_COUNT) as p:
@@ -380,7 +382,8 @@ def zaxis_roiset(IMAGE, ROISIZE, extend=True):
                 for j in range(0, ny):
                     roi = IMAGE[i, j, :]
                     if extend:
-                        roi = numpy.concatenate((roi[-number_of_measurements // 2:], roi, roi[:number_of_measurements // 2]))
+                        roi = numpy.concatenate((roi[-number_of_measurements // 2:], roi,
+                                                 roi[:number_of_measurements // 2]))
                     roi_set[i * ny + j] = roi
 
     return roi_set
@@ -435,8 +438,7 @@ def normalize(roi, kind_of_normalization=0):
             elif kind_of_normalization == 1:
                 normalized_roi = roi / numpy.mean(roi)
         return normalized_roi
-    else:
-        return roi
+    return roi
 
 
 def reshape_array_to_image(image, x, ROISIZE):

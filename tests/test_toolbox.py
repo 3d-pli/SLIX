@@ -38,7 +38,7 @@ class TestToolbox:
     def test_prominence(self):
         # Create an absolute simple peak array
         test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0])
-        comparison = normalize(test_arr, kind_of_normalizaion=1)
+        comparison = normalize(test_arr, kind_of_normalization=1)
 
         toolbox_peaks = all_peaks(test_arr, cut_edges=False)
         toolbox_prominence = prominence(toolbox_peaks, test_arr, len(toolbox_peaks))
