@@ -13,7 +13,7 @@ This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 
-# If a virtual environment is needed:
+# A virtual environment is recommended:
 python3 -m venv venv
 source venv/bin/activate
 
@@ -68,6 +68,8 @@ Additional parameters that determine which parameter maps will be generated from
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
 ### Resulting parameter maps
+
+The parameter maps shown below have been generated from the SLI image stack of a coronal vervet monkey brain section (upper left corner), which is available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii). More data (SLI image stacks and parameter maps) are available on the [EBRAINS data repository](https://doi.org/10.25493/XA4S-XXZ). The parameter maps were generated with full resolution, i.e. without downsampling (`--roisize 1`). For testing on a less powerful computer, it is recommended to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
  
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
 
