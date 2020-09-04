@@ -202,11 +202,11 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
 
             # Min
             if selected_parameter_maps[0]:
-                resulting_parameter_maps[i, current_index] = roi.min()
+                resulting_parameter_maps[i, current_index] = roi.max()
                 current_index += 1
             # Max
             if selected_parameter_maps[1]:
-                resulting_parameter_maps[i, current_index] = roi.max()
+                resulting_parameter_maps[i, current_index] = roi.min()
                 current_index += 1
             # Average
             if selected_parameter_maps[2]:
