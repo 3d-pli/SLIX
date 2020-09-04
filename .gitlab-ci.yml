@@ -1,0 +1,28 @@
+image: "python:3.7"
+
+before_script:
+    - python --version
+    - pip install pylint flake8
+    - pip install -r requirements.txt
+
+stages:
+    - Analysis
+    - Test
+
+flake8:
+    stage: Analysis
+    allow_failure: true
+    script:
+        - flake8 --max-line-length=120 bin/* SLIX/*.py
+
+pylint:
+  stage: Analysis
+  allow_failure: true
+  script:
+  - pylint -d C0301 bin/* SLIX/*.py
+
+pytest:
+    stage: Test
+    script:
+        - pytest
+
