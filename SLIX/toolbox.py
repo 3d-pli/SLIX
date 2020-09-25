@@ -81,7 +81,7 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
         gpu_image = (gpu_image - cupy.min(gpu_image, axis=-1)[..., None]) / \
                     (cupy.max(gpu_image, axis=-1)[..., None] - cupy.min(gpu_image, axis=-1)[..., None])
     else:
-        gpu_image = gpu_image / cupy.mean(gpu_image)
+        gpu_image = gpu_image / cupy.mean(gpu_image, axis=-1)[..., None]
 
     if return_numpy:
         gpu_image_cpu = cupy.asnumpy(gpu_image)
@@ -91,33 +91,34 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
         return gpu_image
 
 
-@cuda.jit()
+@cuda.jit('void(float32[:, :], int8[:, :], float32[:, :])')
 def _prominence(image, peak_array, result_image):
     idx = cuda.grid(1)
     sub_image = image[idx]
     sub_peak_array = peak_array[idx]
-    for pos, entry in enumerate(sub_peak_array):
-        if entry >= 0:
-            i_min = 0
-            i_max = len(sub_peak_array) - 1
+
+    for pos in range(len(sub_peak_array)):
+        if sub_peak_array[pos] == 1:
+            i_min = -len(sub_peak_array) / 2
+            i_max = int(len(sub_peak_array) * 1.5)
 
             i = pos
-            left_min = sub_image[pos]
-            while i_min <= i and sub_image[i] <= sub_image[pos]:
-                if sub_image[i] < left_min:
-                    left_min = sub_image[i]
+            left_min = image[idx, pos]
+            while i_min <= i and image[idx, i] <= image[idx, pos]:
+                if image[idx, i] < left_min:
+                    left_min = image[idx, i]
                 i -= 1
 
             i = pos
             right_min = sub_image[pos]
-            while i <= i_max and sub_image[i] <= sub_image[pos]:
-                if sub_image[i] < right_min:
-                    right_min = sub_image[i]
+            while i <= i_max and sub_image[i % len(sub_peak_array)] <= sub_image[pos]:
+                if sub_image[i % len(sub_peak_array)] < right_min:
+                    right_min = sub_image[i % len(sub_peak_array)]
                 i += 1
 
             result_image[idx, pos] = sub_image[pos] - max(left_min, right_min)
         else:
-            result_image[idx, pos] = -1
+            result_image[idx, pos] = 0
 
 
 def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_numpy=True):
@@ -131,8 +132,8 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_nump
     [image_x, image_y, image_z] = gpu_image.shape
 
     gpu_image = gpu_image.reshape(image_x * image_y, image_z)
-    gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z)
-    result_img = numpy.zeros((image_x * image_y, image_z), dtype=float)
+    gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    result_img = numpy.zeros((image_x * image_y, image_z), dtype='float32')
     result_img_gpu = cuda.to_device(result_img)
     del result_img
 
@@ -140,22 +141,21 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_nump
     threadsperblock = 256
     blockspergrid = (image_x * image_y + (threadsperblock - 1)) // threadsperblock
     _prominence[blockspergrid, threadsperblock](gpu_image, gpu_peak_image, result_img_gpu)
-    cuda.synchronize()
+    #cuda.synchronize()
 
-    result_img_gpu = result_img_gpu.reshape((image_x, image_y, image_z))
-    result_img = result_img_gpu.copy_to_host()
-    result_img = numpy.swapaxes(result_img, 0, -1)
-    print(result_img.shape)
+    result_img_gpu = cupy.asarray(result_img_gpu.reshape((image_x, image_y, image_z)))
 
     if peak_image is None:
         del gpu_peak_image
+
     if return_numpy:
         if isinstance(image, type(numpy.zeros(0))):
             del gpu_image
+        result_img_cpu = cupy.asnumpy(result_img_gpu)
         del result_img_gpu
-        return result_img
+        return result_img_cpu
     else:
-        return cupy.asarray(result_img)
+        return result_img_gpu
 
 
 def peak_width():
