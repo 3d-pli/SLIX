@@ -195,7 +195,7 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
             # Save some computing time by generating some features only then when they're needed.
             if numpy.any(selected_parameter_maps[3:]):
                 peaks = toolbox.all_peaks(roi)
-            if numpy.any(selected_parameter_maps[4:6]):
+            if numpy.any(selected_parameter_maps[4:7]):
                 peak_positions_high_non_centroid = toolbox.accurate_peak_positions(peaks, roi, centroid_calculation=False)
             if numpy.any(selected_parameter_maps[7:]):
                 peak_positions_high = toolbox.accurate_peak_positions(peaks, roi)
