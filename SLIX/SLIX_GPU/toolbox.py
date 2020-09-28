@@ -1,7 +1,7 @@
 import numpy
 import cupy
 from numba import cuda
-from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth
+from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance
 
 
 def peaks(image, return_numpy=True):
@@ -130,6 +130,32 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
         return result_image_cpu
     else:
         return result_image_gpu
+
+
+def peakdistance(peak_image, return_numpy=True):
+    gpu_peak_image = cupy.array(peak_image)
+    [image_x, image_y, image_z] = gpu_peak_image.shape
+
+    gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype('int8')
+    result_img_gpu = cupy.zeros((image_x * image_y, image_z), dtype='float32')
+
+    threads_per_block = 256
+    blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
+    _peakdistance[blocks_per_grid, threads_per_block](gpu_peak_image, number_of_peaks, result_img_gpu)
+    cuda.synchronize()
+
+    result_img_gpu = cupy.asarray(result_img_gpu.reshape((image_x, image_y, image_z)))
+
+    if peak_image is None:
+        del gpu_peak_image
+
+    if return_numpy:
+        result_img_cpu = cupy.asnumpy(result_img_gpu)
+        del result_img_gpu
+        return result_img_cpu
+    else:
+        return result_img_gpu
 
 
 def direction(peak_image, number_of_directions=3, return_numpy=True):

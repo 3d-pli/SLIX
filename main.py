@@ -68,6 +68,8 @@ def create_argument_parser():
     # Return generated parser
     return parser
 
+import time
+start_time = time.time()
 if __name__ == "__main__":
     image = toolbox.read_image('/home/jreuter/AktuelleArbeit/90_Stack.tif')
     print(image.shape)
@@ -94,9 +96,16 @@ if __name__ == "__main__":
     tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
     peak_width = numpy.sum(peak_width_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
     tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_width.tiff', peak_width.astype('float32'))
+    del peak_width
+    del peak_width_full
+
+    peak_distance_full = toolbox.peakdistance(peaks)
+    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
+    #peak_width = numpy.sum(peak_width_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
+    #tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_distance.tiff', peak_width.astype('float32'))
 
     direction = toolbox.direction(peaks)
     for dim in range(direction.shape[-1]):
         tifffile.imwrite('/home/jreuter/AktuelleArbeit/direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
-
+print("--- %s seconds ---" % (time.time() - start_time))

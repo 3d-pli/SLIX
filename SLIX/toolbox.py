@@ -42,6 +42,13 @@ def direction(peak_image, number_of_directions=3, use_gpu=True, return_numpy=Tru
         return cpu_toolbox.direction(peak_image, number_of_directions)
 
 
+def peakdistance(peak_image, use_gpu=True, return_numpy=True):
+    if use_gpu:
+        return gpu_toolbox.peakdistance(peak_image, return_numpy)
+    else:
+        return cpu_toolbox.peakdistance(peak_image)
+
+
 def peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gpu=True, return_numpy=True):
     if use_gpu:
         return gpu_toolbox.peak_prominence(image, peak_image, kind_of_normalization, return_numpy)

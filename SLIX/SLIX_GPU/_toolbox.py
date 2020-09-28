@@ -77,6 +77,35 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
 
 
 @cuda.jit('void(int8[:, :], int8[:], float32[:, :])')
+def _peakdistance(peak_image, number_of_peaks, result_image):
+    idx = cuda.grid(1)
+    sub_peak_array = peak_image[idx]
+    current_pair = 0
+
+    for i in range(len(sub_peak_array)):
+        if sub_peak_array[i] == 1:
+            if number_of_peaks[idx] == 1:
+                result_image[idx, i] = 360.0
+                break
+            elif number_of_peaks[idx] % 2 == 0:
+                left = i * 360.0 / len(sub_peak_array)
+                right_side_peak = number_of_peaks[idx]//2
+                current_position = i+1
+                while right_side_peak > 0 and current_position < len(sub_peak_array):
+                    if sub_peak_array[current_position] == 1:
+                        right_side_peak = right_side_peak - 1
+                    current_position = current_position + 1
+                right = (current_position-1) * 360.0 / len(sub_peak_array)
+                result_image[idx, i] = right - left
+                result_image[idx, current_position-1] = 360 - (right - left)
+
+                current_pair += 1
+
+            if current_pair == number_of_peaks[idx]//2:
+                break
+
+
+@cuda.jit('void(int8[:, :], int8[:], float32[:, :])')
 def _direction(peak_array, number_of_peaks, result_image):
     idx = cuda.grid(1)
     sub_peak_array = peak_array[idx]
