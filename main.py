@@ -90,6 +90,11 @@ if __name__ == "__main__":
     tifffile.imwrite('/home/jreuter/AktuelleArbeit/prominence_2.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
     tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_positions_2.tiff', numpy.swapaxes(peaks, -1, 0))
 
+    peak_width_full = toolbox.peak_width(image, peaks)
+    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
+    peak_width = numpy.sum(peak_width_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
+    tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_width.tiff', peak_width.astype('float32'))
+
     direction = toolbox.direction(peaks)
     for dim in range(direction.shape[-1]):
         tifffile.imwrite('/home/jreuter/AktuelleArbeit/direction_'+str(dim)+'.tiff', direction[:, :, dim])

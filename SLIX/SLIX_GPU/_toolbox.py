@@ -12,10 +12,10 @@ TARGET_PROMINENCE = 0.08
 
 
 @cuda.jit('void(float32[:, :], int8[:, :], float32[:, :])')
-def _prominence(image, peak_array, result_image):
+def _prominence(image, peak_image, result_image):
     idx = cuda.grid(1)
     sub_image = image[idx]
-    sub_peak_array = peak_array[idx]
+    sub_peak_array = peak_image[idx]
 
     for pos in range(len(sub_peak_array)):
         if sub_peak_array[pos] == 1:
@@ -41,9 +41,39 @@ def _prominence(image, peak_array, result_image):
             result_image[idx, pos] = 0
 
 
-@cuda.jit()
-def _peakwidth(image, peak_array, result_image):
-    pass
+@cuda.jit('void(float32[:, :], int8[:, :], float32[:, :], float32[:, :], float32)')
+def _peakwidth(image, peak_image, prominence, result_image, target_height):
+    idx = cuda.grid(1)
+    sub_image = image[idx]
+    sub_peak_array = peak_image[idx]
+    sub_prominece = prominence[idx]
+
+    for pos in range(len(sub_peak_array)):
+        if sub_peak_array[pos] == 1:
+            height = sub_image[pos] - sub_prominece[pos] * target_height
+            i_min = -len(sub_peak_array) / 2
+            i_max = int(len(sub_peak_array) * 1.5)
+
+            i = int(pos)
+            while i_min < i and height < sub_image[i]:
+                i -= 1
+            left_ip = float(i)
+            if sub_image[i] < height:
+                # Interpolate if true intersection height is between samples
+                left_ip += (height - sub_image[i]) / (sub_image[i + 1] - sub_image[i])
+
+            # Find intersection point on right side
+            i = int(pos)
+            while i < i_max and height < sub_image[i]:
+                i += 1
+            right_ip = float(i)
+            if sub_image[i] < height:
+                # Interpolate if true intersection height is between samples
+                right_ip -= (height - sub_image[i]) / (sub_image[i - 1] - sub_image[i])
+
+            result_image[idx, pos] = right_ip - left_ip
+        else:
+            result_image[idx, pos] = 0
 
 
 @cuda.jit('void(int8[:, :], int8[:], float32[:, :])')

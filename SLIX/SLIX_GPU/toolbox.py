@@ -59,7 +59,6 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
         return gpu_image
 
 
-
 def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
     if peak_image is not None:
@@ -95,8 +94,42 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_nump
         return result_img_gpu
 
 
-def peak_width():
-    pass
+def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
+    gpu_image = cupy.array(image, dtype='float32')
+    if peak_image is not None:
+        gpu_peak_image = cupy.array(peak_image)
+    else:
+        gpu_peak_image = peaks(gpu_image, return_numpy=False)
+    [image_x, image_y, image_z] = gpu_image.shape
+
+    gpu_image = gpu_image.reshape(image_x * image_y, image_z)
+    gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    gpu_prominence = cupy.empty((image_x * image_y, image_z), dtype='float32')
+    result_image_gpu = cupy.empty((image_x * image_y, image_z), dtype='float32')
+
+    # https://github.com/scipy/scipy/blob/master/scipy/signal/_peak_finding_utils.pyx
+    threads_per_block = 256
+    blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
+    _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_prominence)
+    cuda.synchronize()
+
+    _peakwidth[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_prominence, result_image_gpu,
+                                                   target_height)
+    del gpu_prominence
+    if peak_image is None:
+        del gpu_peak_image
+
+    result_image_gpu = cupy.asarray(result_image_gpu.reshape((image_x, image_y, image_z)))
+    result_image_gpu = result_image_gpu * (360.0 / image_z)
+
+    if return_numpy:
+        if isinstance(image, type(numpy.zeros(0))):
+            del gpu_image
+        result_image_cpu = cupy.asnumpy(result_image_gpu)
+        del result_image_gpu
+        return result_image_cpu
+    else:
+        return result_image_gpu
 
 
 def direction(peak_image, number_of_directions=3, return_numpy=True):

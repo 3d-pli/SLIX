@@ -47,3 +47,10 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gpu=Tru
         return gpu_toolbox.peak_prominence(image, peak_image, kind_of_normalization, return_numpy)
     else:
         return cpu_toolbox.peak_prominence(image, peak_image, kind_of_normalization)
+
+
+def peak_width(image, peak_image=None, target_height=0.5, use_gpu=True, return_numpy=True):
+    if use_gpu:
+        return gpu_toolbox.peak_width(image, peak_image, target_height, return_numpy=return_numpy)
+    else:
+        return gpu_toolbox.peak_width(image, peak_image, target_height)
