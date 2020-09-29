@@ -2,7 +2,8 @@ import cupy
 import numpy
 from numba import cuda
 
-from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance
+from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
+    TARGET_PEAK_HEIGHT, _centroid_correction
 
 
 def peaks(image, return_numpy=True):
@@ -238,3 +239,26 @@ def direction(peak_image, number_of_directions=3, return_numpy=True):
         return result_img_cpu
     else:
         return result_img_gpu
+
+
+def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, high_prominence=None, return_numpy=True):
+    gpu_image = cupy.array(image, dtype='float32')
+    if peak_image is not None:
+        gpu_peak_image = cupy.array(peak_image)
+    else:
+        gpu_peak_image = peaks(gpu_image, return_numpy=False)
+    [image_x, image_y, image_z] = gpu_image.shape
+
+    gpu_reverse_image = -1 * gpu_image
+    gpu_reverse_peaks = peaks(gpu_reverse_image)
+    gpu_reverse_prominence = cupy.empty((gpu_image.shape), dtype='float32')
+    threads_per_block = 256
+    blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
+    _prominence[blocks_per_grid, threads_per_block](gpu_reverse_image, gpu_reverse_peaks, gpu_reverse_prominence)
+
+    gpu_reverse_peaks[gpu_reverse_prominence < low_prominence] = False
+    del gpu_reverse_prominence
+    del gpu_reverse_peaks
+
+    gpu_result_img = cupy.empty((gpu_image.shape), dtype='float32')
+    _centroid_correction[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_peaks, gpu_result_img)

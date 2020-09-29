@@ -1,6 +1,4 @@
 from numba import cuda
-import cupy
-import numpy
 
 # DEFAULT PARAMETERS
 BACKGROUND_COLOR = -1
@@ -135,3 +133,41 @@ def _direction(peak_array, number_of_peaks, result_image):
 
                 if current_direction == number_of_peaks[idx]//2:
                     break
+
+
+@cuda.jit('void(float32[:, :], int8[:, :], int8[:, :], float32[:, :])')
+def _centroid_correction(image, peak_image, reverse_peaks, result_img):
+    idx = cuda.grid(1)
+    sub_image = image[idx]
+    sub_peaks = peak_image[idx]
+    sub_reverse_peaks = reverse_peaks[idx]
+
+    for pos in range(len(sub_peaks)):
+        if sub_peaks[pos] == 1:
+            target_peak_height = max(0, sub_image[pos] - sub_image.max() * (1 - TARGET_PEAK_HEIGHT))
+            left_position = pos
+            right_position = pos
+
+            # Check for minima in range
+            for offset in range(MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
+                if sub_reverse_peaks[pos - offset] == 1:
+                    left_position = pos - offset
+                if sub_reverse_peaks[pos + offset] == 1:
+                    right_position = pos + offset
+
+            # Check for peak height
+            for offset in range(pos - left_position):
+                if sub_image[pos - offset] < target_peak_height:
+                    left_position = pos - offset
+                    break
+            for offset in range(right_position - pos):
+                if sub_image[pos + offset] < target_peak_height:
+                    right_position = pos + offset
+                    break
+
+            if left_position == pos:
+                left_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            if right_position == pos:
+                right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+
+            # TODO: How to transfer sampling algorithm part to this GPU implementation?
