@@ -3,6 +3,8 @@ import tifffile
 import numpy
 import argparse
 
+USE_GPU=True
+
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -68,44 +70,37 @@ def create_argument_parser():
     # Return generated parser
     return parser
 
-import time
-start_time = time.time()
+
 if __name__ == "__main__":
-    image = toolbox.read_image('/home/jreuter/AktuelleArbeit/90_Stack.tif')
+    image = toolbox.read_image('/data/PLI-LAP2/TESTREIHEN/Streumessungen/1_Streumessung/90_Vervet_512/90_Stack.tif')
     print(image.shape)
 
-    peaks = toolbox.peaks(image)
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
+    import time
 
-    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1).astype('float32')
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+    start_time = time.time()
+    peaks = toolbox.peaks(image, use_gpu=USE_GPU)
+    print(numpy.count_nonzero(peaks == True, axis=-1))
+    #tifffile.imwrite('/tmp/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
 
-    peak_prominence = numpy.sum(peak_prominence_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_prominence.tiff', peak_prominence.astype('float32'))
-
+    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
+    #tifffile.imwrite('/tmp/prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
     del peak_prominence_full
-    del peak_prominence
 
-    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
+    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
     peaks[peak_prominence_full < 0.08] = False
     peak_prominence_full[peak_prominence_full < 0.08] = 0
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/prominence_2.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_positions_2.tiff', numpy.swapaxes(peaks, -1, 0))
+    #tifffile.imwrite('/tmp/prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+    #tifffile.imwrite('/tmp/peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
 
-    peak_width_full = toolbox.peak_width(image, peaks)
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
-    peak_width = numpy.sum(peak_width_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_width.tiff', peak_width.astype('float32'))
-    del peak_width
+    peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
+    #tifffile.imwrite('/tmp/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
     del peak_width_full
 
-    peak_distance_full = toolbox.peakdistance(peaks)
-    tifffile.imwrite('/home/jreuter/AktuelleArbeit/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
-    #peak_width = numpy.sum(peak_width_full, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peaks, axis=-1))
-    #tifffile.imwrite('/home/jreuter/AktuelleArbeit/mean_peak_distance.tiff', peak_width.astype('float32'))
+    peak_distance_full = toolbox.peak_distance(peaks, use_gpu=USE_GPU)
+    #tifffile.imwrite('/tmp/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
 
-    direction = toolbox.direction(peaks)
-    for dim in range(direction.shape[-1]):
-        tifffile.imwrite('/home/jreuter/AktuelleArbeit/direction_'+str(dim)+'.tiff', direction[:, :, dim])
+    direction = toolbox.direction(peaks, use_gpu=USE_GPU)
+    #for dim in range(direction.shape[-1]):
+        #tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
-print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
