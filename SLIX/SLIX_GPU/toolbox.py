@@ -170,17 +170,19 @@ def mean_peak_width(image, peak_image=None, target_height=0.5, return_numpy=True
         return peak_width_gpu
 
 
-def peak_distance(peak_image, return_numpy=True):
+def peak_distance(peak_image, centroids, return_numpy=True):
     gpu_peak_image = cupy.array(peak_image)
+    gpu_centroids = cupy.array(centroids)
     [image_x, image_y, image_z] = gpu_peak_image.shape
 
     gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    gpu_centroids = gpu_centroids.reshape(image_x * image_y, image_z).astype('float32')
     number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype('int8')
     result_img_gpu = cupy.zeros((image_x * image_y, image_z), dtype='float32')
 
     threads_per_block = 256
     blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
-    _peakdistance[blocks_per_grid, threads_per_block](gpu_peak_image, number_of_peaks, result_img_gpu)
+    _peakdistance[blocks_per_grid, threads_per_block](gpu_peak_image, gpu_centroids, number_of_peaks, result_img_gpu)
     cuda.synchronize()
 
     result_img_gpu = cupy.asarray(result_img_gpu.reshape((image_x, image_y, image_z)))
@@ -196,12 +198,12 @@ def peak_distance(peak_image, return_numpy=True):
         return result_img_gpu
 
 
-def mean_peak_distance(peak_image, return_numpy=True):
+def mean_peak_distance(peak_image, centroids, return_numpy=True):
     if peak_image is not None:
         gpu_peak_image = cupy.array(peak_image)
     else:
         gpu_peak_image = peaks(peak_image, return_numpy=False)
-    peak_distance_gpu = peak_distance(peak_image, return_numpy=False)
+    peak_distance_gpu = peak_distance(peak_image, centroids, return_numpy=False)
     peak_distance_gpu = cupy.sum(peak_distance_gpu, axis=-1) / cupy.maximum(1,
                                                                             cupy.count_nonzero(gpu_peak_image,
                                                                                                axis=-1))
@@ -215,18 +217,21 @@ def mean_peak_distance(peak_image, return_numpy=True):
         return peak_distance_gpu
 
 
-def direction(peak_image, number_of_directions=3, return_numpy=True):
+def direction(peak_image, centroids, number_of_directions=3, return_numpy=True):
     gpu_peak_image = cupy.array(peak_image)
+    gpu_centroids = cupy.array(centroids)
     [image_x, image_y, image_z] = gpu_peak_image.shape
 
     gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    gpu_centroids = gpu_centroids.reshape(image_x * image_y, image_z).astype('float32')
     result_img_gpu = cupy.empty((image_x * image_y, number_of_directions), dtype='float32')
     number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype('int8')
 
     threads_per_block = 256
     blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
-    _direction[blocks_per_grid, threads_per_block](gpu_peak_image, number_of_peaks, result_img_gpu)
+    _direction[blocks_per_grid, threads_per_block](gpu_peak_image, gpu_centroids, number_of_peaks, result_img_gpu)
     cuda.synchronize()
+    del number_of_peaks
 
     result_img_gpu = cupy.asarray(result_img_gpu.reshape((image_x, image_y, number_of_directions)))
 
@@ -278,7 +283,6 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
 
     # Centroid calculation based on left_bases and right_bases
     gpu_centroid_peaks = cupy.empty(gpu_image.shape, dtype='float32')
-    print('Hey')
     _centroid[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_left_bases,
                                                   gpu_right_bases, gpu_centroid_peaks)
     cuda.synchronize()

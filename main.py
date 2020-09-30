@@ -96,15 +96,15 @@ if __name__ == "__main__":
     #tifffile.imwrite('/tmp/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
     del peak_width_full
 
-    peak_distance_full = toolbox.peak_distance(peaks, use_gpu=USE_GPU)
+    from SLIX.SLIX_GPU.toolbox import centroid_correction
+    centroids = centroid_correction(image, peaks)
+    tifffile.imwrite('/tmp/centroid_peaks.tiff', numpy.swapaxes(centroids, -1, 0))
+
+    peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
     #tifffile.imwrite('/tmp/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
 
-    direction = toolbox.direction(peaks, use_gpu=USE_GPU)
-    #for dim in range(direction.shape[-1]):
-        #tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
-
-    from SLIX.SLIX_GPU.toolbox import centroid_correction
-    centroid_peaks = centroid_correction(image, peaks)
-    tifffile.imwrite('/tmp/centroid_peaks.tiff', numpy.swapaxes(centroid_peaks, -1, 0))
+    direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
+    for dim in range(direction.shape[-1]):
+        tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
     print("--- %s seconds ---" % (time.time() - start_time))

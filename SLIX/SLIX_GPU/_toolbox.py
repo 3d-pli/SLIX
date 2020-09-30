@@ -4,7 +4,7 @@ from numba import cuda
 BACKGROUND_COLOR = -1
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
-NUMBER_OF_SAMPLES = 10
+NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
@@ -74,10 +74,11 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
             result_image[idx, pos] = 0
 
 
-@cuda.jit('void(int8[:, :], int8[:], float32[:, :])')
-def _peakdistance(peak_image, number_of_peaks, result_image):
+@cuda.jit('void(int8[:, :], float32[:, :], int8[:], float32[:, :])')
+def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
     idx = cuda.grid(1)
     sub_peak_array = peak_image[idx]
+    sub_centroid_array = centroid_array[idx]
     current_pair = 0
 
     for i in range(len(sub_peak_array)):
@@ -86,14 +87,14 @@ def _peakdistance(peak_image, number_of_peaks, result_image):
                 result_image[idx, i] = 360.0
                 break
             elif number_of_peaks[idx] % 2 == 0:
-                left = i * 360.0 / len(sub_peak_array)
+                left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                 right_side_peak = number_of_peaks[idx]//2
                 current_position = i+1
                 while right_side_peak > 0 and current_position < len(sub_peak_array):
                     if sub_peak_array[current_position] == 1:
                         right_side_peak = right_side_peak - 1
                     current_position = current_position + 1
-                right = (current_position-1) * 360.0 / len(sub_peak_array)
+                right = (current_position-1 + sub_centroid_array[current_position-1]) * 360.0 / len(sub_peak_array)
                 result_image[idx, i] = right - left
                 result_image[idx, current_position-1] = 360 - (right - left)
 
@@ -103,10 +104,11 @@ def _peakdistance(peak_image, number_of_peaks, result_image):
                 break
 
 
-@cuda.jit('void(int8[:, :], int8[:], float32[:, :])')
-def _direction(peak_array, number_of_peaks, result_image):
+@cuda.jit('void(int8[:, :], float32[:, :], int8[:], float32[:, :])')
+def _direction(peak_array, centroid_array, number_of_peaks, result_image):
     idx = cuda.grid(1)
     sub_peak_array = peak_array[idx]
+    sub_centroid_array = centroid_array[idx]
     num_directions = result_image.shape[-1]
 
     current_direction = 0
@@ -115,7 +117,7 @@ def _direction(peak_array, number_of_peaks, result_image):
     if number_of_peaks[idx] // 2 <= num_directions:
         for i in range(len(sub_peak_array)):
             if sub_peak_array[i] == 1:
-                left = i * 360.0 / len(sub_peak_array)
+                left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                 if number_of_peaks[idx] == 1:
                     result_image[idx, current_direction] = (270.0 - left) % 180
                     break
@@ -126,7 +128,7 @@ def _direction(peak_array, number_of_peaks, result_image):
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
                         current_position = current_position + 1
-                    right = (current_position-1) * 360.0 / len(sub_peak_array)
+                    right = (current_position-1 + sub_centroid_array[current_position-1]) * 360.0 / len(sub_peak_array)
                     if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
                         result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
                     current_direction += 1
@@ -190,7 +192,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
         if sub_peaks[pos] == 1:
             centroid_sum_top = 0.0
             centroid_sum_bottom = 0.0
-            for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
+            for x in range(-sub_left_bases[pos], sub_right_bases[pos]+1):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
                 next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                 for interp in range(NUMBER_OF_SAMPLES):
