@@ -4,7 +4,7 @@ from numba import cuda
 BACKGROUND_COLOR = -1
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
-NUMBER_OF_SAMPLES = 100
+NUMBER_OF_SAMPLES = 10
 TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
@@ -157,18 +157,18 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, rig
             # Check for minima in range
             for offset in range(MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
                 if sub_reverse_peaks[pos - offset] == 1:
-                    left_position = 32
+                    left_position = offset
                 if sub_reverse_peaks[(pos + offset) % len(sub_reverse_peaks)] == 1:
-                    right_position = 32
+                    right_position = offset
 
             # Check for peak height
             for offset in range(abs(left_position)):
                 if sub_image[pos - offset] < target_peak_height:
-                    left_position = 128
+                    left_position = offset
                     break
             for offset in range(right_position):
                 if sub_image[(pos + offset) % len(sub_image)] < target_peak_height:
-                    right_position = 128
+                    right_position = offset
                     break
 
             left_bases[idx, pos] = left_position
@@ -176,3 +176,34 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, rig
         else:
             left_bases[idx, pos] = 0
             right_bases[idx, pos] = 0
+
+
+@cuda.jit('void(float32[:, :], uint8[:, :], int8[:, :], int8[:, :], float32[:, :])')
+def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
+    idx = cuda.grid(1)
+    sub_image = image[idx]
+    sub_peaks = peak_image[idx]
+    sub_left_bases = left_bases[idx]
+    sub_right_bases = right_bases[idx]
+
+    for pos in range(len(sub_peaks)):
+        if sub_peaks[pos] == 1:
+            centroid_sum_top = 0.0
+            centroid_sum_bottom = 0.0
+            for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
+                img_pixel = sub_image[(pos + x) % len(sub_image)]
+                next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
+                for interp in range(NUMBER_OF_SAMPLES):
+                    step = interp / NUMBER_OF_SAMPLES
+                    func_val = img_pixel + (next_img_pixel - img_pixel) * step
+                    centroid_sum_top += (x + step) * func_val
+                    centroid_sum_bottom += func_val
+
+            centroid = centroid_sum_top / centroid_sum_bottom
+            if centroid > 1:
+                centroid = 1
+            if centroid < -1:
+                centroid = -1
+            centroid_peaks[idx, pos] = centroid
+        else:
+            centroid_peaks[idx, pos] = 0

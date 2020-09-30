@@ -3,7 +3,7 @@ import numpy
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
-    TARGET_PEAK_HEIGHT, _centroid_correction_bases
+    TARGET_PEAK_HEIGHT, _centroid_correction_bases, _centroid
 
 
 def peaks(image, return_numpy=True):
@@ -263,16 +263,35 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_prominence)
     cuda.synchronize()
+    del gpu_reverse_image
 
     gpu_reverse_peaks[gpu_reverse_prominence < low_prominence] = False
     gpu_reverse_peaks[gpu_reverse_prominence > high_prominence] = False
     del gpu_reverse_prominence
 
-    gpu_left_bases = cupy.empty(gpu_image.shape, dtype='uint8')
-    gpu_right_bases = cupy.empty(gpu_image.shape, dtype='uint8')
+    gpu_left_bases = cupy.empty(gpu_image.shape, dtype='int8')
+    gpu_right_bases = cupy.empty(gpu_image.shape, dtype='int8')
     _centroid_correction_bases[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image,
                                                                    gpu_reverse_peaks, gpu_left_bases, gpu_right_bases)
     cuda.synchronize()
+    del gpu_reverse_peaks
 
-    gpu_left_bases = cupy.asarray(gpu_left_bases.reshape((image_x, image_y, image_z)))
-    return cupy.asnumpy(gpu_left_bases)
+    # Centroid calculation based on left_bases and right_bases
+    gpu_centroid_peaks = cupy.empty(gpu_image.shape, dtype='float32')
+    print('Hey')
+    _centroid[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_left_bases,
+                                                  gpu_right_bases, gpu_centroid_peaks)
+    cuda.synchronize()
+    if peak_image is None:
+        del gpu_peak_image
+    del gpu_right_bases
+    del gpu_left_bases
+
+    gpu_centroid_peaks = gpu_centroid_peaks.reshape((image_x, image_y, image_z))
+
+    if return_numpy:
+        result_img_cpu = cupy.asnumpy(gpu_centroid_peaks)
+        del gpu_centroid_peaks
+        return result_img_cpu
+    else:
+        return gpu_centroid_peaks

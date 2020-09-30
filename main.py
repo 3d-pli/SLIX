@@ -104,7 +104,7 @@ if __name__ == "__main__":
         #tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
     from SLIX.SLIX_GPU.toolbox import centroid_correction
-    left_bases = centroid_correction(image, peaks)
-    tifffile.imwrite('/tmp/left_bases.tiff', numpy.swapaxes(left_bases, -1, 0))
+    centroid_peaks = centroid_correction(image, peaks)
+    tifffile.imwrite('/tmp/centroid_peaks.tiff', numpy.swapaxes(centroid_peaks, -1, 0))
 
     print("--- %s seconds ---" % (time.time() - start_time))
