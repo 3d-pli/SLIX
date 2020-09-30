@@ -3,7 +3,7 @@ import numpy
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
-    TARGET_PEAK_HEIGHT, _centroid_correction
+    TARGET_PEAK_HEIGHT, _centroid_correction_bases
 
 
 def peaks(image, return_numpy=True):
@@ -244,21 +244,35 @@ def direction(peak_image, number_of_directions=3, return_numpy=True):
 def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, high_prominence=None, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
     if peak_image is not None:
-        gpu_peak_image = cupy.array(peak_image)
+        gpu_peak_image = cupy.array(peak_image, dtype='uint8')
     else:
-        gpu_peak_image = peaks(gpu_image, return_numpy=False)
+        gpu_peak_image = peaks(gpu_image, return_numpy=False).astype('uint8')
+    if low_prominence is None:
+        low_prominence = -cupy.inf
+    if high_prominence is None:
+        high_prominence = -cupy.inf
+
     [image_x, image_y, image_z] = gpu_image.shape
+    gpu_image = gpu_image.reshape(image_x * image_y, image_z)
+    gpu_peak_image = gpu_peak_image.reshape(image_x * image_y, image_z)
 
     gpu_reverse_image = -1 * gpu_image
-    gpu_reverse_peaks = peaks(gpu_reverse_image)
-    gpu_reverse_prominence = cupy.empty((gpu_image.shape), dtype='float32')
+    gpu_reverse_peaks = peaks(gpu_reverse_image, return_numpy=False).astype('uint8')
+    gpu_reverse_prominence = cupy.empty(gpu_image.shape, dtype='float32')
     threads_per_block = 256
     blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
-    _prominence[blocks_per_grid, threads_per_block](gpu_reverse_image, gpu_reverse_peaks, gpu_reverse_prominence)
+    _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_prominence)
+    cuda.synchronize()
 
     gpu_reverse_peaks[gpu_reverse_prominence < low_prominence] = False
+    gpu_reverse_peaks[gpu_reverse_prominence > high_prominence] = False
     del gpu_reverse_prominence
-    del gpu_reverse_peaks
 
-    gpu_result_img = cupy.empty((gpu_image.shape), dtype='float32')
-    _centroid_correction[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_peaks, gpu_result_img)
+    gpu_left_bases = cupy.empty(gpu_image.shape, dtype='uint8')
+    gpu_right_bases = cupy.empty(gpu_image.shape, dtype='uint8')
+    _centroid_correction_bases[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image,
+                                                                   gpu_reverse_peaks, gpu_left_bases, gpu_right_bases)
+    cuda.synchronize()
+
+    gpu_left_bases = cupy.asarray(gpu_left_bases.reshape((image_x, image_y, image_z)))
+    return cupy.asnumpy(gpu_left_bases)

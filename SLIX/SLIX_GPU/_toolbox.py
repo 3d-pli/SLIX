@@ -135,39 +135,44 @@ def _direction(peak_array, number_of_peaks, result_image):
                     break
 
 
-@cuda.jit('void(float32[:, :], int8[:, :], int8[:, :], float32[:, :])')
-def _centroid_correction(image, peak_image, reverse_peaks, result_img):
+@cuda.jit('void(float32[:, :], uint8[:, :], uint8[:, :], uint8[:, :], uint8[:, :])')
+def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, right_bases):
     idx = cuda.grid(1)
     sub_image = image[idx]
     sub_peaks = peak_image[idx]
     sub_reverse_peaks = reverse_peaks[idx]
 
+    max_pos = 0
+    for pos in range(len(sub_image)):
+        if sub_image[pos] > max_pos:
+            max_pos = sub_image[pos]
+
     for pos in range(len(sub_peaks)):
         if sub_peaks[pos] == 1:
-            target_peak_height = max(0, sub_image[pos] - sub_image.max() * (1 - TARGET_PEAK_HEIGHT))
-            left_position = pos
-            right_position = pos
+
+            target_peak_height = max(0, sub_image[pos] - max_pos * (1 - TARGET_PEAK_HEIGHT))
+            left_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
+            right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
 
             # Check for minima in range
             for offset in range(MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
                 if sub_reverse_peaks[pos - offset] == 1:
-                    left_position = pos - offset
-                if sub_reverse_peaks[pos + offset] == 1:
-                    right_position = pos + offset
+                    left_position = 32
+                if sub_reverse_peaks[(pos + offset) % len(sub_reverse_peaks)] == 1:
+                    right_position = 32
 
             # Check for peak height
-            for offset in range(pos - left_position):
+            for offset in range(abs(left_position)):
                 if sub_image[pos - offset] < target_peak_height:
-                    left_position = pos - offset
+                    left_position = 128
                     break
-            for offset in range(right_position - pos):
-                if sub_image[pos + offset] < target_peak_height:
-                    right_position = pos + offset
+            for offset in range(right_position):
+                if sub_image[(pos + offset) % len(sub_image)] < target_peak_height:
+                    right_position = 128
                     break
 
-            if left_position == pos:
-                left_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-            if right_position == pos:
-                right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
-
-            # TODO: How to transfer sampling algorithm part to this GPU implementation?
+            left_bases[idx, pos] = left_position
+            right_bases[idx, pos] = right_position
+        else:
+            left_bases[idx, pos] = 0
+            right_bases[idx, pos] = 0

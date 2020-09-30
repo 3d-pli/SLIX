@@ -72,14 +72,14 @@ def create_argument_parser():
 
 
 if __name__ == "__main__":
-    image = toolbox.read_image('/data/PLI-LAP2/TESTREIHEN/Streumessungen/1_Streumessung/90_Vervet_512/90_Stack.tif')
+    #image = toolbox.read_image('/data/PLI-LAP2/TESTREIHEN/Streumessungen/1_Streumessung/90_Vervet_512/90_Stack.tif')
+    image = toolbox.read_image('/home/jreuter/AktuelleArbeit/90_Stack.tif')
     print(image.shape)
 
     import time
 
     start_time = time.time()
     peaks = toolbox.peaks(image, use_gpu=USE_GPU)
-    print(numpy.count_nonzero(peaks == True, axis=-1))
     #tifffile.imwrite('/tmp/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
 
     peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
@@ -102,5 +102,9 @@ if __name__ == "__main__":
     direction = toolbox.direction(peaks, use_gpu=USE_GPU)
     #for dim in range(direction.shape[-1]):
         #tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
+
+    from SLIX.SLIX_GPU.toolbox import centroid_correction
+    left_bases = centroid_correction(image, peaks)
+    tifffile.imwrite('/tmp/left_bases.tiff', numpy.swapaxes(left_bases, -1, 0))
 
     print("--- %s seconds ---" % (time.time() - start_time))
