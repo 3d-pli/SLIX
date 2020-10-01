@@ -89,14 +89,17 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
             elif number_of_peaks[idx] % 2 == 0:
                 left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                 right_side_peak = number_of_peaks[idx]//2
-                current_position = i+1
+                current_position = i
                 while right_side_peak > 0 and current_position < len(sub_peak_array):
+                    current_position = current_position + 1
                     if sub_peak_array[current_position] == 1:
                         right_side_peak = right_side_peak - 1
-                    current_position = current_position + 1
-                right = (current_position-1 + sub_centroid_array[current_position-1]) * 360.0 / len(sub_peak_array)
-                result_image[idx, i] = right - left
-                result_image[idx, current_position-1] = 360 - (right - left)
+                if right_side_peak > 0:
+                    result_image[idx, i] = 0
+                else:
+                    right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
+                    result_image[idx, i] = right - left
+                    result_image[idx, current_position] = 360 - (right - left)
 
                 current_pair += 1
 
@@ -123,14 +126,15 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
                     break
                 elif number_of_peaks[idx] % 2 == 0:
                     right_side_peak = number_of_peaks[idx]//2
-                    current_position = i+1
+                    current_position = i
                     while right_side_peak > 0 and current_position < len(sub_peak_array):
+                        current_position = current_position + 1
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
-                        current_position = current_position + 1
-                    right = (current_position-1 + sub_centroid_array[current_position-1]) * 360.0 / len(sub_peak_array)
-                    if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
-                        result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
+                    if right_side_peak == 0:
+                        right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
+                        if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
+                            result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
                     current_direction += 1
 
                 if current_direction == number_of_peaks[idx]//2:
@@ -192,14 +196,15 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
         if sub_peaks[pos] == 1:
             centroid_sum_top = 0.0
             centroid_sum_bottom = 0.0
-            for x in range(-sub_left_bases[pos], sub_right_bases[pos]+1):
+            for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
                 next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                 for interp in range(NUMBER_OF_SAMPLES):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
-                    centroid_sum_top += (x + step) * func_val
-                    centroid_sum_bottom += func_val
+                    if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
+                        centroid_sum_top += (x + step) * func_val
+                        centroid_sum_bottom += func_val
 
             centroid = centroid_sum_top / centroid_sum_bottom
             if centroid > 1:

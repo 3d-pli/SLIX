@@ -80,20 +80,20 @@ if __name__ == "__main__":
 
     start_time = time.time()
     peaks = toolbox.peaks(image, use_gpu=USE_GPU)
-    #tifffile.imwrite('/tmp/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
+    tifffile.imwrite('/tmp/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
 
     peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
-    #tifffile.imwrite('/tmp/prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+    tifffile.imwrite('/tmp/prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
     del peak_prominence_full
 
     peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
     peaks[peak_prominence_full < 0.08] = False
     peak_prominence_full[peak_prominence_full < 0.08] = 0
-    #tifffile.imwrite('/tmp/prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
-    #tifffile.imwrite('/tmp/peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
+    tifffile.imwrite('/tmp/prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+    tifffile.imwrite('/tmp/peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
 
     peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
-    #tifffile.imwrite('/tmp/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
+    tifffile.imwrite('/tmp/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
     del peak_width_full
 
     from SLIX.SLIX_GPU.toolbox import centroid_correction
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     tifffile.imwrite('/tmp/centroid_peaks.tiff', numpy.swapaxes(centroids, -1, 0))
 
     peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
-    #tifffile.imwrite('/tmp/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
+    tifffile.imwrite('/tmp/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
 
     direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
     for dim in range(direction.shape[-1]):
