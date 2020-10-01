@@ -2,8 +2,16 @@ from SLIX import toolbox
 import tifffile
 import numpy
 import argparse
+import os
+import time
 
 USE_GPU=True
+DIRECTION = True
+PEAKS = True
+PEAKWIDTH = True
+PEAKPROMINENCE = True
+PEAKDISTANCE = True
+OPTIONAL = False
 
 
 def create_argument_parser():
@@ -24,6 +32,9 @@ def create_argument_parser():
                           required=True)
     # Optional parameters
     optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('-v',
+                          '--verbose',
+                          action='store_true')
     optional.add_argument('--with_mask',
                           action='store_true',
                           help='Use mask to try to remove some of the background')
@@ -43,7 +54,6 @@ def create_argument_parser():
     # Computational parameters
     compute = parser.add_argument_group('computational arguments')
     compute.add_argument('--no_gpu',
-                         type=int,
                          help='Disable the usage of the GPU and use the CPU implementation instead. Not recommended.',
                          action='store_false')
     # Parameters to select which images will be generated
@@ -72,39 +82,83 @@ def create_argument_parser():
 
 
 if __name__ == "__main__":
-    #image = toolbox.read_image('/data/PLI-LAP2/TESTREIHEN/Streumessungen/1_Streumessung/90_Vervet_512/90_Stack.tif')
-    image = toolbox.read_image('/home/jreuter/AktuelleArbeit/90_Stack.tif')
-    print(image.shape)
+    parser = create_argument_parser()
+    arguments = parser.parse_args()
+    args = vars(arguments)
 
-    import time
+    if args['direction'] or args['peaks'] or args['peakprominence'] or args['peakwidth'] or args['peakdistance']:
+        DIRECTION = args['direction']
+        PEAKS = args['peaks']
+        PEAKPROMINENCE = args['peakprominence']
+        PEAKWIDTH = args['peakwidth']
+        PEAKDISTANCE = args['peakdistance']
+    OPTIONAL = args['optional']
+    USE_GPU = args['no_gpu']
 
-    start_time = time.time()
-    peaks = toolbox.peaks(image, use_gpu=USE_GPU)
-    tifffile.imwrite('/tmp/peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
+    if args['verbose']:
+        print(
+            'SLI Feature Generator:\n' +
+            'Chosen feature maps:\n' +
+            'Direction maps: ' + str(DIRECTION) + '\n' +
+            'Peak maps: ' + str(PEAKS) + '\n' +
+            'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
+            'Peak width map: ' + str(PEAKWIDTH) + '\n' +
+            'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
+            'Optional maps: ' + str(OPTIONAL) + '\n'
+        )
 
-    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
-    tifffile.imwrite('/tmp/prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
-    del peak_prominence_full
+    paths = args['input']
+    if not isinstance(paths, list):
+        paths = [paths]
 
-    peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
-    peaks[peak_prominence_full < 0.08] = False
-    peak_prominence_full[peak_prominence_full < 0.08] = 0
-    tifffile.imwrite('/tmp/prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
-    tifffile.imwrite('/tmp/peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
+    if not os.path.exists(args['output']):
+        os.makedirs(args['output'], exist_ok=True)
 
-    peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
-    tifffile.imwrite('/tmp/peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
-    del peak_width_full
+    for path in paths:
+        folder = os.path.dirname(path)
+        filename_without_extension = os.path.splitext(os.path.basename(path))[0]
+        output_path_name = args['output'] + '/' + filename_without_extension
+        image = toolbox.read_image(path)
+        if args['verbose']:
+            print(path)
+            start_time = time.time()
+            
+        if PEAKS:
+            peaks = toolbox.peaks(image, use_gpu=USE_GPU)
+            #tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
 
-    from SLIX.SLIX_GPU.toolbox import centroid_correction
-    centroids = centroid_correction(image, peaks)
-    tifffile.imwrite('/tmp/centroid_peaks.tiff', numpy.swapaxes(centroids, -1, 0))
+        if PEAKPROMINENCE:
+            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
+            #tifffile.imwrite(output_path_name+'_prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+            del peak_prominence_full
 
-    peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
-    tifffile.imwrite('/tmp/peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
+            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
+            peaks[peak_prominence_full < 0.08] = False
+            peak_prominence_full[peak_prominence_full < 0.08] = 0
+            #tifffile.imwrite(output_path_name+'_prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+            #tifffile.imwrite(output_path_name+'_peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
 
-    direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
-    for dim in range(direction.shape[-1]):
-        tifffile.imwrite('/tmp/direction_'+str(dim)+'.tiff', direction[:, :, dim])
+        if PEAKWIDTH:
+            peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
+            #tifffile.imwrite(output_path_name+'_peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
+            del peak_width_full
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+        if USE_GPU:
+            from SLIX.SLIX_GPU.toolbox import centroid_correction
+            centroids = centroid_correction(image, peaks)
+            #tifffile.imwrite(output_path_name+'_centroid_peaks.tiff', numpy.swapaxes(centroids, -1, 0))
+        else:
+            centroids = numpy.zeros(image.shape)
+
+        if PEAKDISTANCE:
+            peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
+            #tifffile.imwrite(output_path_name+'_peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
+            del peak_distance_full
+
+        if DIRECTION:
+            direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
+            #for dim in range(direction.shape[-1]):
+            #    tifffile.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
+
+        if args['verbose']:
+            print("--- %s seconds ---" % (time.time() - start_time))
