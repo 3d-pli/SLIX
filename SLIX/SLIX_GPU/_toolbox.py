@@ -22,7 +22,7 @@ def _peak_cleanup(peaks, resulting_peaks):
             while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
                 resulting_peaks[idx, (pos + offset) % len(sub_peak_array)] = 0
                 offset = offset + 1
-            resulting_peaks[idx, (pos + offset // 2) % len(sub_peak_array)] = 1
+            resulting_peaks[idx, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
             pos = pos + offset + 1
         else:
             resulting_peaks[idx, pos] = 0
@@ -219,7 +219,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
                 next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
-                for interp in range(NUMBER_OF_SAMPLES):
+                for interp in range(NUMBER_OF_SAMPLES+1):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
                     if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
