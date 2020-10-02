@@ -24,7 +24,7 @@ def peaks(image, return_numpy=True):
     del right
     del left
 
-    resulting_peaks = cupy.empty(peaks.shape, dtype='int8')
+    resulting_peaks = cupy.zeros(peaks.shape, dtype='int8')
     threads_per_block = 256
     blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
     print(resulting_peaks.shape, peaks.shape)
