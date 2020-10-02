@@ -3,40 +3,51 @@ import numpy
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
-    TARGET_PEAK_HEIGHT, _centroid_correction_bases, _centroid
+    _centroid_correction_bases, _centroid, _peak_cleanup
 
 
 def peaks(image, return_numpy=True):
-    gpu_image = cupy.array(image, dtype='float32')
+    gpu_image = cupy.array(image, dtype='int32')
     right = cupy.roll(gpu_image, 1, axis=-1) - gpu_image
     left = cupy.roll(gpu_image, -1, axis=-1) - gpu_image
     del gpu_image
 
-    peaks = (left < 0) & (right <= 0)
+    peaks = (left <= 0) & (right <= 0)
+    reshape = False
+    if len(peaks.shape) == 3:
+        reshape = True
+        [image_x, image_y, image_z] = peaks.shape
+        peaks = peaks.reshape(image_x * image_y, image_z)
+    else:
+        [image_x, image_z] = peaks.shape
+        image_y = 1
     del right
     del left
 
+    resulting_peaks = cupy.empty(peaks.shape, dtype='int8')
+    threads_per_block = 256
+    blocks_per_grid = (image_x * image_y + (threads_per_block - 1)) // threads_per_block
+    print(resulting_peaks.shape, peaks.shape)
+    _peak_cleanup[blocks_per_grid, threads_per_block](peaks, resulting_peaks)
+
+    if reshape:
+        resulting_peaks = peaks.reshape(image_x, image_y, image_z)
+    del peaks
+
     if return_numpy:
-        peaks_cpu = cupy.asnumpy(peaks)
-        del peaks
+        peaks_cpu = cupy.asnumpy(resulting_peaks)
+        del resulting_peaks
 
         return peaks_cpu
     else:
-        return peaks
+        return resulting_peaks
 
 
 def num_peaks(image, return_numpy=True):
-    gpu_image = cupy.array(image, dtype='float64')
-    right = cupy.roll(gpu_image, 1, axis=-1) - gpu_image
-    left = cupy.roll(gpu_image, -1, axis=-1) - gpu_image
-    del gpu_image
+    peak_image = peaks(image, return_numpy=False)
 
-    peaks = (left < 0) & (right <= 0)
-    del right
-    del left
-
-    resulting_image = cupy.empty((peaks.shape[:2]))
-    resulting_image[:, :] = cupy.count_nonzero(peaks, axis=-1)
+    resulting_image = cupy.empty((peak_image.shape[:2]))
+    resulting_image[:, :] = cupy.count_nonzero(peak_image, axis=-1)
     if return_numpy:
         resulting_image_cpu = cupy.asnumpy(resulting_image)
         del resulting_image

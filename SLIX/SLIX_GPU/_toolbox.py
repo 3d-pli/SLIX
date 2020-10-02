@@ -9,6 +9,18 @@ TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
 
+@cuda.jit('void(int8[:, :], int8[:, :])')
+def _peak_cleanup(peaks, resulting_peaks):
+    idx = cuda.grid(1)
+    sub_peak_array = peaks[idx]
+
+    for pos in range(len(sub_peak_array)):
+        if sub_peak_array[pos] == 1:
+            resulting_peaks[idx, pos] = 1
+        else:
+            resulting_peaks[idx, pos] = 0
+
+
 @cuda.jit('void(float32[:, :], int8[:, :], float32[:, :])')
 def _prominence(image, peak_image, result_image):
     idx = cuda.grid(1)

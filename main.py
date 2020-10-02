@@ -125,40 +125,40 @@ if __name__ == "__main__":
             
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=USE_GPU)
-            #tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.swapaxes(peaks, -1, 0))
+            tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.moveaxis(peaks, -1, 0))
 
         if PEAKPROMINENCE:
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
-            #tifffile.imwrite(output_path_name+'_prominence.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
+            tifffile.imwrite(output_path_name+'_prominence.tiff', numpy.moveaxis(peak_prominence_full, -1, 0))
             del peak_prominence_full
 
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
             peaks[peak_prominence_full < 0.08] = False
             peak_prominence_full[peak_prominence_full < 0.08] = 0
-            #tifffile.imwrite(output_path_name+'_prominence_filtered.tiff', numpy.swapaxes(peak_prominence_full, -1, 0))
-            #tifffile.imwrite(output_path_name+'_peak_positions_filtered.tiff', numpy.swapaxes(peaks, -1, 0))
+            tifffile.imwrite(output_path_name+'_prominence_filtered.tiff', numpy.moveaxis(peak_prominence_full, -1, 0))
+            tifffile.imwrite(output_path_name+'_peak_positions_filtered.tiff', numpy.moveaxis(peaks, -1, 0))
 
         if PEAKWIDTH:
             peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
-            #tifffile.imwrite(output_path_name+'_peak_width.tiff', numpy.swapaxes(peak_width_full, -1, 0))
+            tifffile.imwrite(output_path_name+'_peak_width.tiff', numpy.moveaxis(peak_width_full, -1, 0))
             del peak_width_full
 
         if USE_GPU:
             from SLIX.SLIX_GPU.toolbox import centroid_correction
             centroids = centroid_correction(image, peaks)
-            #tifffile.imwrite(output_path_name+'_centroid_peaks.tiff', numpy.swapaxes(centroids, -1, 0))
+            tifffile.imwrite(output_path_name+'_centroid_peaks.tiff', numpy.moveaxis(centroids, -1, 0))
         else:
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
             peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
-            #tifffile.imwrite(output_path_name+'_peak_distance.tiff', numpy.swapaxes(peak_distance_full, -1, 0))
+            tifffile.imwrite(output_path_name+'_peak_distance.tiff', numpy.moveaxis(peak_distance_full, -1, 0))
             del peak_distance_full
 
         if DIRECTION:
             direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
-            #for dim in range(direction.shape[-1]):
-            #    tifffile.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
+            for dim in range(direction.shape[-1]):
+                tifffile.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
         if args['verbose']:
             print("--- %s seconds ---" % (time.time() - start_time))
