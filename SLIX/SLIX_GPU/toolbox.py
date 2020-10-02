@@ -31,16 +31,16 @@ def peaks(image, return_numpy=True):
     _peak_cleanup[blocks_per_grid, threads_per_block](peaks, resulting_peaks)
 
     if reshape:
-        resulting_peaks = peaks.reshape(image_x, image_y, image_z)
+        resulting_peaks = resulting_peaks.reshape(image_x, image_y, image_z)
     del peaks
 
     if return_numpy:
         peaks_cpu = cupy.asnumpy(resulting_peaks)
         del resulting_peaks
 
-        return peaks_cpu
+        return peaks_cpu.astype('bool')
     else:
-        return resulting_peaks
+        return resulting_peaks.astype('bool')
 
 
 def num_peaks(image, return_numpy=True):

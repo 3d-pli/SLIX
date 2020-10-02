@@ -14,11 +14,18 @@ def _peak_cleanup(peaks, resulting_peaks):
     idx = cuda.grid(1)
     sub_peak_array = peaks[idx]
 
-    for pos in range(len(sub_peak_array)):
+    pos = 0
+    while pos < len(sub_peak_array):
         if sub_peak_array[pos] == 1:
-            resulting_peaks[idx, pos] = 1
+            for offset in range(1, len(sub_peak_array)):
+                if sub_peak_array[(pos + offset) % len(sub_peak_array)] == 0:
+                    break
+                # sub_peak_array[(pos + offset) % len(sub_peak_array)] = 0
+            resulting_peaks[idx, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
+            pos = pos + offset
         else:
             resulting_peaks[idx, pos] = 0
+            pos = pos + 1
 
 
 @cuda.jit('void(float32[:, :], int8[:, :], float32[:, :])')
