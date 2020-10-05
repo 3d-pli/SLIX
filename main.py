@@ -5,7 +5,16 @@ import argparse
 import os
 import time
 
-USE_GPU=True
+try:
+    try:
+        import cupy
+        cupy.empty(0)
+        USE_GPU = True
+    except cupy.cuda.runtime.CUDARuntimeError:
+        USE_GPU = False
+except ModuleNotFoundError:
+    USE_GPU = False
+
 DIRECTION = True
 PEAKS = True
 PEAKWIDTH = True
@@ -51,11 +60,6 @@ def create_argument_parser():
         default=argparse.SUPPRESS,
         help='show this help message and exit'
     )
-    # Computational parameters
-    compute = parser.add_argument_group('computational arguments')
-    compute.add_argument('--no_gpu',
-                         help='Disable the usage of the GPU and use the CPU implementation instead. Not recommended.',
-                         action='store_false')
     # Parameters to select which images will be generated
     image = parser.add_argument_group('output choice (none = all except optional)')
     image.add_argument('--direction',
@@ -77,6 +81,9 @@ def create_argument_parser():
     image.add_argument('--optional',
                        action='store_true',
                        help='Adds Max/Min/Non Crossing Direction to the output images.')
+    image.add_argument('--no_centroids',
+                       action='store_false',
+                       help='Disable centroid calculation. Not recommended.')
     # Return generated parser
     return parser
 
@@ -93,7 +100,6 @@ if __name__ == "__main__":
         PEAKWIDTH = args['peakwidth']
         PEAKDISTANCE = args['peakdistance']
     OPTIONAL = args['optional']
-    USE_GPU = args['no_gpu']
 
     if args['verbose']:
         print(
@@ -122,13 +128,21 @@ if __name__ == "__main__":
         if args['verbose']:
             print(path)
             start_time = time.time()
-            
+
+        if USE_GPU:
+            image = cupy.asarray(image)
+        else:
+            print('No GPU or CuPy detected. Falling back to CPU computation.')
+
         if PEAKS:
+            print('peaks')
             peaks = toolbox.peaks(image, use_gpu=USE_GPU)
             tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.moveaxis(peaks, -1, 0))
 
         if PEAKPROMINENCE:
-            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
+            print('peakprominence')
+            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks,
+                                                           kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
             tifffile.imwrite(output_path_name+'_prominence.tiff', numpy.moveaxis(peak_prominence_full, -1, 0))
             del peak_prominence_full
 
@@ -139,15 +153,17 @@ if __name__ == "__main__":
             tifffile.imwrite(output_path_name+'_peak_positions_filtered.tiff', numpy.moveaxis(peaks, -1, 0))
 
         if PEAKWIDTH:
+            print('peakwidth')
             peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
             tifffile.imwrite(output_path_name+'_peak_width.tiff', numpy.moveaxis(peak_width_full, -1, 0))
             del peak_width_full
 
-        if USE_GPU:
-            from SLIX.SLIX_GPU.toolbox import centroid_correction
-            centroids = centroid_correction(image, peaks)
+        if args['no_centroids']:
+            print('centroids')
+            centroids = toolbox.centroid_correction(image, peaks, use_gpu=USE_GPU)
             tifffile.imwrite(output_path_name+'_centroid_peaks.tiff', numpy.moveaxis(centroids, -1, 0))
         else:
+            print('no centroids')
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:

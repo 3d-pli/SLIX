@@ -1,7 +1,6 @@
 import numpy
-from matplotlib import pyplot as plt
-
-from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance
+from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, \
+    _centroid, _centroid_correction_bases, TARGET_PROMINENCE
 
 
 def peaks(image):
@@ -139,3 +138,32 @@ def direction(peak_image, number_of_directions=3):
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
 
     return result_img
+
+
+def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, high_prominence=None):
+    print('centroid_correction')
+    if peak_image is None:
+        peak_image = peaks(image).astype('uint8')
+    if low_prominence is None:
+        low_prominence = -numpy.inf
+    if high_prominence is None:
+        high_prominence = -numpy.inf
+
+    [image_x, image_y, image_z] = image.shape
+    image = image.reshape(image_x * image_y, image_z)
+    peak_image = peak_image.reshape(image_x * image_y, image_z)
+
+    reverse_image = -1 * image
+    reverse_peaks = peaks(reverse_image).astype('uint8')
+    reverse_prominence = _prominence(image, peak_image)
+
+    reverse_peaks[reverse_prominence < low_prominence] = False
+    reverse_peaks[reverse_prominence > high_prominence] = False
+
+    left_bases, right_bases = _centroid_correction_bases(image, peak_image, reverse_peaks)
+
+    # Centroid calculation based on left_bases and right_bases
+    centroid_peaks = _centroid(image, peak_image, left_bases, right_bases)
+    centroid_peaks = centroid_peaks.reshape((image_x, image_y, image_z))
+
+    return centroid_peaks
