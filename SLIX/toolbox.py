@@ -2,7 +2,15 @@ import tifffile
 import nibabel
 import numpy
 
-from SLIX.SLIX_GPU import toolbox as gpu_toolbox
+try:
+    import cupy
+    cupy.empty(0)
+    from SLIX.SLIX_GPU import toolbox as gpu_toolbox
+except cupy.cuda.runtime.CUDARuntimeError:
+    pass
+except ModuleNotFoundError:
+    pass
+
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
 
 
@@ -83,3 +91,11 @@ def mean_peak_width(image, peak_image=None, target_height=0.5, use_gpu=True, ret
         return gpu_toolbox.mean_peak_width(image, peak_image, target_height, return_numpy=return_numpy)
     else:
         return cpu_toolbox.mean_peak_width(image, peak_image, target_height)
+
+
+def centroid_correction(image, peak_image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=None,
+                        use_gpu=True, return_numpy=True):
+    if use_gpu:
+        return gpu_toolbox.centroid_correction(image, peak_image, gpu_toolbox.TARGET_PROMINENCE, None, True)
+    else:
+        return cpu_toolbox.centroid_correction(image, peak_image, gpu_toolbox.TARGET_PROMINENCE, None)
