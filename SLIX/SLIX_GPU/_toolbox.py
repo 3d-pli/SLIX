@@ -9,10 +9,10 @@ TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
 
-@cuda.jit('void(int8[:, :], int8[:, :])')
+@cuda.jit('void(int8[:, :, :], int8[:, :, :])')
 def _peak_cleanup(peaks, resulting_peaks):
-    idx = cuda.grid(1)
-    sub_peak_array = peaks[idx]
+    idx, idy = cuda.grid(2)
+    sub_peak_array = peaks[idx, idy]
 
     pos = 0
     while pos < len(sub_peak_array):
@@ -20,20 +20,20 @@ def _peak_cleanup(peaks, resulting_peaks):
             sub_peak_array[pos] = 0
             offset = 1
             while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
-                resulting_peaks[idx, (pos + offset) % len(sub_peak_array)] = 0
+                resulting_peaks[idx, idy, (pos + offset) % len(sub_peak_array)] = 0
                 offset = offset + 1
-            resulting_peaks[idx, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
+            resulting_peaks[idx, idy, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
             pos = pos + offset
         else:
-            resulting_peaks[idx, pos] = 0
+            resulting_peaks[idx, idy, pos] = 0
             pos = pos + 1
 
 
-@cuda.jit('void(float32[:, :], int8[:, :], float32[:, :])')
+@cuda.jit('void(float32[:, :, :], int8[:, :, :], float32[:, :, :])')
 def _prominence(image, peak_image, result_image):
-    idx = cuda.grid(1)
-    sub_image = image[idx]
-    sub_peak_array = peak_image[idx]
+    idx, idy = cuda.grid(2)
+    sub_image = image[idx, idy]
+    sub_peak_array = peak_image[idx, idy]
 
     for pos in range(len(sub_peak_array)):
         if sub_peak_array[pos] == 1:
@@ -54,17 +54,17 @@ def _prominence(image, peak_image, result_image):
                     right_min = sub_image[i % len(sub_peak_array)]
                 i += 1
 
-            result_image[idx, pos] = sub_image[pos] - max(left_min, right_min)
+            result_image[idx, idy, pos] = sub_image[pos] - max(left_min, right_min)
         else:
-            result_image[idx, pos] = 0
+            result_image[idx, idy, pos] = 0
 
 
-@cuda.jit('void(float32[:, :], int8[:, :], float32[:, :], float32[:, :], float32)')
+@cuda.jit('void(float32[:, :, :], int8[:, :, :], float32[:, :, :], float32[:, :, :], float32)')
 def _peakwidth(image, peak_image, prominence, result_image, target_height):
-    idx = cuda.grid(1)
-    sub_image = image[idx]
-    sub_peak_array = peak_image[idx]
-    sub_prominece = prominence[idx]
+    idx, idy = cuda.grid(2)
+    sub_image = image[idx, idy]
+    sub_peak_array = peak_image[idx, idy]
+    sub_prominece = prominence[idx, idy]
 
     for pos in range(len(sub_peak_array)):
         if sub_peak_array[pos] == 1:
@@ -89,63 +89,66 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
                 # Interpolate if true intersection height is between samples
                 right_ip -= (height - sub_image[i]) / (sub_image[i - 1] - sub_image[i])
 
-            result_image[idx, pos] = right_ip - left_ip
+            result_image[idx, idy, pos] = right_ip - left_ip
         else:
-            result_image[idx, pos] = 0
+            result_image[idx, idy, pos] = 0
 
 
-@cuda.jit('void(int8[:, :], float32[:, :], int8[:], float32[:, :])')
+@cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], float32[:, :, :])')
 def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
-    idx = cuda.grid(1)
-    sub_peak_array = peak_image[idx]
-    sub_centroid_array = centroid_array[idx]
+    idx, idy = cuda.grid(2)
+    sub_peak_array = peak_image[idx, idy]
+    sub_centroid_array = centroid_array[idx, idy]
     current_pair = 0
+
+    current_number_of_peaks = number_of_peaks[idx, idy]
 
     for i in range(len(sub_peak_array)):
         if sub_peak_array[i] == 1:
-            if number_of_peaks[idx] == 1:
-                result_image[idx, i] = 360.0
+            if current_number_of_peaks == 1:
+                result_image[idx, idy, i] = 360.0
                 break
-            elif number_of_peaks[idx] % 2 == 0:
+            elif current_number_of_peaks % 2 == 0:
                 left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
-                right_side_peak = number_of_peaks[idx]//2
+                right_side_peak = current_number_of_peaks//2
                 current_position = i
                 while right_side_peak > 0 and current_position < len(sub_peak_array):
                     current_position = current_position + 1
                     if sub_peak_array[current_position] == 1:
                         right_side_peak = right_side_peak - 1
                 if right_side_peak > 0:
-                    result_image[idx, i] = 0
+                    result_image[idx, idy, i] = 0
                 else:
                     right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
-                    result_image[idx, i] = right - left
-                    result_image[idx, current_position] = 360 - (right - left)
+                    result_image[idx, idy, i] = right - left
+                    result_image[idx, idy, current_position] = 360 - (right - left)
 
                 current_pair += 1
 
-            if current_pair == number_of_peaks[idx]//2:
+            if current_pair == current_number_of_peaks//2:
                 break
 
 
-@cuda.jit('void(int8[:, :], float32[:, :], int8[:], float32[:, :])')
+@cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], float32[:, :, :])')
 def _direction(peak_array, centroid_array, number_of_peaks, result_image):
-    idx = cuda.grid(1)
-    sub_peak_array = peak_array[idx]
-    sub_centroid_array = centroid_array[idx]
+    idx, idy = cuda.grid(2)
+    sub_peak_array = peak_array[idx, idy]
+    sub_centroid_array = centroid_array[idx, idy]
     num_directions = result_image.shape[-1]
 
     current_direction = 0
+    current_number_of_peaks = number_of_peaks[idx, idy]
 
     result_image[idx, :] = BACKGROUND_COLOR
-    if number_of_peaks[idx] // 2 <= num_directions:
+    if current_number_of_peaks // 2 <= num_directions:
         for i in range(len(sub_peak_array)):
             if sub_peak_array[i] == 1:
                 left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
-                if number_of_peaks[idx] == 1:
+                if current_number_of_peaks == 1:
                     result_image[idx, current_direction] = (270.0 - left) % 180
                     break
-                elif number_of_peaks[idx] % 2 == 0:
-                    right_side_peak = number_of_peaks[idx]//2
+                elif current_number_of_peaks % 2 == 0:
+                    right_side_peak = current_number_of_peaks//2
                     current_position = i
                     while right_side_peak > 0 and current_position < len(sub_peak_array):
                         current_position = current_position + 1
@@ -153,20 +156,20 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
                             right_side_peak = right_side_peak - 1
                     if right_side_peak == 0:
                         right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
-                        if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
-                            result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
+                        if current_number_of_peaks == 2 or abs(180 - (right - left)) < 35:
+                            result_image[idx, idy, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
                     current_direction += 1
 
-                if current_direction == number_of_peaks[idx]//2:
+                if current_direction == current_number_of_peaks//2:
                     break
 
 
-@cuda.jit('void(float32[:, :], uint8[:, :], uint8[:, :], uint8[:, :], uint8[:, :])')
+@cuda.jit('void(float32[:, :, :], uint8[:, :, :], uint8[:, :, :], uint8[:, :, :], uint8[:, :, :])')
 def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, right_bases):
-    idx = cuda.grid(1)
-    sub_image = image[idx]
-    sub_peaks = peak_image[idx]
-    sub_reverse_peaks = reverse_peaks[idx]
+    idx, idy = cuda.grid(2)
+    sub_image = image[idx, idy]
+    sub_peaks = peak_image[idx, idy]
+    sub_reverse_peaks = reverse_peaks[idx, idy]
 
     max_pos = 0
     for pos in range(len(sub_image)):
@@ -197,20 +200,20 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, rig
                     right_position = offset
                     break
 
-            left_bases[idx, pos] = left_position
-            right_bases[idx, pos] = right_position
+            left_bases[idx, idy, pos] = left_position
+            right_bases[idx, idy, pos] = right_position
         else:
-            left_bases[idx, pos] = 0
-            right_bases[idx, pos] = 0
+            left_bases[idx, idy, pos] = 0
+            right_bases[idx, idy, pos] = 0
 
 
-@cuda.jit('void(float32[:, :], uint8[:, :], int8[:, :], int8[:, :], float32[:, :])')
+@cuda.jit('void(float32[:, :, :], uint8[:, :, :], int8[:, :, :], int8[:, :, :], float32[:, :, :])')
 def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
-    idx = cuda.grid(1)
-    sub_image = image[idx]
-    sub_peaks = peak_image[idx]
-    sub_left_bases = left_bases[idx]
-    sub_right_bases = right_bases[idx]
+    idx, idy = cuda.grid(2)
+    sub_image = image[idx, idy]
+    sub_peaks = peak_image[idx, idy]
+    sub_left_bases = left_bases[idx, idy]
+    sub_right_bases = right_bases[idx, idy]
 
     for pos in range(len(sub_peaks)):
         if sub_peaks[pos] == 1:
@@ -231,6 +234,6 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
                 centroid = 1
             if centroid < -1:
                 centroid = -1
-            centroid_peaks[idx, pos] = centroid
+            centroid_peaks[idx, idy, pos] = centroid
         else:
-            centroid_peaks[idx, pos] = 0
+            centroid_peaks[idx, idy, pos] = 0
