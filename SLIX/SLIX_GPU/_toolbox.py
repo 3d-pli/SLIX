@@ -23,7 +23,7 @@ def _peak_cleanup(peaks, resulting_peaks):
                 resulting_peaks[idx, (pos + offset) % len(sub_peak_array)] = 0
                 offset = offset + 1
             resulting_peaks[idx, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
-            pos = pos + offset + 1
+            pos = pos + offset
         else:
             resulting_peaks[idx, pos] = 0
             pos = pos + 1
