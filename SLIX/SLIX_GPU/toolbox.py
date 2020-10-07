@@ -1,6 +1,5 @@
 import cupy
 import numpy
-import math
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
@@ -23,7 +22,6 @@ def peaks(image, return_numpy=True):
     _peak_cleanup[blocks_per_grid, threads_per_block](peaks, resulting_peaks)
     cuda.synchronize()
     del peaks
-
 
     if return_numpy:
         peaks_cpu = cupy.asnumpy(resulting_peaks)
@@ -206,7 +204,7 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
 
 
 def direction(peak_image, centroids, number_of_directions=3, return_numpy=True):
-    gpu_peak_image = cupy.array(peak_image).astype('float32')
+    gpu_peak_image = cupy.array(peak_image).astype('int8')
     gpu_centroids = cupy.array(centroids).astype('float32')
 
     result_img_gpu = cupy.empty((gpu_peak_image.shape[0], gpu_peak_image.shape[1],

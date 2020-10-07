@@ -160,8 +160,8 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
                             result_image[idx, idy, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
                     current_direction += 1
 
-                if current_direction == current_number_of_peaks//2:
-                    break
+                    if current_direction == current_number_of_peaks // 2:
+                        break
 
 
 @cuda.jit('void(float32[:, :, :], uint8[:, :, :], uint8[:, :, :], uint8[:, :, :], uint8[:, :, :])')

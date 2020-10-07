@@ -1,6 +1,6 @@
 from SLIX.SLIX_GPU import toolbox
+from SLIX.SLIX_GPU import _toolbox
 import numpy
-from matplotlib import pyplot as plt
 
 
 class TestToolbox:
@@ -92,47 +92,47 @@ class TestToolbox:
         assert toolbox_width[0, 0, 2] == expected_width
         assert numpy.sum(toolbox_width) == expected_width
 
-    """def test_crossing_direction(self):
+    def test_crossing_direction(self):
         # Test for one direction with 180°+-35° distance
         two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-        expected_direction = numpy.array([135, BACKGROUND_COLOR, BACKGROUND_COLOR])
-        peaks = all_peaks(two_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, two_peak_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks, len(two_peak_arr))
+        two_peak_arr = two_peak_arr.reshape((1, 1, 24))
+        expected_direction = numpy.array([135, _toolbox.BACKGROUND_COLOR, _toolbox.BACKGROUND_COLOR])
+        peaks = toolbox.peaks(two_peak_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for two directions with 180°+-35° distance
         four_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0])
-        expected_direction = numpy.array([135, 60, BACKGROUND_COLOR])
-        peaks = all_peaks(four_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, four_peak_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks,  len(two_peak_arr))
+        four_peak_arr = four_peak_arr.reshape((1, 1, 24))
+        expected_direction = numpy.array([135, 60, _toolbox.BACKGROUND_COLOR])
+        peaks = toolbox.peaks(four_peak_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for three directions with 180°+-35° distance
         six_peak_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0])
+        six_peak_arr = six_peak_arr.reshape((1, 1, 24))
         expected_direction = numpy.array([135, 105, 60])
-        peaks = all_peaks(six_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, six_peak_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks,  len(two_peak_arr))
+        peaks = toolbox.peaks(six_peak_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for angle outside of 180°+-35° distance
         error_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
-        expected_direction = numpy.array([82.5, BACKGROUND_COLOR, BACKGROUND_COLOR])
-        peaks = all_peaks(error_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks, len(error_arr))
+        error_arr = error_arr.reshape((1, 1, 24))
+        expected_direction = numpy.array([82.5, _toolbox.BACKGROUND_COLOR, _toolbox.BACKGROUND_COLOR])
+        peaks = toolbox.peaks(error_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
         error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
-        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, 60])
-        peaks = all_peaks(error_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks, len(error_arr))
+        error_arr = error_arr.reshape((1, 1, 24))
+        expected_direction = numpy.array([_toolbox.BACKGROUND_COLOR, _toolbox.BACKGROUND_COLOR, 60])
+        peaks = toolbox.peaks(error_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
-    def test_non_crossing_direction(self):
+    """def test_non_crossing_direction(self):
         # Test for one peak
         one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         expected_direction = 45
