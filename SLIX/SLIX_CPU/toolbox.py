@@ -8,7 +8,7 @@ def peaks(image):
     right = numpy.roll(image, 1, axis=-1) - image
     left = numpy.roll(image, -1, axis=-1) - image
 
-    resulting_image = (left < 0) & (right <= 0)
+    resulting_image = (left <= 0) & (right <= 0) & (image != 0)
     del right
     del left
 
@@ -102,39 +102,39 @@ def mean_peak_width(image, peak_image=None, target_height=0.5):
     return result_img
 
 
-def peak_distance(peak_image):
+def peak_distance(peak_image, centroids):
     peak_image = numpy.array(peak_image)
     [image_x, image_y, image_z] = peak_image.shape
 
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('int8')
 
-    result_img = _peakdistance(peak_image, number_of_peaks)
+    result_img = _peakdistance(peak_image, centroids, number_of_peaks)
     result_img = result_img.reshape((image_x, image_y, image_z))
 
     return result_img
 
 
-def mean_peak_distance(peak_image):
+def mean_peak_distance(peak_image, centroids):
     if peak_image is not None:
         peak_image = numpy.array(peak_image)
     else:
         peak_image = peaks(peak_image)
-    result_image = peak_distance(peak_image)
+    result_image = peak_distance(peak_image, centroids)
     result_image = numpy.sum(result_image, axis=-1) / numpy.maximum(1,
                                                                     numpy.count_nonzero(peak_image,
                                                                                         axis=-1))
     return result_image
 
 
-def direction(peak_image, number_of_directions=3):
+def direction(peak_image, centroids, number_of_directions=3):
     peak_image = numpy.array(peak_image)
     [image_x, image_y, image_z] = peak_image.shape
 
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('int8')
 
-    result_img = _direction(peak_image, number_of_peaks, number_of_directions)
+    result_img = _direction(peak_image, centroids, number_of_peaks, number_of_directions)
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
 
     return result_img

@@ -19,6 +19,12 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr)
         assert numpy.all(toolbox_peaks == real_peaks)
 
+        arr = numpy.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] * 1)
+        arr = arr.reshape((1, 1, 11))
+        real_peaks = arr == 1
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
     def test_num_peaks(self):
         # Create an absolute simple peak array
         test_arr = numpy.array(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=bool)
