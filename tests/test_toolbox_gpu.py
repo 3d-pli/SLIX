@@ -21,7 +21,6 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr)
         assert numpy.all(toolbox_peaks == real_peaks)
 
-
     def test_num_peaks(self):
         # Create an absolute simple peak array
         test_arr = numpy.array(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) * 1000000, dtype=bool)
@@ -31,7 +30,6 @@ class TestToolbox:
         toolbox_peaks = toolbox.num_peaks(real_peaks)
         expected_value = numpy.count_nonzero(real_peaks[0, 0, :])
         assert numpy.all(toolbox_peaks == expected_value)
-
 
     def test_peak_prominence(self):
         # Create an absolute simple peak array
@@ -50,7 +48,7 @@ class TestToolbox:
         assert numpy.all(high_peaks == toolbox_high_peaks)
         assert numpy.all(low_peaks == toolbox_low_peaks)
 
-    """def test_peakdistance(self):
+    def test_peakdistance(self):
         # Test one peak
         test_arr = numpy.array(([True, False, False] + [False] * 21) * 1000000)
         test_arr = test_arr.reshape((1000, 1000, 24))
@@ -61,14 +59,31 @@ class TestToolbox:
         toolbox_distance_reduced = numpy.sum(toolbox_distance, axis=-1)
         assert numpy.all(toolbox_distance_reduced == expected_distance)
 
+        # Test two peaks
         test_arr = numpy.array(([False, False, True, False, False, False, False, True, False] + [False] * 15) * 1000000)
         test_arr = test_arr.reshape((1000, 1000, 24))
         expected_distance = 75
 
         toolbox_peaks = toolbox.peaks(test_arr)
         toolbox_distance = toolbox.peak_distance(toolbox_peaks, numpy.zeros(toolbox_peaks.shape, dtype=float))
-        assert numpy.count_nonzero(toolbox_distance)
-        #assert numpy.all(toolbox_distance_reduced == expected_distance)"""
+        assert numpy.all(toolbox_distance[:, :, 2] == expected_distance) & \
+               numpy.all(toolbox_distance[:, :, 7] == 360 - expected_distance)
+
+        # Test four peaks
+        test_arr = numpy.array(([False, False, True, False, False, False, False, True, False,
+                                 False, False, True, False, False, False, True, False, False] + [False] * 6) * 1000000)
+        test_arr = test_arr.reshape((1000, 1000, 24))
+        expected_distance_1 = 135
+        expected_distance_2 = 120
+
+        toolbox_peaks = toolbox.peaks(test_arr)
+        toolbox_distance = toolbox.peak_distance(toolbox_peaks, numpy.zeros(toolbox_peaks.shape, dtype=float))
+        assert numpy.all(toolbox_distance[:, :, 2] == expected_distance_1) & \
+               numpy.all(toolbox_distance[:, :, 11] == 360 - expected_distance_1)
+
+        assert numpy.all(toolbox_distance[:, :, 7] == expected_distance_2) & \
+               numpy.all(toolbox_distance[:, :, 15] == 360 - expected_distance_2)
+
 
     """
 

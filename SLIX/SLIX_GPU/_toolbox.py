@@ -139,13 +139,13 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
     current_direction = 0
     current_number_of_peaks = number_of_peaks[idx, idy]
 
-    result_image[idx, :] = BACKGROUND_COLOR
+    result_image[idx, idy, :] = BACKGROUND_COLOR
     if current_number_of_peaks // 2 <= num_directions:
         for i in range(len(sub_peak_array)):
             if sub_peak_array[i] == 1:
                 left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                 if current_number_of_peaks == 1:
-                    result_image[idx, current_direction] = (270.0 - left) % 180
+                    result_image[idx, idy, current_direction] = (270.0 - left) % 180
                     break
                 elif current_number_of_peaks % 2 == 0:
                     right_side_peak = current_number_of_peaks//2
