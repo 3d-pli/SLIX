@@ -239,9 +239,9 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     if high_prominence is None:
         high_prominence = -cupy.inf
 
-    gpu_reverse_image = -1 * gpu_image
+    gpu_reverse_image = (-1 * gpu_image).astype('float32')
     gpu_reverse_peaks = peaks(gpu_reverse_image, return_numpy=False).astype('uint8')
-    gpu_reverse_prominence = cupy.empty(gpu_image.shape, dtype='float32')
+    gpu_reverse_prominence = cupy.empty(gpu_reverse_image.shape, dtype='float32')
 
     threads_per_block = (1, 1)
     blocks_per_grid = peak_image.shape[:-1]

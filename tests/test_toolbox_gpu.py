@@ -140,44 +140,38 @@ class TestToolbox:
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
-    """def test_centroid_correction(self):
+    def test_centroid_correction(self):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14)
-        test_high_peaks = numpy.array([9])
-        expected_centroid = numpy.array([9])
+        test_array = test_array.reshape((1, 1, 24))
+        test_high_peaks = (test_array == 1)
 
-        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
-        assert expected_centroid == toolbox_centroid
+        toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
+        assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
 
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 8 + [0.5, 1, 0.5] + [0] * 13)
-        test_high_peaks = numpy.array([9])
-        expected_centroid = numpy.array([9])
+        test_array = test_array.reshape((1, 1, 24))
+        test_high_peaks = (test_array == 1)
 
-        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
-        assert expected_centroid == toolbox_centroid
+        toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
+        assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
 
         # simple test case: centroid is between two measurements
         test_array = numpy.array([0] * 8 + [1, 1] + [0] * 14)
-        test_high_peaks = numpy.array([8])
-        expected_centroid = numpy.array([8.5])
+        test_array = test_array.reshape((1, 1, 24))
+        test_high_peaks = (test_array == 1)
 
-        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
-        assert expected_centroid == toolbox_centroid
+        toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
+        assert numpy.isclose(toolbox_centroid[0, 0, 8], 0.5)
 
         # more complicated test case: wide peak plateau
         test_array = numpy.array([0] * 8 + [1, 1, 1] + [0] * 13)
-        test_high_peaks = numpy.array([8])
-        expected_centroid = numpy.array([9])
+        test_array = test_array.reshape((1, 1, 24))
+        test_high_peaks = (test_array == 1)
 
-        toolbox_centroid = centroid_correction(test_array, test_high_peaks)
-        assert numpy.isclose(expected_centroid, toolbox_centroid, 1e-2, 1e-2)
-
-    def test_create_background_mask(self):
-        test_array = (numpy.random.random(10000) * 256).astype('int')
-        expected_results = test_array < 10
-        toolbox_mask = create_background_mask(test_array[..., numpy.newaxis])
-        assert numpy.all(expected_results == toolbox_mask)"""
+        toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
+        assert numpy.isclose(toolbox_centroid[0, 0, 8], 1)
 
     def test_normalize(self):
         test_array = numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=numpy.float)

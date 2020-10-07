@@ -2,7 +2,7 @@ from numba import cuda
 
 # DEFAULT PARAMETERS
 BACKGROUND_COLOR = -1
-MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
+MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 3
 
 NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
@@ -42,17 +42,21 @@ def _prominence(image, peak_image, result_image):
 
             i = pos
             left_min = sub_image[pos]
-            while i_min <= i and sub_image[i] <= sub_image[pos]:
+            wlen = len(sub_peak_array) - 1
+            while i_min <= i and sub_image[i] <= sub_image[pos] and wlen > 0:
                 if sub_image[i] < left_min:
                     left_min = sub_image[i]
                 i -= 1
+                wlen -= 1
 
             i = pos
             right_min = sub_image[pos]
-            while i <= i_max and sub_image[i % len(sub_peak_array)] <= sub_image[pos]:
+            wlen = len(sub_peak_array) - 1
+            while i <= i_max and sub_image[i % len(sub_peak_array)] <= sub_image[pos] and wlen > 0:
                 if sub_image[i % len(sub_peak_array)] < right_min:
                     right_min = sub_image[i % len(sub_peak_array)]
                 i += 1
+                wlen -= 1
 
             result_image[idx, idy, pos] = sub_image[pos] - max(left_min, right_min)
         else:
