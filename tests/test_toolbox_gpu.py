@@ -92,7 +92,15 @@ class TestToolbox:
         assert toolbox_width[0, 0, 2] == expected_width
         assert numpy.sum(toolbox_width) == expected_width
 
-    def test_crossing_direction(self):
+    def test_direction(self):
+        # Test for one peak
+        one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        one_peak_arr = one_peak_arr.reshape((1, 1, 24))
+        expected_direction = numpy.array([45, _toolbox.BACKGROUND_COLOR, _toolbox.BACKGROUND_COLOR])
+        peaks = toolbox.peaks(one_peak_arr)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(one_peak_arr.shape))
+        assert numpy.all(expected_direction == toolbox_direction)
+
         # Test for one direction with 180°+-35° distance
         two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
         two_peak_arr = two_peak_arr.reshape((1, 1, 24))
@@ -132,32 +140,7 @@ class TestToolbox:
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape))
         assert numpy.all(expected_direction == toolbox_direction)
 
-    """def test_non_crossing_direction(self):
-        # Test for one peak
-        one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        expected_direction = 45
-        peaks = all_peaks(one_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, one_peak_arr, centroid_calculation=False)
-        toolbox_direction = non_crossing_direction(high_peaks, len(one_peak_arr))
-        assert expected_direction == toolbox_direction
-
-        # Test for two peaks
-        two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-        expected_direction = 135
-        peaks = all_peaks(two_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, two_peak_arr, centroid_calculation=False)
-        toolbox_direction = non_crossing_direction(high_peaks, len(two_peak_arr))
-        assert expected_direction == toolbox_direction
-
-        # Test for four peaks
-        four_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0])
-        expected_direction = BACKGROUND_COLOR
-        peaks = all_peaks(four_peak_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, four_peak_arr, centroid_calculation=False)
-        toolbox_direction = non_crossing_direction(high_peaks, len(two_peak_arr))
-        assert expected_direction == toolbox_direction
-
-    def test_centroid_correction(self):
+    """def test_centroid_correction(self):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14)
         test_high_peaks = numpy.array([9])
@@ -194,35 +177,15 @@ class TestToolbox:
         test_array = (numpy.random.random(10000) * 256).astype('int')
         expected_results = test_array < 10
         toolbox_mask = create_background_mask(test_array[..., numpy.newaxis])
-        assert numpy.all(expected_results == toolbox_mask)
+        assert numpy.all(expected_results == toolbox_mask)"""
 
     def test_normalize(self):
         test_array = numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=numpy.float)
         # Normalization kind == 0 -> Scale to 0..1
         expected_array = test_array / test_array.max()
-        normalized_array = normalize(test_array)
+        normalized_array = toolbox.normalize(test_array)
         assert numpy.all(numpy.isclose(expected_array, normalized_array))
         # Normalization kind == 1 -> Divide by mean value of array
         expected_array = test_array / test_array.mean()
-        normalized_array = normalize(test_array, kind_of_normalization=1)
+        normalized_array = toolbox.normalize(test_array, kind_of_normalization=1)
         assert numpy.all(numpy.isclose(expected_array, normalized_array))
-
-    def test_reshape_array_to_image(self):
-        test_array = numpy.array([i for i in range(0, 100)])
-
-        # Test reshape for no roi size
-        toolbox_image = reshape_array_to_image(test_array, 10, 1)
-        assert toolbox_image.shape == (10, 10)
-
-        # test if content of array is as expected
-        for i in range(0, 10):
-            for j in range(0, 10):
-                assert toolbox_image[i, j] == test_array[i * 10 + j]
-
-        # Test reshape for roi size of two
-        toolbox_image = reshape_array_to_image(test_array, 10, 2)
-        assert toolbox_image.shape == (5, 20)
-
-        for i in range(0, 5):
-            for j in range(0, 20):
-                assert toolbox_image[i, j] == test_array[i * 20 + j]"""
