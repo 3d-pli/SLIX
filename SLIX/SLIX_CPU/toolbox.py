@@ -1,6 +1,6 @@
 import numpy
 from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, \
-    _centroid, _centroid_correction_bases, TARGET_PROMINENCE
+    _centroid, _centroid_correction_bases, _peak_cleanup, TARGET_PROMINENCE
 
 
 def peaks(image):
@@ -12,22 +12,16 @@ def peaks(image):
     del right
     del left
 
+    [image_x, image_y, image_z] = resulting_image.shape
+    resulting_image = resulting_image.reshape(image_x * image_y, image_z)
+    resulting_image = _peak_cleanup(resulting_image)
+    resulting_image = resulting_image.reshape(image_x, image_y, image_z)
     return resulting_image
 
 
 def num_peaks(image):
-    image = numpy.array(image, dtype=numpy.float32)
-    right = numpy.roll(image, 1, axis=-1) - image
-    left = numpy.roll(image, -1, axis=-1) - image
-    del image
-
-    resulting_image = (left < 0) & (right <= 0)
-    del right
-    del left
-
-    resulting_image = numpy.empty((resulting_image.shape[:2]))
-    resulting_image[:, :] = numpy.count_nonzero(resulting_image, axis=-1)
-    return resulting_image
+    peak_image = peaks(image)
+    return numpy.count_nonzero(peak_image, axis=-1)
 
 
 def normalize(image, kind_of_normalization=0):
@@ -108,6 +102,7 @@ def peak_distance(peak_image, centroids):
 
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('int8')
+    centroids = centroids.reshape(image_x * image_y, image_z).astype('float32')
 
     result_img = _peakdistance(peak_image, centroids, number_of_peaks)
     result_img = result_img.reshape((image_x, image_y, image_z))
@@ -154,7 +149,10 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     peak_image = peak_image.reshape(image_x * image_y, image_z)
 
     reverse_image = -1 * image
-    reverse_peaks = peaks(reverse_image).astype('uint8')
+    # TODO: This is not pretty coding
+    reverse_peaks = peaks(reverse_image.reshape((image_x, image_y, image_z)))\
+        .astype('uint8')\
+        .reshape(image_x * image_y, image_z)
     reverse_prominence = _prominence(image, peak_image)
 
     reverse_peaks[reverse_prominence < low_prominence] = False

@@ -11,6 +11,25 @@ TARGET_PROMINENCE = 0.08
 
 
 @jit(nopython=True, parallel=True)
+def _peak_cleanup(peaks):
+    resulting_peaks = numpy.empty(peaks.shape)
+    for idx in prange(peaks.shape[0]):
+        for pos in range(len(peaks[idx])):
+            if peaks[idx][pos] == 1:
+                peaks[idx][pos] = 0
+                offset = 1
+                while peaks[idx][(pos + offset) % len(peaks[idx])] == 1:
+                    resulting_peaks[idx, (pos + offset) % len(peaks[idx])] = 0
+                    offset = offset + 1
+                resulting_peaks[idx, (pos + (offset-1) // 2) % len(peaks[idx])] = 1
+                pos = pos + offset
+            else:
+                resulting_peaks[idx, pos] = 0
+        pos = pos + 1
+    return resulting_peaks
+
+
+@jit(nopython=True, parallel=True)
 def _prominence(image, peak_image):
     result_image = numpy.empty(image.shape, dtype=numpy.float32)
     for idx in prange(image.shape[0]):
@@ -84,9 +103,10 @@ def _peakwidth(image, peak_image, prominence, target_height):
 
 @jit(nopython=True, parallel=True)
 def _peakdistance(peak_image, centroids, number_of_peaks):
-    result_image = numpy.empty(peak_image.shape).astype(numpy.float32)
+    result_image = numpy.zeros(peak_image.shape).astype(numpy.float32)
     for idx in prange(peak_image.shape[0]):
         sub_peak_array = peak_image[idx]
+        sub_centroid_array = centroids[idx]
         current_pair = 0
 
         for i in prange(len(sub_peak_array)):
@@ -95,16 +115,19 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
                     result_image[idx, i] = 360.0
                     break
                 elif number_of_peaks[idx] % 2 == 0:
-                    left = i * 360.0 / len(sub_peak_array)
+                    left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                     right_side_peak = number_of_peaks[idx]//2
-                    current_position = i+1
+                    current_position = i
                     while right_side_peak > 0 and current_position < len(sub_peak_array):
+                        current_position = current_position + 1
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
-                        current_position = current_position + 1
-                    right = (current_position-1) * 360.0 / len(sub_peak_array)
-                    result_image[idx, i] = right - left
-                    result_image[idx, current_position-1] = 360 - (right - left)
+                    if right_side_peak > 0:
+                        result_image[idx, i] = 0
+                    else:
+                        right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
+                        result_image[idx, i] = right - left
+                        result_image[idx, current_position] = 360 - (right - left)
 
                     current_pair += 1
 
