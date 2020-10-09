@@ -5,6 +5,7 @@ from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdis
 
 def peaks(image):
     image = numpy.array(image, dtype=numpy.float32)
+    image = normalize(image)
     right = numpy.roll(image, 1, axis=-1) - image
     left = numpy.roll(image, -1, axis=-1) - image
 
@@ -154,14 +155,12 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     reverse_peaks = peaks(reverse_image.reshape((image_x, image_y, image_z)))\
         .astype('uint8')\
         .reshape(image_x * image_y, image_z)
-    reverse_prominence = _prominence(image, peak_image)
+    reverse_prominence = _prominence(reverse_image, reverse_peaks)
 
     reverse_peaks[reverse_prominence < low_prominence] = False
     reverse_peaks[reverse_prominence > high_prominence] = False
 
     left_bases, right_bases = _centroid_correction_bases(image, peak_image, reverse_peaks)
-    print(left_bases[0, 9])
-    print(right_bases[0, 9])
     # Centroid calculation based on left_bases and right_bases
     centroid_peaks = _centroid(image, peak_image, left_bases, right_bases)
     centroid_peaks = centroid_peaks.reshape((image_x, image_y, image_z))

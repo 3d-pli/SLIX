@@ -8,6 +8,7 @@ from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdis
 
 def peaks(image, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
+    gpu_image = normalize(gpu_image, return_numpy=False)
     right = cupy.roll(gpu_image, 1, axis=-1) - gpu_image
     left = cupy.roll(gpu_image, -1, axis=-1) - gpu_image
     peaks = (left <= 1e-10) & (right <= 1e-10) & cupy.invert(cupy.isclose(gpu_image, 0))
@@ -244,7 +245,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
 
     threads_per_block = (1, 1)
     blocks_per_grid = gpu_peak_image.shape[:-1]
-    _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_prominence)
+    _prominence[blocks_per_grid, threads_per_block](gpu_reverse_image, gpu_reverse_peaks, gpu_reverse_prominence)
     cuda.synchronize()
     del gpu_reverse_image
 

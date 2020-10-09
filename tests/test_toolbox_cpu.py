@@ -195,7 +195,7 @@ class TestToolbox:
         test_high_peaks = toolbox.peaks(test_array)
 
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
-        assert numpy.isclose(toolbox_centroid[0, 0, 8], 1)
+        assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
 
     def test_normalize(self):
         test_array = numpy.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=numpy.float)

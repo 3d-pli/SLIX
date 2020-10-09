@@ -177,8 +177,8 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions):
 
 @jit(nopython=True, parallel=True)
 def _centroid_correction_bases(image, peak_image, reverse_peaks):
-    left_bases = numpy.empty(image.shape, dtype=numpy.uint8)
-    right_bases = numpy.empty(image.shape, dtype=numpy.uint8)
+    left_bases = numpy.empty(image.shape, dtype=numpy.int8)
+    right_bases = numpy.empty(image.shape, dtype=numpy.int8)
 
     for idx in prange(image.shape[0]):
         sub_image = image[idx]
@@ -198,7 +198,7 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks):
                 right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
 
                 # Check for minima in range
-                for offset in range(MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
+                for offset in range(1, MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
                     if sub_reverse_peaks[pos - offset] == 1:
                         left_position = offset
                     if sub_reverse_peaks[(pos + offset) % len(sub_reverse_peaks)] == 1:
@@ -235,18 +235,17 @@ def _centroid(image, peak_image, left_bases, right_bases):
         for pos in range(len(sub_peaks)):
             if sub_peaks[pos] == 1:
                 centroid_sum_top = 0.0
-                centroid_sum_bottom = 0.0
+                centroid_sum_bottom = 1e-15
                 for x in range(-sub_left_bases[pos], sub_right_bases[pos]+1):
                     img_pixel = sub_image[(pos + x) % len(sub_image)]
                     next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                     for interp in range(NUMBER_OF_SAMPLES+1):
                         step = interp / NUMBER_OF_SAMPLES
                         func_val = img_pixel + (next_img_pixel - img_pixel) * step
-                        #if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
-                        centroid_sum_top += (x + step) * func_val
-                        centroid_sum_bottom += func_val
-
-                centroid = centroid_sum_top
+                        if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
+                            centroid_sum_top += (x + step) * func_val
+                            centroid_sum_bottom += func_val
+                centroid = centroid_sum_top / centroid_sum_bottom
                 if centroid > 1:
                     centroid = 1
                 if centroid < -1:
