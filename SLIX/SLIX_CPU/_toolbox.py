@@ -67,9 +67,9 @@ def _prominence(image, peak_image):
     return result_image
 
 
-@jit(nopython=True, parallel=True, fastmath=True, nogil=True)
+@jit(nopython=True, parallel=True)
 def _peakwidth(image, peak_image, prominence, target_height):
-    result_image = numpy.empty(image.shape).astype(numpy.float32)
+    result_image = numpy.zeros(image.shape).astype(numpy.float32)
     for idx in prange(image.shape[0]):
         sub_image = image[idx]
         sub_peak_array = peak_image[idx]
@@ -78,29 +78,29 @@ def _peakwidth(image, peak_image, prominence, target_height):
         for pos in prange(len(sub_peak_array)):
             if sub_peak_array[pos] == 1:
                 height = sub_image[pos] - sub_prominece[pos] * target_height
-                i_min = -len(sub_peak_array) / 2
-                i_max = int(len(sub_peak_array) * 1.5)
+                i_min = -len(sub_peak_array) // 2
+                i_max = 1.5 * len(sub_peak_array)
 
                 i = int(pos)
-                while i_min < i and height < sub_image[i]:
+                while i_min < i and height - sub_image[i % len(sub_peak_array)] > 1e-7:
                     i -= 1
-                left_ip = float(i)
-                if sub_image[i] < height:
+                left_ip = numpy.float32(i)
+                if sub_image[i % len(sub_peak_array)] < height:
                     # Interpolate if true intersection height is between samples
-                    left_ip += (height - sub_image[i]) / (sub_image[i + 1] - sub_image[i])
+                    left_ip += (height - sub_image[i % len(sub_peak_array)]) \
+                               / (sub_image[(i + 1) % len(sub_peak_array)] - sub_image[i % len(sub_peak_array)])
 
                 # Find intersection point on right side
                 i = int(pos)
-                while i < i_max and height < sub_image[i]:
+                while i < i_max and height - sub_image[i % len(sub_peak_array)] > 1e-7:
                     i += 1
-                right_ip = float(i)
-                if sub_image[i] < height:
+                right_ip = numpy.float32(i)
+                if sub_image[i % len(sub_peak_array)] < height:
                     # Interpolate if true intersection height is between samples
-                    right_ip -= (height - sub_image[i]) / (sub_image[i - 1] - sub_image[i])
+                    right_ip -= (height - sub_image[i % len(sub_peak_array)]) \
+                                / (sub_image[(i - 1) % len(sub_peak_array)] - sub_image[i % len(sub_peak_array)])
 
                 result_image[idx, pos] = right_ip - left_ip
-            else:
-                result_image[idx, pos] = 0
     return result_image
 
 

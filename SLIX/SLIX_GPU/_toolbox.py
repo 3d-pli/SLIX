@@ -1,4 +1,5 @@
 from numba import cuda
+import numpy
 
 # DEFAULT PARAMETERS
 BACKGROUND_COLOR = -1
@@ -74,29 +75,29 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
     for pos in range(len(sub_peak_array)):
         if sub_peak_array[pos] == 1:
             height = sub_image[pos] - sub_prominece[pos] * target_height
-            i_min = -len(sub_peak_array) / 2
-            i_max = int(len(sub_peak_array) * 1.5)
+            i_min = -len(sub_peak_array) // 2
+            i_max = 1.5 * len(sub_peak_array)
 
             i = int(pos)
-            while i_min < i and height < sub_image[i]:
+            while i_min < i and height - sub_image[i % len(sub_peak_array)] > 1e-7:
                 i -= 1
-            left_ip = float(i)
-            if sub_image[i] < height:
+            left_ip = numpy.float32(i)
+            if sub_image[i % len(sub_peak_array)] < height:
                 # Interpolate if true intersection height is between samples
-                left_ip += (height - sub_image[i]) / (sub_image[i + 1] - sub_image[i])
+                left_ip += (height - sub_image[i % len(sub_peak_array)]) \
+                           / (sub_image[(i + 1) % len(sub_peak_array)] - sub_image[i % len(sub_peak_array)])
 
             # Find intersection point on right side
             i = int(pos)
-            while i < i_max and height < sub_image[i]:
+            while i < i_max and height - sub_image[i % len(sub_peak_array)] > 1e-7:
                 i += 1
-            right_ip = float(i)
-            if sub_image[i] < height:
+            right_ip = numpy.float32(i)
+            if sub_image[i % len(sub_peak_array)] < height:
                 # Interpolate if true intersection height is between samples
-                right_ip -= (height - sub_image[i]) / (sub_image[i - 1] - sub_image[i])
+                right_ip -= (height - sub_image[i % len(sub_peak_array)]) \
+                            / (sub_image[(i - 1) % len(sub_peak_array)] - sub_image[i % len(sub_peak_array)])
 
             result_image[idx, idy, pos] = right_ip - left_ip
-        else:
-            result_image[idx, idy, pos] = 0
 
 
 @cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], float32[:, :, :])')

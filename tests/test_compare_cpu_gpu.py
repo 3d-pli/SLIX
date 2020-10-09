@@ -2,6 +2,7 @@ import SLIX
 import numpy
 
 from matplotlib import pyplot as plt
+import tifffile
 
 
 class TestToolbox:
@@ -26,11 +27,23 @@ class TestToolbox:
 
         assert numpy.all(numpy.isclose(cpu_prominence, gpu_prominence))
 
+    def test_compare_mean_prominence(self):
+        gpu_prominence = SLIX.toolbox.gpu_toolbox.mean_peak_prominence(self.example)
+        cpu_prominence = SLIX.toolbox.cpu_toolbox.mean_peak_prominence(self.example)
+
+        assert numpy.all(numpy.isclose(cpu_prominence, gpu_prominence))
+
     def test_compare_peakwidth(self):
         gpu_peakwidth = SLIX.toolbox.gpu_toolbox.peak_width(self.example)
         cpu_peakwidth = SLIX.toolbox.cpu_toolbox.peak_width(self.example)
 
         assert numpy.all(numpy.isclose(cpu_peakwidth, gpu_peakwidth))
+
+    def test_compare_mean_peakwidth(self):
+        gpu_peakwidth = SLIX.toolbox.gpu_toolbox.mean_peak_width(self.example)
+        cpu_peakwidth = SLIX.toolbox.cpu_toolbox.mean_peak_width(self.example)
+
+        assert numpy.all(numpy.isclose(gpu_peakwidth, cpu_peakwidth))
 
     def test_compare_peakdistance(self):
         gpu_peaks = SLIX.toolbox.gpu_toolbox.peaks(self.example, return_numpy=False)

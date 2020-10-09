@@ -28,8 +28,8 @@ def num_peaks(image):
 def normalize(image, kind_of_normalization=0):
     image = numpy.array(image, dtype=numpy.float32)
     if kind_of_normalization == 0:
-        image = (image - numpy.min(image, axis=-1)[..., None]) / \
-                numpy.maximum(1e-15, numpy.max(image, axis=-1)[..., None] - numpy.min(image, axis=-1)[..., None])
+        image = (image - image.min(axis=-1)[..., None]) \
+                / numpy.maximum(1e-15, image.max(axis=-1)[..., None] - image.min(axis=-1)[..., None])
     else:
         image = image / numpy.maximum(1e-15, numpy.mean(image, axis=-1)[..., None])
     return image
@@ -58,7 +58,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
     if peak_image is not None:
         peak_image = numpy.array(peak_image).astype('uint8')
     else:
-        peak_image = peaks(peak_image).astype('uint8')
+        peak_image = peaks(image).astype('uint8')
     result_img = peak_prominence(image, peak_image, kind_of_normalization)
     result_img = numpy.sum(result_img, axis=-1) / numpy.maximum(1,
                                                                 numpy.count_nonzero(peak_image,
@@ -67,11 +67,12 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
 
 
 def peak_width(image, peak_image=None, target_height=0.5):
-    image = numpy.array(image, dtype=numpy.float32)
+    image = numpy.array(image, dtype='float32')
     if peak_image is not None:
         peak_image = numpy.array(peak_image).astype('uint8')
     else:
         peak_image = peaks(image).astype('uint8')
+
     [image_x, image_y, image_z] = image.shape
 
     image = image.reshape(image_x * image_y, image_z)
@@ -81,7 +82,7 @@ def peak_width(image, peak_image=None, target_height=0.5):
     result_image = _peakwidth(image, peak_image, prominence, target_height)
 
     result_image = result_image.reshape((image_x, image_y, image_z))
-    result_image = result_image * (360.0 / image_z)
+    result_image = result_image * 360.0 / image_z
 
     return result_image
 
@@ -90,7 +91,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5):
     if peak_image is not None:
         peak_image = numpy.array(peak_image).astype('uint8')
     else:
-        peak_image = peaks(peak_image).astype('uint8')
+        peak_image = peaks(image).astype('uint8')
     result_img = peak_width(image, peak_image, target_height)
     result_img = numpy.sum(result_img, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peak_image, axis=-1))
 

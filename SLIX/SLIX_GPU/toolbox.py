@@ -123,7 +123,7 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_prominence)
     cuda.synchronize()
 
-    result_image_gpu = cupy.empty(gpu_image.shape, dtype='float32')
+    result_image_gpu = cupy.zeros(gpu_image.shape, dtype='float32')
     _peakwidth[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_prominence, result_image_gpu,
                                                    target_height)
     cuda.synchronize()
@@ -132,7 +132,7 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
     if peak_image is None:
         del gpu_peak_image
 
-    result_image_gpu = result_image_gpu * (360.0 / gpu_image.shape[-1])
+    result_image_gpu = result_image_gpu * 360.0 / gpu_image.shape[-1]
 
     if return_numpy:
         if isinstance(image, type(numpy.zeros(0))):
@@ -148,7 +148,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5, return_numpy=True
     if peak_image is not None:
         gpu_peak_image = cupy.array(peak_image).astype('uint8')
     else:
-        gpu_peak_image = peaks(peak_image, return_numpy=False).astype('uint8')
+        gpu_peak_image = peaks(image, return_numpy=False).astype('uint8')
     peak_width_gpu = peak_width(image, gpu_peak_image, target_height, return_numpy=False)
     peak_width_gpu = cupy.sum(peak_width_gpu, axis=-1) / cupy.maximum(1, cupy.count_nonzero(gpu_peak_image, axis=-1))
 
