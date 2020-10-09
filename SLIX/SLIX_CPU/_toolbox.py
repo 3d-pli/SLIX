@@ -10,22 +10,25 @@ TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True)
 def _peak_cleanup(peaks):
-    resulting_peaks = numpy.empty(peaks.shape)
-    for idx in prange(peaks.shape[0]):
-        for pos in range(len(peaks[idx])):
-            if peaks[idx][pos] == 1:
-                peaks[idx][pos] = 0
+    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
+    for idx in range(peaks.shape[0]):
+        sub_peak_array = peaks[idx]
+        pos = 0
+        while pos < len(sub_peak_array):
+            if sub_peak_array[pos] == 1:
+                sub_peak_array[pos] = 0
                 offset = 1
-                while peaks[idx][(pos + offset) % len(peaks[idx])] == 1:
-                    resulting_peaks[idx, (pos + offset) % len(peaks[idx])] = 0
+                while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
+                    resulting_peaks[idx, (pos + offset) % len(sub_peak_array)] = 0
+                    sub_peak_array[(pos + offset) % len(sub_peak_array)] = 0
                     offset = offset + 1
-                resulting_peaks[idx, (pos + (offset-1) // 2) % len(peaks[idx])] = 1
+                resulting_peaks[idx, (pos + (offset - 1) // 2) % len(sub_peak_array)] = 1
                 pos = pos + offset
             else:
                 resulting_peaks[idx, pos] = 0
-        pos = pos + 1
+                pos = pos + 1
     return resulting_peaks
 
 
@@ -103,7 +106,7 @@ def _peakwidth(image, peak_image, prominence, target_height):
 
 @jit(nopython=True, parallel=True)
 def _peakdistance(peak_image, centroids, number_of_peaks):
-    result_image = numpy.zeros(peak_image.shape).astype(numpy.float32)
+    result_image = numpy.zeros(peak_image.shape, dtype=numpy.float32)
     for idx in prange(peak_image.shape[0]):
         sub_peak_array = peak_image[idx]
         sub_centroid_array = centroids[idx]
@@ -138,29 +141,33 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
 
 @jit(nopython=True, parallel=True)
 def _direction(peak_array, centroids, number_of_peaks, num_directions):
-    result_image = numpy.empty((peak_array.shape[0], num_directions)).astype(numpy.float32)
+    result_image = numpy.empty((peak_array.shape[0], num_directions), dtype=numpy.float32)
     for idx in prange(peak_array.shape[0]):
         sub_peak_array = peak_array[idx]
+        sub_centroid_array = centroids[idx]
         current_direction = 0
 
         result_image[idx, :] = BACKGROUND_COLOR
         if number_of_peaks[idx] // 2 <= num_directions:
             for i in prange(len(sub_peak_array)):
                 if sub_peak_array[i] == 1:
-                    left = i * 360.0 / len(sub_peak_array)
+                    left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
                     if number_of_peaks[idx] == 1:
                         result_image[idx, current_direction] = (270.0 - left) % 180
                         break
                     elif number_of_peaks[idx] % 2 == 0:
-                        right_side_peak = number_of_peaks[idx]//2
-                        current_position = i+1
+                        right_side_peak = number_of_peaks[idx] // 2
+                        current_position = i
                         while right_side_peak > 0 and current_position < len(sub_peak_array):
+                            current_position = current_position + 1
                             if sub_peak_array[current_position] == 1:
                                 right_side_peak = right_side_peak - 1
-                            current_position = current_position + 1
-                        right = (current_position-1) * 360.0 / len(sub_peak_array)
-                        if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
-                            result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
+                        if right_side_peak > 0:
+                            result_image[idx, current_direction] = 0
+                        else:
+                            right = (current_position + sub_centroid_array[current_position]) * 360.0 / len(sub_peak_array)
+                            if number_of_peaks[idx] == 2 or abs(180 - (right - left)) < 35:
+                                result_image[idx, current_direction] = (270.0 - ((left + right) / 2.0)) % 180
                         current_direction += 1
 
                     if current_direction == number_of_peaks[idx]//2:
@@ -170,8 +177,8 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions):
 
 @jit(nopython=True, parallel=True)
 def _centroid_correction_bases(image, peak_image, reverse_peaks):
-    left_bases = numpy.empty(image.shape)
-    right_bases = numpy.empty(image.shape)
+    left_bases = numpy.empty(image.shape, dtype=numpy.uint8)
+    right_bases = numpy.empty(image.shape, dtype=numpy.uint8)
 
     for idx in prange(image.shape[0]):
         sub_image = image[idx]
@@ -217,7 +224,7 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks):
 
 @jit(nopython=True, parallel=True)
 def _centroid(image, peak_image, left_bases, right_bases):
-    centroid_peaks = numpy.empty(image.shape)
+    centroid_peaks = numpy.zeros(image.shape, dtype=numpy.float32)
 
     for idx in prange(image.shape[0]):
         sub_image = image[idx]
@@ -229,22 +236,20 @@ def _centroid(image, peak_image, left_bases, right_bases):
             if sub_peaks[pos] == 1:
                 centroid_sum_top = 0.0
                 centroid_sum_bottom = 0.0
-                for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
+                for x in range(-sub_left_bases[pos], sub_right_bases[pos]+1):
                     img_pixel = sub_image[(pos + x) % len(sub_image)]
                     next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                     for interp in range(NUMBER_OF_SAMPLES+1):
                         step = interp / NUMBER_OF_SAMPLES
                         func_val = img_pixel + (next_img_pixel - img_pixel) * step
-                        if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
-                            centroid_sum_top += (x + step) * func_val
-                            centroid_sum_bottom += func_val
+                        #if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
+                        centroid_sum_top += (x + step) * func_val
+                        centroid_sum_bottom += func_val
 
-                centroid = centroid_sum_top / centroid_sum_bottom
+                centroid = centroid_sum_top
                 if centroid > 1:
                     centroid = 1
                 if centroid < -1:
                     centroid = -1
                 centroid_peaks[idx, pos] = centroid
-            else:
-                centroid_peaks[idx, pos] = 0
     return centroid_peaks

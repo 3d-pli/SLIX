@@ -19,6 +19,29 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr)
         assert numpy.all(toolbox_peaks == real_peaks)
 
+        # Test one single peak
+        arr = numpy.array(([0, 1, 1, 0, 0, 0]), dtype=bool)
+        arr = arr.reshape((1, 1, 6))
+        real_peaks = arr == 1
+        real_peaks[0, 0, 2] = False
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
+        # Test one single peak
+        arr = numpy.array(([0, 1, 1, 1, 0, 0]), dtype=bool)
+        arr = arr.reshape((1, 1, 6))
+        real_peaks = arr == 1
+        real_peaks[0, 0, 1] = False
+        real_peaks[0, 0, 3] = False
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
+        arr = numpy.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] * 1)
+        arr = arr.reshape((1, 1, 11))
+        real_peaks = arr == 1
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
     def test_num_peaks(self):
         # Create an absolute simple peak array
         test_arr = numpy.array(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=bool)
@@ -144,7 +167,7 @@ class TestToolbox:
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14)
         test_array = test_array.reshape((1, 1, 24))
-        test_high_peaks = (test_array == 1)
+        test_high_peaks = toolbox.peaks(test_array)
 
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
         assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
@@ -152,7 +175,7 @@ class TestToolbox:
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 8 + [0.5, 1, 0.5] + [0] * 13)
         test_array = test_array.reshape((1, 1, 24))
-        test_high_peaks = (test_array == 1)
+        test_high_peaks = toolbox.peaks(test_array)
 
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
         assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
@@ -160,7 +183,8 @@ class TestToolbox:
         # simple test case: centroid is between two measurements
         test_array = numpy.array([0] * 8 + [1, 1] + [0] * 14)
         test_array = test_array.reshape((1, 1, 24))
-        test_high_peaks = (test_array == 1)
+        test_high_peaks = toolbox.peaks(test_array)
+        print(test_high_peaks)
 
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
         assert numpy.isclose(toolbox_centroid[0, 0, 8], 0.5)
@@ -168,7 +192,7 @@ class TestToolbox:
         # more complicated test case: wide peak plateau
         test_array = numpy.array([0] * 8 + [1, 1, 1] + [0] * 13)
         test_array = test_array.reshape((1, 1, 24))
-        test_high_peaks = (test_array == 1)
+        test_high_peaks = toolbox.peaks(test_array)
 
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks)
         assert numpy.isclose(toolbox_centroid[0, 0, 8], 1)

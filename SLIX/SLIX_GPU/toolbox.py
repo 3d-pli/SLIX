@@ -10,9 +10,8 @@ def peaks(image, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
     right = cupy.roll(gpu_image, 1, axis=-1) - gpu_image
     left = cupy.roll(gpu_image, -1, axis=-1) - gpu_image
-    peaks = (left <= 0) & (right <= 0) & (gpu_image != 0)
+    peaks = (left <= 1e-10) & (right <= 1e-10) & cupy.invert(cupy.isclose(gpu_image, 0))
     del gpu_image
-
     del right
     del left
 
@@ -72,7 +71,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_nump
 
     # https://github.com/scipy/scipy/blob/master/scipy/signal/_peak_finding_utils.pyx
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_image.shape[:-1]
+    blocks_per_grid = gpu_peak_image.shape[:-1]
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, result_img_gpu)
     cuda.synchronize()
 
@@ -117,7 +116,7 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
 
     # https://github.com/scipy/scipy/blob/master/scipy/signal/_peak_finding_utils.pyx
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_image.shape[:-1]
+    blocks_per_grid = gpu_peak_image.shape[:-1]
 
     gpu_prominence = cupy.empty(gpu_image.shape, dtype='float32')
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_prominence)
@@ -169,7 +168,7 @@ def peak_distance(peak_image, centroids, return_numpy=True):
     result_image_gpu = cupy.zeros(gpu_peak_image.shape, dtype='float32')
 
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_image.shape[:-1]
+    blocks_per_grid = gpu_peak_image.shape[:-1]
     _peakdistance[blocks_per_grid, threads_per_block](gpu_peak_image, gpu_centroids, number_of_peaks, result_image_gpu)
     cuda.synchronize()
 
@@ -212,7 +211,7 @@ def direction(peak_image, centroids, number_of_directions=3, return_numpy=True):
     number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype('int8')
 
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_image.shape[:-1]
+    blocks_per_grid = gpu_peak_image.shape[:-1]
     _direction[blocks_per_grid, threads_per_block](gpu_peak_image, gpu_centroids, number_of_peaks, result_img_gpu)
     cuda.synchronize()
     del number_of_peaks
@@ -244,7 +243,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     gpu_reverse_prominence = cupy.empty(gpu_reverse_image.shape, dtype='float32')
 
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_image.shape[:-1]
+    blocks_per_grid = gpu_peak_image.shape[:-1]
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, gpu_reverse_prominence)
     cuda.synchronize()
     del gpu_reverse_image

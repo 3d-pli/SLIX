@@ -19,6 +19,23 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr)
         assert numpy.all(toolbox_peaks == real_peaks)
 
+        # Test one single peak
+        arr = numpy.array(([0, 1, 1, 0, 0, 0]), dtype=bool)
+        arr = arr.reshape((1, 1, 6))
+        real_peaks = arr == 1
+        real_peaks[0, 0, 2] = False
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
+        # Test one single peak
+        arr = numpy.array(([0, 1, 1, 1, 0, 0]), dtype=bool)
+        arr = arr.reshape((1, 1, 6))
+        real_peaks = arr == 1
+        real_peaks[0, 0, 1] = False
+        real_peaks[0, 0, 3] = False
+        toolbox_peaks = toolbox.peaks(arr)
+        assert numpy.all(toolbox_peaks == real_peaks)
+
         arr = numpy.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] * 1)
         arr = arr.reshape((1, 1, 11))
         real_peaks = arr == 1

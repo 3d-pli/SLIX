@@ -8,7 +8,7 @@ def peaks(image):
     right = numpy.roll(image, 1, axis=-1) - image
     left = numpy.roll(image, -1, axis=-1) - image
 
-    resulting_image = (left <= 0) & (right <= 0) & (image != 0)
+    resulting_image = (left <= 1e-10) & (right <= 1e-10) & numpy.invert(numpy.isclose(image, 0))
     del right
     del left
 
@@ -16,7 +16,7 @@ def peaks(image):
     resulting_image = resulting_image.reshape(image_x * image_y, image_z)
     resulting_image = _peak_cleanup(resulting_image)
     resulting_image = resulting_image.reshape(image_x, image_y, image_z)
-    return resulting_image
+    return resulting_image.astype('bool')
 
 
 def num_peaks(image):
@@ -37,15 +37,15 @@ def normalize(image, kind_of_normalization=0):
 def peak_prominence(image, peak_image=None, kind_of_normalization=0):
     image = numpy.array(image, dtype=numpy.float32)
     if peak_image is None:
-        peak_image = peaks(image)
+        peak_image = peaks(image).astype('uint8')
     else:
-        peak_image = numpy.array(peak_image)
+        peak_image = numpy.array(peak_image).astype('uint8')
     image = normalize(image, kind_of_normalization)
 
     [image_x, image_y, image_z] = image.shape
 
     image = image.reshape(image_x * image_y, image_z)
-    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
 
     result_img = _prominence(image, peak_image)
 
@@ -55,9 +55,9 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0):
 
 def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
     if peak_image is not None:
-        peak_image = numpy.array(peak_image)
+        peak_image = numpy.array(peak_image).astype('uint8')
     else:
-        peak_image = peaks(peak_image)
+        peak_image = peaks(peak_image).astype('uint8')
     result_img = peak_prominence(image, peak_image, kind_of_normalization)
     result_img = numpy.sum(result_img, axis=-1) / numpy.maximum(1,
                                                                 numpy.count_nonzero(peak_image,
@@ -68,13 +68,13 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
 def peak_width(image, peak_image=None, target_height=0.5):
     image = numpy.array(image, dtype=numpy.float32)
     if peak_image is not None:
-        peak_image = numpy.array(peak_image)
+        peak_image = numpy.array(peak_image).astype('uint8')
     else:
-        peak_image = peaks(image)
+        peak_image = peaks(image).astype('uint8')
     [image_x, image_y, image_z] = image.shape
 
     image = image.reshape(image_x * image_y, image_z)
-    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
 
     prominence = _prominence(image, peak_image)
     result_image = _peakwidth(image, peak_image, prominence, target_height)
@@ -87,9 +87,9 @@ def peak_width(image, peak_image=None, target_height=0.5):
 
 def mean_peak_width(image, peak_image=None, target_height=0.5):
     if peak_image is not None:
-        peak_image = numpy.array(peak_image)
+        peak_image = numpy.array(peak_image).astype('uint8')
     else:
-        peak_image = peaks(peak_image)
+        peak_image = peaks(peak_image).astype('uint8')
     result_img = peak_width(image, peak_image, target_height)
     result_img = numpy.sum(result_img, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peak_image, axis=-1))
 
@@ -97,11 +97,11 @@ def mean_peak_width(image, peak_image=None, target_height=0.5):
 
 
 def peak_distance(peak_image, centroids):
-    peak_image = numpy.array(peak_image)
+    peak_image = numpy.array(peak_image).astype('uint8')
     [image_x, image_y, image_z] = peak_image.shape
 
-    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
-    number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('int8')
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
+    number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
     centroids = centroids.reshape(image_x * image_y, image_z).astype('float32')
 
     result_img = _peakdistance(peak_image, centroids, number_of_peaks)
@@ -123,11 +123,12 @@ def mean_peak_distance(peak_image, centroids):
 
 
 def direction(peak_image, centroids, number_of_directions=3):
-    peak_image = numpy.array(peak_image)
+    peak_image = numpy.array(peak_image).astype('uint8')
     [image_x, image_y, image_z] = peak_image.shape
 
-    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('int8')
-    number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('int8')
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
+    centroids = centroids.reshape(image_x * image_y, image_z).astype('float32')
+    number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
 
     result_img = _direction(peak_image, centroids, number_of_peaks, number_of_directions)
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
@@ -146,7 +147,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
 
     [image_x, image_y, image_z] = image.shape
     image = image.reshape(image_x * image_y, image_z)
-    peak_image = peak_image.reshape(image_x * image_y, image_z)
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
 
     reverse_image = -1 * image
     # TODO: This is not pretty coding
@@ -159,7 +160,8 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     reverse_peaks[reverse_prominence > high_prominence] = False
 
     left_bases, right_bases = _centroid_correction_bases(image, peak_image, reverse_peaks)
-
+    print(left_bases[0, 9])
+    print(right_bases[0, 9])
     # Centroid calculation based on left_bases and right_bases
     centroid_peaks = _centroid(image, peak_image, left_bases, right_bases)
     centroid_peaks = centroid_peaks.reshape((image_x, image_y, image_z))

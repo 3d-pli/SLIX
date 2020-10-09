@@ -21,6 +21,7 @@ def _peak_cleanup(peaks, resulting_peaks):
             offset = 1
             while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
                 resulting_peaks[idx, idy, (pos + offset) % len(sub_peak_array)] = 0
+                sub_peak_array[(pos + offset) % len(sub_peak_array)] = 0
                 offset = offset + 1
             resulting_peaks[idx, idy, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
             pos = pos + offset
