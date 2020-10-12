@@ -87,7 +87,6 @@ Peakwidth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 
 Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum
 
-
 ## Additional tools
 
 ### `SLIXLineplotParameterGenerator`
@@ -104,6 +103,22 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 | `--smoothing`  | Smoothing of SLI profiles before evaluation. |
 | `--with_plots` | Generates png-files showing the SLI profiles and the determined peak positions (with/without correction). |
 | `--target_peak_height` | Change peak height used for correcting the peak positions (Default: 6% of peak height). Only recommended for experienced users! |
+
+## Performance metrics
+All performance measurements were taken without times for reading and writing files. Real measurements were used for the analysis. The actual runtime depends on the complexity of the measurements. Especially the number of rotation angles per pixel can have a big influence. 
+
+For this test four different measurements were analyzed by running the program with different core counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation.
+
+Our testing system consists of an AMD Ryzen 3700X at 3.60 - 4.425 GHz paired with 16 GiB DDR4-3000 memory. Other system configurations might take longer or shorter to compute the parameter maps.
+
+| Thread count | Average pixels per second | Time in minutes for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
+| ------------ | --------------------- | --------------------- |
+| 4 | 4416 | 29:41 |
+| 6 | 6232 | 21:36 |
+| 8 | 7654 | 17:34 |
+| 10 | 8326 | 16:10 |
+| 12 | 9384 | 13:54 |
+| 16 | 11300 | 11:54 |
 
 ## Authors
 - Jan André Reuter
