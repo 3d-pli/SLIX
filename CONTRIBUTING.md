@@ -11,6 +11,15 @@ The development of SLIX is done through GitHub. A copy of the repository is also
 
 Pull requests, issues and feature requests are accepted via GitHub. If you plan to contribute to SLIX please follow the guidelines below.
 
+## Seek support
+The Scattered Light Imaging ToolboX is maintained by Jan André Reuter and Miriam Menzel. For bug reports, feature requests and pull requests, please read the instructions below. For further support, you can contact both per mail.
+
+| Person           | Mail adress            |
+| ---------------- | ---------------------- |
+| Jan André Reuter | j.reuter@fz-juelich.de |
+|    Miriam Menzel | m.menzel@fz-juelich.de |
+
+
 ## Bug reports
 
 We use GitHub issues to track public bugs. Report a bug by opening a new issue [here](https://github.com/3d-pli/SLIX/issues).
