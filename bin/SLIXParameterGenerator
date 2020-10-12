@@ -7,6 +7,7 @@ import os
 import numpy
 import pymp
 import tqdm
+import time
 from PIL import Image
 
 # Import SLIX toolbox
@@ -192,6 +193,8 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
     pbar = tqdm.tqdm(total=len(roiset))
     number_of_finished_pixels = pymp.shared.array(toolbox.CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(toolbox.CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
 
     # Compute many line profiles in parallel as there is no connection between line profiles.
     with pymp.Parallel(toolbox.CPU_COUNT) as p:
@@ -261,8 +264,16 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
                 sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
                 pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
                 last_sum_of_finished_pixels = sum_of_finished_pixels
-
-    pbar.close()
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return resulting_parameter_maps
 
 
