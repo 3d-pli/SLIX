@@ -413,7 +413,7 @@ def create_sampling(line_profile, peak_positions, left_bound, right_bound, targe
     Linear interpolated array, new left bound, new right bound for centroid calculation.
 
     """
-    sampling = numpy.interp(numpy.arange(left_bound - 1, right_bound + 1, 1 / 100),
+    sampling = numpy.interp(numpy.arange(left_bound - 1, right_bound + 1, 1 / NUMBER_OF_SAMPLES),
                             numpy.arange(left_bound - 1, right_bound + 1), line_profile[left_bound - 1:right_bound + 1])
     if line_profile[left_bound] > target_peak_height:
         _left_bound = number_of_samples
