@@ -269,6 +269,7 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
         active_cores[p.thread_num] = False
         if p.thread_num == 0:
             while numpy.any(active_cores == True):
+                time.sleep(0.5)
                 sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
                 pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
                 last_sum_of_finished_pixels = sum_of_finished_pixels
