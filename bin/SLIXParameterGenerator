@@ -6,6 +6,7 @@ import os
 
 import numpy
 import pymp
+import tqdm
 from PIL import Image
 
 # Import SLIX toolbox
@@ -66,7 +67,9 @@ def full_pipeline(PATH, OUTPUT, ROISIZE, APPLY_MASK, APPLY_SMOOTHING, MASK_THRES
     """
     selected_methods = [OPTIONAL, OPTIONAL, OPTIONAL, PEAKS, PEAKS, PEAKWIDTH, PEAKPROMINENCE, PEAKDISTANCE, OPTIONAL,
                         DIRECTION]
+    print('Generating parameter maps.')
     parameter_maps = generate_feature_maps(roiset, selected_methods)
+    print('Parameter maps generated. Writing images.')
     current_index = 0
     if OPTIONAL:
         # Maximum
@@ -186,8 +189,13 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
         number_of_parameter_maps += 2
     resulting_parameter_maps = pymp.shared.array((roiset.shape[0], number_of_parameter_maps), dtype=numpy.float)
 
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(toolbox.CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+
     # Compute many line profiles in parallel as there is no connection between line profiles.
     with pymp.Parallel(toolbox.CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             current_index = 0
@@ -248,6 +256,13 @@ def generate_feature_maps(roiset, selected_parameter_maps=[False for i in range(
                     peak_positions_high, len(roi) // 2)
                 current_index += 3
 
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+
+    pbar.close()
     return resulting_parameter_maps
 
 
