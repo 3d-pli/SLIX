@@ -78,13 +78,6 @@ git checkout -b pull-request-branch-name origin/pull-request-branch-name
 git rebase master
 ```
 
-If there are conflicts:
-
-```
-git mergetool
-git rebase --continue
-```
-
 ### 2. Push
 
 Update branch with the rebased history:
