@@ -41,30 +41,35 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 | Parameter        | Function                                                |
 | ---------------- | ------------------------------------------------------- |
 | `-i, --input`    | Input file: SLI image stack (as .tif(f) or .nii).      |
-| `-o, --output`   | Output folder where resulting parameter maps will be stored. Will be created if not existing. |
+| `-o, --output`   | Output folder where resulting parameter maps (.tiff) will be stored. Will be created if not existing. |
 
 ### Optional parameters
 
 | Parameter          | Function                                                                                                                                            |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-r, --roisize`    | Average every NxN pixels of the SLI images and run the evaluation on the resulting (downsampled) images. Later on, the images will be upscaled to match the input file dimensions. (Default: -r 1) |
+| `-r, --roisize`    | Average every NxN pixels of the SLI images and run the evaluation on the resulting (downsampled) images. Later on, the images will be upscaled to match the input file dimensions. (Default: N=1, i.e.`-r 1`) |
 | `--with_mask`      | Remove the background based on the maximum value of each image pixel. May include gray matter.                                                                |
 | `--mask_threshold` | Set the threshold for the background mask. Pixels for which the maximum intensity value of the SLI profile is below the threshold, will be considered as background. Higher values might remove the background better but will also include more of the gray matter. (Default = 10) |
 | `--num_procs`      | Run the program with the selected number of processes. (Default = either 16 threads or the maximum number of threads available.)                                  |
 | `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> = 5° steps.)                                                                                     |
 
 ### Output
-Additional parameters that determine which parameter maps will be generated from the SLI image stack. If no parameter is used, the following parameter maps will be generated: peaks, direction, peakwidth, peakprominence, peakdistance. If any parameter (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
+Additional parameters that determine which parameter maps will be generated from the SLI image stack. If no parameter is used, the following parameter maps will be generated: peakprominence, number of peaks, peakwidth, peakdistance, direction angles in crossing regions. If `--optional` is used, four additional parameter maps will be generated (average, maximum, minimum, direction angles in non-crossing regions). If any parameter (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
 
 | Parameter      | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
-| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks of the SLI profiles for a prominence below and above 8% of the maximum signal amplitude. |
-| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers. If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map. |
-| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width of all peaks in an SLI profile (image pixel) with a prominence above 8% of the maximum signal amplitude. |
 | `--peakprominence`| Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile. |
-| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two peaks of an SLI profile (image pixel) with a prominence above 8%. All other pixels are set to `-1`. |
-| `--optional`      | Generate additional parameter maps: maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), in-plane direction angles in regions without crossings (`_dir.tiff`). |
+| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above 8% of the maximum signal amplitude. |
+| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width of all peaks in an SLI profile (image pixel) with a prominence above 8% of the maximum signal amplitude. |
+| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two peaks in an SLI profile (image pixel) with a prominence above 8%. All other pixels are set to `-1`. |
+| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers. If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map. For better reference, `_dir_1.tiff` also shows the in-plane direction angle in regions without crossings.|
+| `--optional`      | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), in-plane direction angles in regions without crossings (`_dir.tiff`). |
+
 ### Example
+The following example shows how to generate parameter maps from an SLI image stack, for two artificially crossing sections of human optic tracts (left) and a coronal section (upper left corner) of a vervet monkey brain (right): 
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo1.png" height="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo2.png" height="327">
+
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
 #### How to run the demo yourself:
@@ -89,23 +94,39 @@ SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_St
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --roisize 10 --direction
 ```
 
-The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. For full resolution parameter maps do not use the `roisize` option. The computing time will be way higher in comparison to these examples (around 25 times higher for the first example and 100 times higher for the second example).
+The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. For full resolution parameter maps do not use the `roisize` option. In this case, the computing time will be higher (around 25 times higher for the first example and 100 times higher for the second example).
 
 ### Resulting parameter maps
 
-The parameter maps shown below have been generated from the SLI image stack of a coronal vervet monkey brain section (upper left corner), which is available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii). More data (SLI image stacks and parameter maps) are available on the [EBRAINS data repository](https://doi.org/10.25493/XA4S-XXZ). The parameter maps were generated with full resolution, i.e. without downsampling (`--roisize 1`). For testing on a less powerful computer, it is recommended to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
- 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
+All parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)):
 
-Direction(`_dir_1.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;High Prominence Peaks
- 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
+```
+SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
+```
 
-Low Prominence Peaks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakprominence
+In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
+
+The parameter maps show in sequence: the average intensity of the SLI profiles (average), the number of all peaks (low prominence peaks), the number of peaks with a prominence above 8% of the total signal amplitude (high prominence peaks), the average prominence of the peaks (peakprominence), the average width of all prominent peaks (peakwidth), the distance between two prominent peaks (peakdistance), the different direction angles of nerve fibers in regions with crossing fibers (direction 1,2,3), the direction angles of nerve fibers in regions with non-crossing fibers (direction), and the maximum/minimum values of the SLI profiles. Note that `_dir_1.tiff` also contains the direction angles of non-crossing fibers (`_dir.tiff`).
+ 
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
+
+Average&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Low Prominence Peaks
+ 
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
+
+High Prominence Peaks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakprominence
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakwidth.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakdistance.jpg" width="327">
 
 Peakwidth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakdistance
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_2.jpg" width="327">
+
+Direction 1 (`_dir_1.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Direction 2 (`_dir_2.tiff`)
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_3.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir.jpg" width="327">
+
+Direction 3 (`_dir_3.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Direction(`_dir.tiff`)
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/min.jpg" width="327">
 
