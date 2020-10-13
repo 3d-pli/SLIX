@@ -67,6 +67,30 @@ Additional parameters that determine which parameter maps will be generated from
 ### Example
 ![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
+#### How to run the demo yourself:
+
+##### 1. Download the needed files:
+
+Command line:
+```
+wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Human_Brain/optic_tracts_crossing_sections/SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii
+wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
+```
+Links:
+
+[SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Human_Brain/optic_tracts_crossing_sections/SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii)
+
+[Vervet1818_s0512_60um_SLI_090_Stack_1day.nii](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)
+
+##### 2. Run SLIX:
+```
+SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii -o . --num_procs 4 --roisize 5
+
+SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --roisize 10 --direction
+```
+
+The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. For full resolution parameter maps do not use the `roisize` option. The computing time will be way higher in comparison to these examples (around 25 times higher for the first example and 100 times higher for the second example).
+
 ### Resulting parameter maps
 
 The parameter maps shown below have been generated from the SLI image stack of a coronal vervet monkey brain section (upper left corner), which is available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii). More data (SLI image stacks and parameter maps) are available on the [EBRAINS data repository](https://doi.org/10.25493/XA4S-XXZ). The parameter maps were generated with full resolution, i.e. without downsampling (`--roisize 1`). For testing on a less powerful computer, it is recommended to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
@@ -107,7 +131,7 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 ## Performance metrics
 All performance measurements were taken without times for reading and writing files. Real measurements were used for the analysis. The actual runtime depends on the complexity of the measurements. Especially the number of rotation angles per pixel can have a big influence. 
 
-For this test four different measurements were analyzed by running the program with different core counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation.
+For this test four different measurements were analyzed by running the program with different thread counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation.
 
 Our testing system consists of an AMD Ryzen 3700X at 3.60 - 4.425 GHz paired with 16 GiB DDR4-3000 memory. Other system configurations might take longer or shorter to compute the parameter maps.
 
