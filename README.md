@@ -3,34 +3,21 @@
 ![https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png)
 
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=3 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
 - [Introduction](#introduction)
-- [How to clone SLIX](#how-to-clone-slix)
-- [How to install SLIX as Python package](#how-to-install-slix-as-python-package)
-- [`SLIXParameterGenerator`](#slixparametergenerator)
-  - [Required parameters](#required-parameters)
-  - [Optional parameters](#optional-parameters)
-  - [Output](#output)
+- [Installation](#installation)
+- [Generation of Parameter Maps](#generation-of-parameter-maps)
+  - [Required Arguments](#required-arguments)
+  - [Optional Arguments](#optional-arguments)
   - [Example](#example)
-    - [How to run the demo yourself:](#how-to-run-the-demo-yourself)
-      - [1. Download the needed files:](#1-download-the-needed-files)
-      - [2. Run SLIX:](#2-run-slix)
-  - [Resulting parameter maps](#resulting-parameter-maps)
-      - [Average](#average)
-      - [Low Prominence Peaks](#low-prominence-peaks)
-      - [High Prominence Peaks](#high-prominence-peaks)
-      - [Average Peak Prominence](#average-peak-prominence)
-      - [Average Peak Width](#average-peak-width)
-      - [Peak Distance](#peak-distance)
-      - [Direction Angles](#direction-angles)
-        - [Maximum](#maximum)
-        - [Minimum](#minimum)
-- [Additional tools](#additional-tools)
-  - [`SLIXLineplotParameterGenerator`](#slixlineplotparametergenerator)
-- [Performance metrics](#performance-metrics)
+  - [Resulting Parameter Maps](#resulting-parameter-maps)
+- [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
+  - [Required Arguments](#required-arguments-1)
+  - [Optional Arguments](#optional-arguments-1)
+- [Performance Metrics](#performance-metrics)
 - [Authors](#authors)
 - [References](#references)
 - [Acknowledgements](#acknowledgements)
@@ -45,7 +32,8 @@
 
 This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. For a given SLI image stack, `SLIXParameterGenerator` is able to compute up to 12 (8 + 4 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `SLIXLineplotParameterGenerator`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding parameter set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
 
-## How to clone SLIX
+## Installation 
+##### How to clone SLIX
 ```
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
@@ -57,7 +45,7 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-## How to install SLIX as Python package
+##### How to install SLIX as Python package
 ```
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
@@ -65,24 +53,24 @@ cd SLIX
 python3 setup.py install
 ```
 
-## `SLIXParameterGenerator`
+## Generation of Parameter Maps
 
-Main tool to create desired parameter maps from an SLI image stack.
+`SLIXParameterGenerator` is the main tool to create desired parameter maps from an SLI image stack.
 
 ```
 SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 ```
+### Required Arguments
 
-### Required parameters
-
-| Parameter        | Function                                                |
+| Argument        | Function                                                |
 | ---------------- | ------------------------------------------------------- |
 | `-i, --input`    | Input file: SLI image stack (as .tif(f) or .nii).      |
 | `-o, --output`   | Output folder where resulting parameter maps (.tiff) will be stored. Will be created if not existing. |
 
-### Optional parameters
 
-| Parameter          | Function                                                                                                                                            |
+### Optional Arguments
+
+| Argument          | Function                                                                                                                                            |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-r, --roisize`    | Average every NxN pixels of the SLI images and run the evaluation on the resulting (downsampled) images. Later on, the images will be upscaled to match the input file dimensions. (Default: N=1, i.e.`-r 1`) |
 | `--with_mask`      | Remove the background (regions without tissue) based on the maximum value of each image pixel: Pixels for which the maximum intensity value of the SLI profile is below the threshold (defined by `--mask_threshold`), will be considered as background, i.e. the corresponding regions are set to zero for all images in the stack and will not be considered in the generation of the parameter maps.                                                                |
@@ -90,10 +78,9 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 | `--num_procs`      | Run the program with the selected number of processes. (Default = either 16 threads or the maximum number of threads available.)                                  |
 | `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps.)                                                                                     |
 
-### Output
-Additional parameters that determine which parameter maps will be generated from the SLI image stack. If no parameter is used, the following parameter maps will be generated: peakprominence, number of peaks, peakwidth, peakdistance, direction angles in crossing regions. If `--optional` is used, four additional parameter maps will be generated (average, maximum, minimum, direction angles in non-crossing regions). If any parameter (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
+The arguments listed below determine which parameter maps will be generated from the SLI image stack. If no such argument is used, the following parameter maps will be generated: peakprominence, number of peaks, peakwidth, peakdistance, direction angles in crossing regions. If `--optional` is used, four additional parameter maps will be generated (average, maximum, minimum, direction angles in non-crossing regions). If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
 
-| Parameter      | Function                                                                    |
+| Argument       | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
 | `--peakprominence`| Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile. |
 | `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above 8% of the maximum signal amplitude. |
@@ -133,7 +120,7 @@ SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --
 
 The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. To obtain full resolution parameter maps, do not use the `roisize` option. In this case, the computing time will be higher (around 25 times higher for the first example and 100 times higher for the second example).
 
-### Resulting parameter maps
+### Resulting Parameter Maps
 
 All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)). In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
 ```
@@ -191,12 +178,12 @@ The in-plane direction angles are only computed if the SLI profile has one, two,
 
 `_dir.tiff` shows the fiber direction angle only in regions with one or two prominent peaks, i.e. excluding regions with crossing fibers.
 
-###### Maximum 
+##### Maximum 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327">
 
 `_max.tiff` shows the maximum of the SLI profile for each image pixel. 
 
-###### Minimum
+##### Minimum
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327">
 
 `_min.tiff` shows the minimum of the SLI profile for each image pixel. 
@@ -226,24 +213,27 @@ Direction 3 (`_dir_3.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 
 Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum -->
 
-## Additional tools
+## Evaluation of SLI Profiles
 
-### `SLIXLineplotParameterGenerator`
-Individual evaluation of SLI profiles (txt-files with list of intensity values): max/min, number of peaks, peak positions
+`SLIXLineplotParameterGenerator` allows the individual evaluation of SLI profiles (txt-files with list of intensity values). For each SLI profile, the maximum, minimum, number of all peaks, and (corrected) peak positions are computed and stored in a text file. The user has the option to generate a plot of the SLI profile that shows the profile together with the determined and corrected peak positions.
 
 ```
 SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
 ```
-
-| Parameter      | Function                                                                    |
+### Required Arguments
+| Argument      | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
 | `-i, --input`  | Input text files, describing the SLI profiles (list of intensity values). |
 | `-o, --output` | Output folder used to store the FeatureSet (txt-file containing the characteristics of the SLI profiles): max, min, num_peaks, peak_positions. Will be created if not existing. |
+
+### Optional Arguments
+| Argument      | Function                                                                    |
+| -------------- | --------------------------------------------------------------------------- |
 | `--smoothing`  | Smoothing of SLI profiles before evaluation. |
 | `--with_plots` | Generates png-files showing the SLI profiles and the determined peak positions (with/without correction). |
 | `--target_peak_height` | Change peak height used for correcting the peak positions (Default: 6% of peak height). Only recommended for experienced users! |
 
-## Performance metrics
+## Performance Metrics
 The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, four different SLI image stacks from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) were analyzed by running the program (generation of all 12 parameter maps with high resolution: `--optional --roisize 1`), using different thread counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation. All performance measurements were taken without times for reading and writing files.
 
 Our testing system consists of an AMD Ryzen 3700X at 3.60-4.425 GHz paired with 16 GiB DDR4-3000 memory. Other system configurations might take longer or shorter to compute the parameter maps.
@@ -278,7 +268,7 @@ Copyright (c) 2020 Forschungszentrum Jülich / Miriam Menzel.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.python input parameters -i -o
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
