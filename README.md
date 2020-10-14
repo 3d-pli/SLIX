@@ -1,8 +1,45 @@
-# SLIX - Scattered Light Imaging ToolboX
+# SLIX &ndash; Scattered Light Imaging ToolboX
 
 ![https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png)
 
-# Introduction 
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Introduction](#introduction)
+- [How to clone SLIX](#how-to-clone-slix)
+- [How to install SLIX as Python package](#how-to-install-slix-as-python-package)
+- [`SLIXParameterGenerator`](#slixparametergenerator)
+  - [Required parameters](#required-parameters)
+  - [Optional parameters](#optional-parameters)
+  - [Output](#output)
+  - [Example](#example)
+    - [How to run the demo yourself:](#how-to-run-the-demo-yourself)
+      - [1. Download the needed files:](#1-download-the-needed-files)
+      - [2. Run SLIX:](#2-run-slix)
+  - [Resulting parameter maps](#resulting-parameter-maps)
+      - [Average](#average)
+      - [Low Prominence Peaks](#low-prominence-peaks)
+      - [High Prominence Peaks](#high-prominence-peaks)
+      - [Average Peak Prominence](#average-peak-prominence)
+      - [Average Peak Width](#average-peak-width)
+      - [Peak Distance](#peak-distance)
+      - [Direction Angles](#direction-angles)
+        - [Maximum](#maximum)
+        - [Minimum](#minimum)
+- [Additional tools](#additional-tools)
+  - [`SLIXLineplotParameterGenerator`](#slixlineplotparametergenerator)
+- [Performance metrics](#performance-metrics)
+- [Authors](#authors)
+- [References](#references)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
+<!-- /code_chunk_output -->
+
+
+## Introduction 
 
 *Scattered Light Imaging (SLI)* is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037)). The measurement principle was first introduced by [Menzel et al. (2020a)](http://dx.doi.org/10.1103/PhysRevX.10.021002): A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different azimuthal angles (*directions of illumination* <img src="https://render.githubusercontent.com/render/math?math=\phi">). For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (*SLI image stack*) in which each image pixel contains a light intensity profile (*SLI profile* <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">).
 
@@ -98,17 +135,74 @@ The execution of both commands should take around one minute max. The resulting 
 
 ### Resulting parameter maps
 
-All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)):
-
+All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)). In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
 ```
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
 
-In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
+To account for the discretization of the SLI profiles (here 15°), the software improves the accuracy of the determined peak positions by taking the centroid of the peak tips into account (see [Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037) for more detail). 
 
-The parameter maps show in sequence: the average intensity of the SLI profiles (average), the number of all peaks (low prominence peaks), the number of peaks with a prominence above 8% of the total signal amplitude (high prominence peaks), the average prominence of the peaks (peakprominence), the average width of all prominent peaks (peakwidth), the distance between two prominent peaks (peakdistance), the different direction angles of nerve fibers in regions with crossing fibers (direction 1,2,3), the direction angles of nerve fibers in regions with non-crossing fibers (direction), and the maximum/minimum values of the SLI profiles. Note that `_dir_1.tiff` also contains the direction angles of non-crossing fibers (`_dir.tiff`).
+##### Average
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327">
+
+`_average.tiff` shows the average intensity for each SLI profile (image pixel). Regions with high scattering show higher values.
+
+##### Low Prominence Peaks
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
+
+`_low_prominence_peaks.tiff` shows the number of non-prominent peaks for image pixel, i.e. peaks that have a prominence below 8% of the total signal amplitude (max-min) of the profile. These peaks are not used for the computation of the fiber direction angles. For a reliable reconstruction of the direction angle, this number should be small, ideally zero.
+
+##### High Prominence Peaks
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
+
+`_high_prominence_peaks.tiff` shows the number of prominent peaks for each image pixel that have a prominence above 8% of the total signal amplitude (max-min) of the profile. The positions of these peaks are used to compute the fiber direction angles.
+
+##### Average Peak Prominence
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
+
+`_peakprominence.tiff` shows the average prominence of peaks for each image pixel, normalized by the average of each profile. The higher the value, the clearer the signal.
+
+##### Average Peak Width
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakwidth.jpg" width="327">
+
+`_peakwidth.tiff` shows the average width of all prominent peaks for each image pixel. A small peak width implies that the fiber directions can be precisely determined, i.e. the fibers are mostly oriented in-plane and crossing angles are large enough. Larger peak widths occur for out-of-plane fibers and/or fibers with small crossing angles.
+
+##### Peak Distance
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakdistance.jpg" width="327">
+
+`_peakdistance.tiff` shows the distance between two prominent peaks for each image pixel. If an SLI profile contains only one peak, the distance is zero. In regions with crossing nerve fibers, the distance is not defined and the image pixels are set to `-1`. The peak distance is a measure for the out-of-plane angles of the fibers: A peak distance of about 180° implies that the region contains in-plane fibers; the more the fibers point out of the section plane, the smaller the peak distance becomes. For fibers with an inclination angle of about 70° and above, a single broad peak is expected.
+
+##### Direction Angles
+The in-plane direction angles are only computed if the SLI profile has one, two, four, or six prominent peaks with a pair-wise distance of (180 +/- 35)°. Otherwise, the image pixel is set to `-1`. The direction angle is computed from the mid position of one peak pair, or (in case of only one peak) from the position of the peak itself. All direction angles are in degrees (with 0° being along the positive x axis, and 90° along the positive y-axis).
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327">
+
+`_dir_1.tiff` shows the first detected fiber direction angle. 
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_2.jpg" width="327">
+
+`_dir_2.tiff` shows the second detected fiber direction angle (only defined in regions with two or three crossing fibers).
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_3.jpg" width="327">
+
+`_dir_3.tiff` shows the third detected fiber direction angle (only defined in regions with three crossing fibers).
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir.jpg" width="327">
+
+`_dir.tiff` shows the fiber direction angle only in regions with one or two prominent peaks, i.e. excluding regions with crossing fibers.
+
+###### Maximum 
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327">
+
+`_max.tiff` shows the maximum of the SLI profile for each image pixel. 
+
+###### Minimum
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327">
+
+`_min.tiff` shows the minimum of the SLI profile for each image pixel. 
+To obtain a measure for the signal-to-noise, the difference between maximum and minimum can be divided by the average.
  
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
+<!-- <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
 
 Average&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Low Prominence Peaks
  
@@ -130,7 +224,7 @@ Direction 3 (`_dir_3.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/min.jpg" width="327">
 
-Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum
+Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum -->
 
 ## Additional tools
 
