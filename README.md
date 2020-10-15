@@ -9,14 +9,15 @@
 
 - [Introduction](#introduction)
 - [Installation](#installation)
-- [Generation of Parameter Maps](#generation-of-parameter-maps)
+- [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
   - [Required Arguments](#required-arguments)
   - [Optional Arguments](#optional-arguments)
   - [Example](#example)
-  - [Resulting Parameter Maps](#resulting-parameter-maps)
-- [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
+- [Generation of Parameter Maps](#generation-of-parameter-maps)
   - [Required Arguments](#required-arguments-1)
   - [Optional Arguments](#optional-arguments-1)
+  - [Example](#example-1)
+  - [Resulting Parameter Maps](#resulting-parameter-maps)
 - [Performance Metrics](#performance-metrics)
 - [Authors](#authors)
 - [References](#references)
@@ -53,9 +54,51 @@ cd SLIX
 python3 setup.py install
 ```
 
+## Evaluation of SLI Profiles
+
+`SLIXLineplotParameterGenerator` allows the evaluation of individual SLI profiles (txt-files with a list of intensity values): For each SLI profile, the maximum, minimum, number of prominent peaks, corrected peak positions, fiber direction angles, and average peak prominence are computed and stored in a text file. The user has the option to generate a plot of the SLI profile that shows the profile together with the peak positions before/after correction. The corrected peak positions are determined by calculating the geometric center of the peak tip, improving the accuracy of the determined peak positions in discretized SLI profiles. If not defined otherwise, the peak tip height corresponds to 6% of the total signal amplitude (for derivation, see [Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037), Appx. B).
+
+```
+SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
+```
+### Required Arguments
+| Argument      | Function                                                                    |
+| ------------------- | --------------------------------------------------------------------------- |
+| `-i, --input`  | Input text files, describing the SLI profiles (list of intensity values). |
+| `-o, --output` | Output folder used to store the characteristics of the SLI profiles in a txt-file (Max, Min, Num_Peaks, Peak_Pos, Directions, Prominence). Will be created if not existing. |
+
+### Optional Arguments
+| Argument      | Function                                                                    |
+| -------------- | --------------------------------------------------------------------------- |
+| `--smoothing`  | Smoothing of SLI profiles before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps.) |
+| `--with_plots` | Generates plots (png-files) showing the SLI profiles and the determined peak positions (orange dots: before correction; green crosses: after correction). |
+| `--target_peak_height` | Change peak tip height used for correcting the peak positions. (Default: 6% of total signal amplitude). Only recommended for experienced users! |
+
+### Example
+The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
+```
+SLIXLinePlotParameterGenerator -i examples/*.txt -o output --with_plots
+```
+The resulting plot and txt-file are shown below, exemplary for one of the SLI profiles (90-Stack-1647-1234.txt):
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/90-Stack-1647-1234.png" height="327">
+
+
+```
+Max: 119.0
+Min: 68.0
+Num_Peaks: 4
+Peak_Pos: [2.5935516 7.723009 14.294096 20.10292]
+Directions: [143.3426513671875 61.305511474609375 -1.0]
+Prominence: 0.27323946356773376
+```
+The plot shows the SLI profile derived from a stack of 24 images. The x-axis displays the number of images, the y-axis the measured light intensity [a.u.]. To detect peaks at the outer boundaries, the profile was extended taking the 360° periodicity of the signal into account; the red line indicates the boundary. The orange dots are the original peak positions, the green crosses indicate the corrected peak positions.
+
+The txt-file lists the maximum and minimum intensity values in the SLI profile, the number of prominent peaks (i.e. peaks with a prominence above 8% of the total signal amplitude), the corrected peak positions, the direction angles of the nerve fibers (in degrees, derived from the mid-position between peak pairs), and the average prominence of the peaks normalized by the average of the signal.
+
 ## Generation of Parameter Maps
 
-`SLIXParameterGenerator` is the main tool to create desired parameter maps from an SLI image stack.
+`SLIXParameterGenerator` allows the generation of different parameter maps from an SLI image stack.
 
 ```
 SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
@@ -73,21 +116,22 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 | Argument          | Function                                                                                                                                            |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-r, --roisize`    | Average every NxN pixels of the SLI images and run the evaluation on the resulting (downsampled) images. Later on, the images will be upscaled to match the input file dimensions. (Default: N=1, i.e.`-r 1`) |
-| `--with_mask`      | Remove the background (regions without tissue) based on the maximum value of each image pixel: Pixels for which the maximum intensity value of the SLI profile is below the threshold (defined by `--mask_threshold`), will be considered as background, i.e. the corresponding regions are set to zero for all images in the stack and will not be considered in the generation of the parameter maps.                                                                |
+| `--with_mask`      | Consider all image pixels with low scattering as background: Pixels for which the maximum intensity value of the SLI profile is below a defined threshold (`--mask_threshold`), will be set to zero and not further evaluated.                                                                |
 | `--mask_threshold` | Set the threshold for the background mask (can only be used together with `--with_mask`). Higher values might remove the background better but will also include more regions with gray matter. (Default = 10) |
 | `--num_procs`      | Run the program with the selected number of processes. (Default = either 16 threads or the maximum number of threads available.)                                  |
 | `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps.)                                                                                     |
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users!
 
-The arguments listed below determine which parameter maps will be generated from the SLI image stack. If no such argument is used, the following parameter maps will be generated: peakprominence, number of peaks, peakwidth, peakdistance, direction angles in crossing regions. If `--optional` is used, four additional parameter maps will be generated (average, maximum, minimum, direction angles in non-crossing regions). If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated.
+The arguments listed below determine which parameter maps will be generated from the SLI image stack.  If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated. If none of these arguments is used, all parameter maps except the optional ones will be generated: peakprominence, number of (prominent) peaks, peakwidth, peakdistance, direction angles in crossing regions.
 
 | Argument       | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
 | `--peakprominence`| Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile. |
-| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above 8% of the maximum signal amplitude. |
-| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width (in degrees) of all peaks in an SLI profile (image pixel) with a prominence above 8% of the maximum signal amplitude. |
-| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two peaks (in degrees) in an SLI profile (image pixel) with a prominence above 8%. All other pixels are set to `-1`. |
-| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers (in degrees). If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map. For better reference, `_dir_1.tiff` also shows the in-plane direction angle in regions without crossings.|
-| `--optional`      | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), and in-plane direction angles (in degrees) in regions without crossings (`_dir.tiff`). |
+| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above the defined threshold (Default: 8% of the total signal amplitude). |
+| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width (in degrees) of all prominent peaks in an SLI profile. |
+| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two prominent peaks (in degrees) in an SLI profile. Pixels for which the SLI profile shows more/less than two prominent peaks are set to `-1`. |
+| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers (in degrees). If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map.|
+| `--optional`      | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), and in-plane direction angles (in degrees) in regions without crossings (`_dir.tiff`). Image pixels for which the SLI profile shows more/less than two prominent peaks are set to `-1` in the direction map. |
 
 ### Example
 The following example demonstrates the generation of the parameter maps, for two artificially crossing sections of human optic tracts (left) and the upper left corner of a coronal vervet brain section (right): 
@@ -118,7 +162,7 @@ SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_St
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --roisize 10 --direction
 ```
 
-The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. To obtain full resolution parameter maps, do not use the `roisize` option. In this case, the computing time will be higher (around 25 times higher for the first example and 100 times higher for the second example).
+The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. To obtain full resolution parameter maps, do not use the `roisize` option. In this case, the computing time will be higher (around 25 times higher for the first example and 100 times higher for the second example). To display the resulting parameter maps, you can use e.g. [ImageJ](https://imagej.net/Download) or [Fiji](https://imagej.net/Fiji/Downloads).
 
 ### Resulting Parameter Maps
 
@@ -126,8 +170,6 @@ All 12 parameter maps that can be generated with *SLIX* are shown below, exempla
 ```
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
-
-To account for the discretization of the SLI profiles (here 15°), the software improves the accuracy of the determined peak positions by taking the centroid of the peak tips into account (see [Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037) for more detail). 
 
 ##### Average
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327">
@@ -137,27 +179,27 @@ To account for the discretization of the SLI profiles (here 15°), the software 
 ##### Low Prominence Peaks
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
 
-`_low_prominence_peaks.tiff` shows the number of non-prominent peaks for image pixel, i.e. peaks that have a prominence below 8% of the total signal amplitude (max-min) of the profile. These peaks are not used for the computation of the fiber direction angles. For a reliable reconstruction of the direction angle, this number should be small, ideally zero.
+`_low_prominence_peaks.tiff` shows the number of non-prominent peaks for each image pixel, i.e. peaks that have a prominence below 8% of the total signal amplitude (max-min) of the SLI profile and are not used for further evaluation. For a reliable reconstruction of the direction angles, this number should be small, ideally zero.
 
 ##### High Prominence Peaks
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327">
 
-`_high_prominence_peaks.tiff` shows the number of prominent peaks for each image pixel that have a prominence above 8% of the total signal amplitude (max-min) of the profile. The positions of these peaks are used to compute the fiber direction angles.
+`_high_prominence_peaks.tiff` shows the number of prominent peaks for each image pixel, i.e. peaks with a prominence above 8% of the total signal amplitude (max-min) of the SLI profile. The position of these peaks is used to compute the fiber direction angles.
 
 ##### Average Peak Prominence
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
 
-`_peakprominence.tiff` shows the average prominence of peaks for each image pixel, normalized by the average of each profile. The higher the value, the clearer the signal.
+`_peakprominence.tiff` shows the average prominence of the peaks for each image pixel, normalized by the average of each profile. The higher the value, the clearer the signal.
 
 ##### Average Peak Width
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakwidth.jpg" width="327">
 
-`_peakwidth.tiff` shows the average width of all prominent peaks for each image pixel. A small peak width implies that the fiber directions can be precisely determined, i.e. the fibers are mostly oriented in-plane and crossing angles are large enough. Larger peak widths occur for out-of-plane fibers and/or fibers with small crossing angles.
+`_peakwidth.tiff` shows the average width of all prominent peaks for each image pixel. A small peak width implies that the fiber directions can be precisely determined. Larger peak widths occur for out-of-plane fibers and/or fibers with small crossing angles.
 
 ##### Peak Distance
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakdistance.jpg" width="327">
 
-`_peakdistance.tiff` shows the distance between two prominent peaks for each image pixel. If an SLI profile contains only one peak, the distance is zero. In regions with crossing nerve fibers, the distance is not defined and the image pixels are set to `-1`. The peak distance is a measure for the out-of-plane angles of the fibers: A peak distance of about 180° implies that the region contains in-plane fibers; the more the fibers point out of the section plane, the smaller the peak distance becomes. For fibers with an inclination angle of about 70° and above, a single broad peak is expected.
+`_peakdistance.tiff` shows the distance between two prominent peaks for each image pixel. If an SLI profile contains only one peak, the distance is zero. In regions with crossing nerve fibers, the distance is not defined and the image pixels are set to `-1`. The peak distance is a measure for the out-of-plane angle of the fibers: A peak distance of about 180° implies that the region contains in-plane fibers; the more the fibers point out of the section plane, the smaller the peak distance becomes. For fibers with an inclination angle of about 70° and above, a single broad peak is expected.
 
 ##### Direction Angles
 The in-plane direction angles are only computed if the SLI profile has one, two, four, or six prominent peaks with a pair-wise distance of (180 +/- 35)°. Otherwise, the image pixel is set to `-1`. The direction angle is computed from the mid position of one peak pair, or (in case of only one peak) from the position of the peak itself. All direction angles are in degrees (with 0° being along the positive x axis, and 90° along the positive y-axis).
@@ -212,26 +254,6 @@ Direction 3 (`_dir_3.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/min.jpg" width="327">
 
 Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum -->
-
-## Evaluation of SLI Profiles
-
-`SLIXLineplotParameterGenerator` allows the individual evaluation of SLI profiles (txt-files with list of intensity values). For each SLI profile, the maximum, minimum, number of all peaks, and (corrected) peak positions are computed and stored in a text file. The user has the option to generate a plot of the SLI profile that shows the profile together with the determined and corrected peak positions.
-
-```
-SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
-```
-### Required Arguments
-| Argument      | Function                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| `-i, --input`  | Input text files, describing the SLI profiles (list of intensity values). |
-| `-o, --output` | Output folder used to store the FeatureSet (txt-file containing the characteristics of the SLI profiles): max, min, num_peaks, peak_positions. Will be created if not existing. |
-
-### Optional Arguments
-| Argument      | Function                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| `--smoothing`  | Smoothing of SLI profiles before evaluation. |
-| `--with_plots` | Generates png-files showing the SLI profiles and the determined peak positions (with/without correction). |
-| `--target_peak_height` | Change peak height used for correcting the peak positions (Default: 6% of peak height). Only recommended for experienced users! |
 
 ## Performance Metrics
 The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, four different SLI image stacks from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) were analyzed by running the program (generation of all 12 parameter maps with high resolution: `--optional --roisize 1`), using different thread counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation. All performance measurements were taken without times for reading and writing files.
