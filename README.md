@@ -8,6 +8,9 @@
 <!-- code_chunk_output -->
 
 - [Introduction](#introduction)
+  - [SLI Measurement](#sli-measurement)
+  - [SLI Profiles](#sli-profiles)
+  - [Parameter Maps](#parameter-maps)
 - [Installation](#installation)
 - [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
   - [Required Arguments](#required-arguments)
@@ -29,9 +32,33 @@
 
 ## Introduction 
 
-*Scattered Light Imaging (SLI)* is a novel neuroimaging technique that resolves the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037)). The measurement principle was first introduced by [Menzel et al. (2020a)](http://dx.doi.org/10.1103/PhysRevX.10.021002): A histological brain section is illuminated under oblique incidence of light from different angles. The measurement is performed with a constant polar angle of illumination and different azimuthal angles (*directions of illumination* <img src="https://render.githubusercontent.com/render/math?math=\phi">). For each direction of illumination, the intensity of light that is transmitted under normal incidence is recorded. The resulting images form a series (*SLI image stack*) in which each image pixel contains a light intensity profile (*SLI profile* <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">).
+*Scattered Light Imaging (SLI)* is a novel neuroimaging technique that allows to explore the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020)](https://arxiv.org/abs/2008.01037)). By illuminating histological brain sections from different angles and measuring the transmitted light under normal incidence, characteristic light intensity profiles (SLI profiles) can be obtained which provide crucial information such as the directions of crossing nerve fibers in each measured image pixel. 
+<!-- Details of the SLI measurement and the evaluation of the SLI profiles are described [below](#sli-measurement). -->
 
-This repository contains the *Scattered Light Imaging ToolboX (SLIX)* - an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. For a given SLI image stack, `SLIXParameterGenerator` is able to compute up to 12 (8 + 4 optional) parameter maps providing different information about the measured brain tissue sample, e.g. the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles. Individual parameter maps can be selected through command line parameters. With `SLIXLineplotParameterGenerator`, it is possible to use existing SLI profiles (txt-files with a list of intensity values) as input and compute the corresponding parameter set (txt-file) for each SLI profile, which contains the number of peaks, the position (<img src="https://render.githubusercontent.com/render/math?math=\phi">) of the maximum and minimum, and the peak positions.
+This repository contains the *Scattered Light Imaging ToolboX (SLIX)* &ndash; an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) is able to compute up to 12 parameter maps, providing information about the measured brain tissue sample such as the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles.
+
+The figure belows shows the different steps, from the SLI measurement to the generation of parameter maps: 
+
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/figure_Doku.jpg" height="327">
+
+### SLI Measurement
+The sample is illuminated from different angles, with constant polar angle <img src="https://render.githubusercontent.com/render/math?math=\theta"> and different equidistant azimuthal angles <img src="https://render.githubusercontent.com/render/math?math=\phi"> (starting on top and rotating clock-wise), see figure (a). A camera behind the sample records an image of the transmitted light under normal incidence for each direction of illumination, yielding a series of images (b). 
+
+The **SLI image stack** is used as input for *SLIX* (.nii or .tiff are accepted). The software assumes that the measurement has been performed with equidistant angles over a full range of 360°. The number of images defines the illumination angles (e.g. when using 24 images as input, the software assumes that the images were recorded with <img src="https://render.githubusercontent.com/render/math?math=\phi"> = 0°,15°,...,345°).
+
+### SLI Profiles
+Each pixel in the SLI image stack contains a light intensity profile (**SLI profile** <img src="https://render.githubusercontent.com/render/math?math=I(\phi)">), which is characteristic for the brain tissue structure at this point. With *SLIX*, it is possible to automatically extract and evaluate the SLI profiles for all image pixels. 
+
+The **peak positions** are computed with [scipy.signal.find_peaks](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html), taking the 360° periodicity of the signal into account. To account for inaccuracies introduced by the discretization of the SLI profile, the determined peak positions are corrected by calculating the geometric center of the peak tips with a height corresponding to 6% of the total signal amplitude. The value of 6% turned out to be the best choice to obtain reliable fiber orientations (see [Menzel et al. (2020)](https://arxiv.org/abs/2008.01037), Appx. B), but can be changed by the user. Figure (b) shows an SLI profile with 15° discretization and the corrected peak positions as vertical lines.
+
+To avoid that peaks caused by noise or details in the fiber structure impair the computed fiber direction angles, only *prominent* peaks are used for further evaluation. The **peak prominence** ([scipy.signal.peak_prominences](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) indicates how strongly a peak stands out from the background signal and is defined by the vertical distance between the top of the peak and the higher of the two neighboring minima (see figure (c), in red). If not defined otherwise by the user, peaks with a prominence above 8% of the total signal amplitude (max-min) are considered as prominent peaks. The value of 8% turned out to be the optimal choice for the generation of reliable fiber orientations (best compromise between correctly and wrongly detected peaks for regions with known fiber orientations, see [Menzel et al. (2020)](https://arxiv.org/abs/2008.01037), Appx. A). 
+
+The **peak width** (see figure (c), in dark blue) is determined as the full width of the peak at a height corresponding to the peak height minus half of the peak prominence. 
+
+The in-plane **fiber direction angles** <img src="https://render.githubusercontent.com/render/math?math=\varphi"> are computed from the (corrected) mid positions of prominent peak pairs with a pair-wise distance of (180 +/- 35)°, see figure (c) in green/magenta.
+
+### Parameter Maps
+From the SLI profiles of each image pixel, *SLIX* generates different [parameter maps](#resulting-parameter-maps), which provide various information about the investigated brain tissue.
 
 ## Installation 
 ##### How to clone SLIX
@@ -56,7 +83,7 @@ python3 setup.py install
 
 ## Evaluation of SLI Profiles
 
-`SLIXLineplotParameterGenerator` allows the evaluation of individual SLI profiles (txt-files with a list of intensity values): For each SLI profile, the maximum, minimum, number of prominent peaks, corrected peak positions, fiber direction angles, and average peak prominence are computed and stored in a text file. The user has the option to generate a plot of the SLI profile that shows the profile together with the peak positions before/after correction. The corrected peak positions are determined by calculating the geometric center of the peak tip, improving the accuracy of the determined peak positions in discretized SLI profiles. If not defined otherwise, the peak tip height corresponds to 6% of the total signal amplitude (for derivation, see [Menzel et al. (2020b)](https://arxiv.org/abs/2008.01037), Appx. B).
+`SLIXLineplotParameterGenerator` allows the evaluation of individual SLI profiles (txt-files with a list of intensity values): For each SLI profile, the maximum, minimum, number of prominent peaks, corrected peak positions, fiber direction angles, and average peak prominence are computed and stored in a text file. The user has the option to generate a plot of the SLI profile that shows the profile together with the peak positions before/after correction. The corrected peak positions are determined by calculating the geometric center of the peak tip, improving the accuracy of the determined peak positions in discretized SLI profiles. If not defined otherwise, the peak tip height corresponds to 6% of the total signal amplitude (for derivation, see [Menzel et al. (2020)](https://arxiv.org/abs/2008.01037), Appx. B).
 
 ```
 SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
