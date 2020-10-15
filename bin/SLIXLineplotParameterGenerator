@@ -33,9 +33,11 @@ def full_pipeline(filepath, output_filename, with_smoothing=True, with_plots=Fal
     if with_smoothing:
         line_profile_expanded = numpy.concatenate((line_profile, line_profile, line_profile))
         line_profile_smoothed = savgol_filter(line_profile_expanded, 45, 2)
+
         first_measurement = len(line_profile_smoothed) // 3 // 2
         last_measurement = len(line_profile_smoothed) - first_measurement
         line_profile_smoothed = line_profile_smoothed[first_measurement:last_measurement]
+
         line_profile_smoothed = numpy.expand_dims(line_profile_smoothed, axis=0)
         num_measurements = first_measurement
     else:
@@ -47,32 +49,42 @@ def full_pipeline(filepath, output_filename, with_smoothing=True, with_plots=Fal
     peaks = toolbox.all_peaks(line_profile_smoothed.flatten())
     max_array = line_profile_smoothed.max()
     min_array = line_profile_smoothed.min()
+
     if with_plots:
         if with_smoothing:
-            plt.plot(line_profile[2 * num_measurements:-2 * num_measurements + 3])
-            plt.plot(line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3])
+            plt.plot(line_profile[2 * num_measurements:-2 * num_measurements])
+            plt.plot(line_profile_smoothed.flatten()[num_measurements:-2*num_measurements])
         else:
-            plt.plot(line_profile[num_measurements:-num_measurements + 3])
-        peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=False)
-        peaks = peaks - num_measurements
-        plt.plot(peaks, line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][peaks], 'o')
-    peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=True)
-    peaks = peaks - num_measurements
+            plt.plot(line_profile_smoothed.flatten()[num_measurements:-2*num_measurements])
+        acc_peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=False)
+        acc_peaks = acc_peaks - num_measurements
+        plt.plot(acc_peaks, line_profile_smoothed.flatten()[num_measurements:-2*num_measurements][acc_peaks], 'o',
+                 label='Peak position')
+
+    acc_peaks = toolbox.accurate_peak_positions(peaks, line_profile_smoothed.flatten(), centroid_calculation=True)
+    directions = toolbox.crossing_direction(acc_peaks, len(line_profile))
+    prominence = toolbox.prominence(peaks, line_profile_expanded)
+
     if with_plots:
-        plt.plot(peaks, [
-            line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][int(numpy.floor(peak))] + (
+        plt.plot((acc_peaks-num_measurements), [
+            line_profile_smoothed.flatten()[num_measurements:-2*num_measurements][int(numpy.floor(peak))] + (
                         peak - int(peak)) * (
-                    line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][int(numpy.ceil(peak))] -
-                    line_profile_smoothed.flatten()[num_measurements:-num_measurements + 3][
-                        int(numpy.floor(peak))]) for peak in peaks], 'x')
+                    line_profile_smoothed.flatten()[num_measurements:-num_measurements][int(numpy.ceil(peak))] -
+                    line_profile_smoothed.flatten()[num_measurements:-num_measurements][
+                        int(numpy.floor(peak))]) for peak in (acc_peaks-num_measurements)], 'x', label='Corrected peak position')
+        plt.plot([24, 24], [line_profile.min(), line_profile.max()])
+        plt.legend()
         plt.savefig(output_filename + '.png', dpi=600)
         plt.close()
+
     # Convert peak calculation to angle for simplified comparison with 3D-PLI measurements
-    peaks = (peaks * 180.0 / num_measurements) % 360
+    # acc_peaks = (acc_peaks * 180.0 / num_measurements) % 360
+    acc_peaks = acc_peaks - 2 * num_measurements
 
     # Generate output parameters for file
-    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(len(peaks)) + \
-             '\nPeak_Pos: [' + " ".join(str(x) for x in peaks) + ']'
+    output = 'Max: ' + str(max_array) + '\nMin: ' + str(min_array) + '\nNum_Peaks: ' + str(len(acc_peaks)) + \
+             '\nPeak_Pos: [' + " ".join(str(x) for x in acc_peaks) + ']\nDirections: [' + \
+             " ".join(str(x) for x in directions) + ']\nProminence: ' + str(prominence)
     with open(output_filename + '.txt', 'w') as f:
         f.write(output)
         f.flush()

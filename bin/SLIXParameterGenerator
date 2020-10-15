@@ -304,6 +304,17 @@ def create_argument_parser():
                           help='Value for filtering background noise when calculating masks.'
                                'Higher values might result in the removal of some of the gray matter in the mask'
                                'but will remove the background more effectively.')
+    optional.add_argument('--prominence_threshold',
+                          type=float,
+                          default=0.08,
+                          help='Change the threshold for prominent peaks. Peaks with lower prominences will not be used'
+                               ' for further evaluation. (Default: 8% of total signal amplitude.) '
+                               'Only recommended for experienced users!')
+    optional.add_argument('--target_peak_height',
+                          default=0.94,
+                          type=float,
+                          help='Change peak tip height used for correcting the peak positions. '
+                               '(Default: 6% of total signal amplitude). Only recommended for experienced users!')
     optional.add_argument('--with_smoothing',
                           action='store_true',
                           help='Apply smoothing for individual roi curves for noisy images.'
@@ -365,6 +376,8 @@ if __name__ == '__main__':
         PEAKDISTANCE = args['peakdistance']
     OPTIONAL = args['optional']
     toolbox.CPU_COUNT = args['num_procs']
+    toolbox.TARGET_PROMINENCE = args['prominence_threshold']
+    toolbox.TARGET_PEAK_HEIGHT = args['target_peak_height']
 
     print(
         'SLI Feature Generator:\n'
@@ -375,7 +388,10 @@ if __name__ == '__main__':
         'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
         'Peak width map: ' + str(PEAKWIDTH) + '\n' +
         'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-        'Optional maps: ' + str(OPTIONAL) + '\n'
+        'Optional maps: ' + str(OPTIONAL) + '\n\n'
+        
+        'Prominence: ' + str(toolbox.TARGET_PROMINENCE) + '\n'
+        'Peak height: ' + str(toolbox.TARGET_PEAK_HEIGHT) + '\n'
     )
 
     paths = args['input']
