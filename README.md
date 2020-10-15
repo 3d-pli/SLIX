@@ -11,7 +11,7 @@
   - [SLI Measurement](#sli-measurement)
   - [SLI Profiles](#sli-profiles)
   - [Parameter Maps](#parameter-maps)
-- [Installation](#installation)
+- [Installation of SLIX](#installation-of-slix)
 - [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
   - [Required Arguments](#required-arguments)
   - [Optional Arguments](#optional-arguments)
@@ -58,9 +58,13 @@ The **peak width** (see figure (c), in dark blue) is determined as the full widt
 The in-plane **fiber direction angles** <img src="https://render.githubusercontent.com/render/math?math=\varphi"> are computed from the (corrected) mid positions of prominent peak pairs with a pair-wise distance of (180 +/- 35)°, see figure (c) in green/magenta.
 
 ### Parameter Maps
-From the SLI profiles of each image pixel, *SLIX* generates different [parameter maps](#resulting-parameter-maps), which provide various information about the investigated brain tissue.
+By evaluating the SLI profiles of each image pixel, *SLIX* generates different parameter maps, which provide various information about the investigated brain tissue: 
+- The [average map](#average) shows the overall scattering of the tissue; [maximum](#maximum) and [minimum](#minimum) can be used to get an idea of the signal amplitude and signal-to-noise ratio.
+- The [number of non-prominent peaks](#low-prominence-peaks) and the [number of prominent peaks](#high-prominence-peaks) indicate the clarity of the signal (regions with indefinite scattering signals, such as background or regions with a small number of nerve fibers, show a higher number of non-prominent peaks); the [average peak prominence](#average-peak-prominence) indicates the reliability of the peak positions.
+- The [average peak width](#average-peak-width) and the [peak distance](#peak-distance) correlate with the out-of-plane angle of the nerve fibers (in-plane fibers show two narrow peaks with a large distance of about 180°).
+- The [direction maps](#direction-angles) show the in-plane direction angles of the nerve fibers for up to three different crossing fibers.
 
-## Installation 
+## Installation of SLIX
 ##### How to clone SLIX
 ```
 git clone git@github.com:3d-pli/SLIX.git
