@@ -136,7 +136,7 @@ def peakdistance(peak_positions, number_of_measurements):
         return BACKGROUND_COLOR
 
 
-def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True,
+def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True,
                        centroid_calculation=True):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image
@@ -188,7 +188,7 @@ def prominence(peak_positions, line_profile):
     return 0 if num_peaks == 0 else numpy.mean(peak_prominences(prominence_roi, peak_positions)[0])
 
 
-def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
     """
     Calculate the mean peak prominence of all given peak positions for each line profile in an SLI image series. Each
     line profile will be normalized by dividing the line profile through its mean value. Therefore, values above 1 are
@@ -240,7 +240,7 @@ def peakwidth(peak_positions, line_profile, number_of_measurements):
         return 0
 
 
-def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
     """
     Note: Please do not use this method when evaluating many line profiles while generating most if not all of the
     parameter maps. In this case, it is faster to write a simple pipeline as seen in 'SLIXParameterGenerator'.
@@ -302,7 +302,7 @@ def crossing_direction(peak_positions, number_of_measurements):
     return ret_val
 
 
-def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
     """
     Calculate up to three direction angles based on the given peak positions. If more than six peaks are present, no
     direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
@@ -365,7 +365,7 @@ def non_crossing_direction(peak_positions, number_of_measurements):
         return BACKGROUND_COLOR
 
 
-def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=None, cut_edges=True):
+def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf, cut_edges=True):
     """
     Calculate one direction angle based on the given peak positions. If more than two peaks are present, no
     direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
@@ -435,7 +435,7 @@ def create_sampling(line_profile, peak_positions, left_bound, right_bound, targe
     return sampling, _left_bound, _right_bound
 
 
-def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROMINENCE, high_prominence=None):
+def centroid_correction(line_profile, peak_positions, low_prominence=TARGET_PROMINENCE, high_prominence=numpy.inf):
     """
     Correct peak positions from a line profile by looking at only the peak with a given threshold using a centroid
     calculation. If a minimum is found in the considered interval, this minimum will be used as the limit instead.
