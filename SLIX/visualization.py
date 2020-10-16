@@ -49,22 +49,23 @@ def unit_vectors(directions):
 def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8):
     if ax is None:
         ax = plt.gca()
+    skip = (slice(None, None, thinout), slice(None, None, thinout))
     for i in range(UnitX.shape[-1]):
         X, Y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]), numpy.arange(0, UnitX.shape[0]))
-        U = thinout * UnitX[:, :, i]
-        V = thinout * UnitY[:, :, i]
-        mask = numpy.logical_or(U != 0, V != 0)
-        skip = slice(None, None, thinout)
-        X = X[mask]
-        Y = Y[mask]
-        U = U[mask]
-        V = V[mask]
+        U = UnitX[:, :, i]
+        V = UnitY[:, :, i]
+
+        mask = numpy.logical_or(U[skip] != 0, V[skip] != 0)
+        X = X[skip][mask]
+        Y = Y[skip][mask]
+        U = U[skip][mask]
+        V = V[skip][mask]
 
         # Normalize the arrows:
-        U_normed = U / numpy.sqrt(U ** 2 + V ** 2)
-        V_normed = V / numpy.sqrt(U ** 2 + V ** 2)
+        U_normed = thinout * U / numpy.sqrt(U ** 2 + V ** 2)
+        V_normed = thinout * V / numpy.sqrt(U ** 2 + V ** 2)
 
-        ax.quiver(X[skip], Y[skip], U_normed[skip], V_normed[skip], numpy.arctan2(V_normed[skip], U_normed[skip]),
+        ax.quiver(X, Y, U_normed, V_normed, numpy.arctan2(V_normed, U_normed),
                    cmap='hsv', angles='xy', scale_units='xy', scale=1, alpha=alpha,
                    headwidth=0, headlength=0, headaxislength=0, minlength=0, pivot='mid')
     return ax

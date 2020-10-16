@@ -4,6 +4,8 @@ import nibabel
 import numpy
 import pymp
 import tifffile
+import tqdm
+import time
 from scipy.signal import peak_widths, savgol_filter, find_peaks, peak_prominences
 
 pymp.config.nested = True
@@ -65,12 +67,35 @@ def num_peaks_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=nu
     -------
     NumPy array where each entry corresponds to the number of detected peaks within the first dimension of the SLI image series.
     """
+    print('Generating number of peaks image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.int32)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
             return_value[i] = len(accurate_peak_positions(peaks, roi, low_prominence, high_prominence, False))
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
@@ -157,14 +182,37 @@ def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence
     -------
     NumPy array of floating point values containing the mean peak distance of the line profiles in degrees.
     """
+    print('Generating peak distance image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
-            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges,
-                                            centroid_calculation)
-            return_value[i] = peakdistance(peaks, len(peaks), len(roi) // 2)
+            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, centroid_calculation)
+            return_value[i] = peakdistance(peaks, len(roi))
+
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
@@ -207,13 +255,36 @@ def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=n
     -------
     NumPy array where each entry corresponds to the mean peak prominence of the line profile.
     """
+    print('Generating prominence image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
-            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, cut_edges, False)
+            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, False)
             return_value[i] = prominence(peaks, roi)
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
@@ -256,13 +327,36 @@ def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=nu
     -------
     NumPy array where each entry corresponds to the mean peak width of the line profile.
     """
+    print('Generating peak width image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
             peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, False)
             return_value[i] = peakwidth(peaks, roi, len(roi) // 2)
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
@@ -326,13 +420,36 @@ def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prom
     will be BACKGROUND_COLOR instead.
 
     """
+    print('Generating direction image')
     return_value = pymp.shared.array((roiset.shape[0], 3), dtype=numpy.float)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
-            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, False)
+            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence)
             return_value[i, :] = crossing_direction(peaks, len(roi) // 2)
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
@@ -385,13 +502,36 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
     NumPy array of floating point values containing the direction angle in degree.
     If a direction angle is invalid or missing, the returned value will be BACKGROUND_COLOR instead.
     """
+    print('Generating direction image without crossing pixels')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
+    pbar = tqdm.tqdm(total=len(roiset))
+    number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
+    last_sum_of_finished_pixels = 0
+    active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
+    active_cores[:] = True
+
     with pymp.Parallel(CPU_COUNT) as p:
+        number_of_finished_pixels[p.thread_num] = 0
         for i in p.range(0, len(roiset)):
             roi = roiset[i]
             peaks = all_peaks(roi, cut_edges)
-            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence, False)
+            peaks = accurate_peak_positions(peaks, roi, low_prominence, high_prominence)
             return_value[i] = non_crossing_direction(peaks, len(roi) // 2)
+            number_of_finished_pixels[p.thread_num] += 1
+            if p.thread_num == 0 and number_of_finished_pixels[p.thread_num] % 1000 == 0:
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+        # When one core has finished, mark it. As long as not all threads are finished continue to update the
+        # progress bar.
+        active_cores[p.thread_num] = False
+        if p.thread_num == 0:
+            while numpy.any(active_cores == True):
+                time.sleep(0.5)
+                sum_of_finished_pixels = numpy.sum(number_of_finished_pixels)
+                pbar.update(sum_of_finished_pixels - last_sum_of_finished_pixels)
+                last_sum_of_finished_pixels = sum_of_finished_pixels
+            pbar.close()
     return return_value
 
 
