@@ -46,11 +46,9 @@ def unit_vectors(directions):
     return UnitX, UnitY
 
 
-def visualize_unit_vectors(UnitX, UnitY, thinout=1):
-    #UnitX = UnitX[400:600, 400:600]
-    #UnitY = UnitY[400:600, 400:600]
-    #print(UnitX.max(), UnitY.max())
-
+def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8):
+    if ax is None:
+        ax = plt.gca()
     for i in range(UnitX.shape[-1]):
         X, Y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]), numpy.arange(0, UnitX.shape[0]))
         U = thinout * UnitX[:, :, i]
@@ -66,8 +64,8 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1):
         U_normed = U / numpy.sqrt(U ** 2 + V ** 2)
         V_normed = V / numpy.sqrt(U ** 2 + V ** 2)
 
-        plt.quiver(X[skip], Y[skip], V_normed[skip], U_normed[skip], numpy.arctan2(V_normed[skip], U_normed[skip]),
-                   cmap='hsv', angles='xy', scale_units='xy', scale=1,
+        ax.quiver(X[skip], Y[skip], U_normed[skip], V_normed[skip], numpy.arctan2(V_normed[skip], U_normed[skip]),
+                   cmap='hsv', angles='xy', scale_units='xy', scale=1, alpha=alpha,
                    headwidth=0, headlength=0, headaxislength=0, minlength=0, pivot='mid')
-    plt.show()
+    return ax
 
