@@ -1,7 +1,7 @@
 import numpy
 import pymp
 from matplotlib import pyplot as plt
-from matplotlib import colors
+import copy
 
 CPU_COUNT = 8
 
@@ -44,6 +44,19 @@ def unit_vectors(directions):
     UnitY[numpy.isclose(directions, -1)] = 0
 
     return UnitX, UnitY
+
+
+def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1, cmap='viridis', vmin=0, vmax=None):
+    if fig is None and ax is None:
+        fig, ax = plt.subplots(1, 1)
+
+    cmap_mod = copy.copy(plt.get_cmap(cmap))
+    cmap_mod.set_under('black')  # Color for values less than vmin
+    cmap_mod.set_over('white')  # Color for values more than vmax
+
+    im = ax.imshow(parameter_map, interpolation='nearest', origin='lower', cmap=cmap, alpha=alpha, vmin=vmin, vmax=vmax)
+    fig.colorbar(im, ax=ax)
+    return fig, ax
 
 
 def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8):
