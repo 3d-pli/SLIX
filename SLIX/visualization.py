@@ -1,6 +1,7 @@
 import numpy
 import pymp
 from matplotlib import pyplot as plt
+from matplotlib import colors
 from PIL import Image
 import copy
 from . import toolbox
@@ -61,16 +62,19 @@ def downsample(image, sample_size=10, background_value=-1):
     return small_img
 
 
-def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1, cmap='viridis', vmin=0, vmax=None):
+def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
+                            cmap='viridis', vmin=0, vmax=None, colorbar=True):
     if fig is None or ax is None:
         fig, ax = plt.subplots(1, 1)
 
     cmap_mod = copy.copy(plt.get_cmap(cmap))
-    cmap_mod.set_under('black')  # Color for values less than vmin
-    cmap_mod.set_over('white')  # Color for values more than vmax
-
-    im = ax.imshow(parameter_map, interpolation='nearest', origin='lower', cmap=cmap, alpha=alpha, vmin=vmin, vmax=vmax)
-    fig.colorbar(im, ax=ax)
+    im = ax.imshow(parameter_map, interpolation='nearest', origin='lower', cmap=cmap_mod, alpha=alpha)
+    im.cmap.set_under(color='k')  # Color for values less than vmin
+    im.cmap.set_over(color='w')  # Color for values more than vmax
+    im.set_clim(vmin, vmax)
+    ax.axis('off')
+    if colorbar:
+        fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     return fig, ax
 
 
