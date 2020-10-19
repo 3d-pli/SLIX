@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='SLIX',
-    version='1.1.1',
+    version='1.2.0',
     packages=['SLIX'],
     url='www.github.com/3d-pli/slix',
     license='MIT',

@@ -811,6 +811,15 @@ def reshape_array_to_image(image, x, ROISIZE):
     Returns:
         numpy.array -- Reshaped image based on the input array
     """
-    image_reshaped = image.reshape(
-        (numpy.ceil(x / ROISIZE).astype('int'), image.shape[0] // numpy.ceil(x / ROISIZE).astype('int')))
+    if image.shape[-1] == 1:
+        image_reshaped = image.reshape(
+            (numpy.ceil(x / ROISIZE).astype('int'), image.shape[0] // numpy.ceil(x / ROISIZE).astype('int')))
+    else:
+        image_reshaped = image.reshape(
+            (
+             numpy.ceil(x / ROISIZE).astype('int'),
+             image.shape[0] // numpy.ceil(x / ROISIZE).astype('int'),
+             image.shape[-1]
+            )
+        )
     return image_reshaped
