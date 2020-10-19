@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from SLIX import toolbox, visualization
 from matplotlib import pyplot as plt
+from PIL import Image
 import numpy
 
 import urllib.request
@@ -26,7 +27,7 @@ UnitX, UnitY = visualization.unit_vectors(direction_image)
 
 # Show unit vectors with image in one python plot
 plt.imshow(numpy.mean(image, axis=-1), cmap='gray')
-visualization.visualize_unit_vectors(UnitX, UnitY, thinout=20, alpha=0.3)
+visualization.visualize_unit_vectors(UnitX, UnitY, thinout=10)
 plt.axis('off')
 plt.show()
 
