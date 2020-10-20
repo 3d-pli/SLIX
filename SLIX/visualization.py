@@ -44,7 +44,7 @@ def downsample(image, sample_size, background_value=-1, background_threshold=0.5
     sample_size: Down sampling parameter.
     background_value: Background value in this parameter map. This is generally -1 but can differ for unit vectors.
     background_threshold: If magnitude of the background values exceeds this value, the downsampled image will have
-                          background_value as it's resulting pixel value.
+                          background_value as its resulting pixel value.
 
     Returns
     -------
@@ -131,7 +131,7 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1, background
     ax: Matplotlib axis. If none, the current context axis will be used.
     alpha: Apply alpha to Matplotlib plots to overlay them with some other plots like the original measurement.
     background_threshold: If magnitude of the background values exceeds this value, the downsampled image will have
-                          background_value as it's resulting pixel value.
+                          background_value as its resulting pixel value.
 
     Returns
     -------

@@ -308,13 +308,13 @@ def create_argument_parser():
                           type=float,
                           default=0.08,
                           help='Change the threshold for prominent peaks. Peaks with lower prominences will not be used'
-                               ' for further evaluation. (Default: 8% of total signal amplitude.) '
+                               ' for further evaluation. (Default: 8%% of total signal amplitude.) '
                                'Only recommended for experienced users!')
     optional.add_argument('--target_peak_height',
                           default=0.94,
                           type=float,
                           help='Change peak tip height used for correcting the peak positions. '
-                               '(Default: 6% of total signal amplitude). Only recommended for experienced users!')
+                               '(Default: 6%% of total signal amplitude). Only recommended for experienced users!')
     optional.add_argument('--with_smoothing',
                           action='store_true',
                           help='Apply smoothing for individual roi curves for noisy images.'
