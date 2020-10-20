@@ -145,6 +145,8 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1, background
     if thinout <= 1:
         thinout = 1
     else:
+        UnitX = UnitX.copy()
+        UnitY = UnitY.copy()
         original_size = UnitX.shape[:-1]
         small_unit_x = downsample(UnitX, thinout, background_value=0, background_threshold=background_threshold)
         for i in range(UnitX.shape[-1]):
