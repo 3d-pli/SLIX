@@ -1,7 +1,6 @@
 import numpy
 import pymp
 from matplotlib import pyplot as plt
-from matplotlib import colors
 from PIL import Image
 import copy
 from . import toolbox
@@ -33,7 +32,7 @@ def unit_vectors(directions):
     return UnitX, UnitY
 
 
-def downsample(image, sample_size=10, background_value=-1):
+def downsample(image, sample_size=10, background_value=-1, background_threshold=0.5):
     # downsample image
     if len(image.shape) == 2:
         x, y = image.shape
@@ -51,7 +50,7 @@ def downsample(image, sample_size=10, background_value=-1):
                 for j in range(0, ny):
                     roi = image[sample_size * i:sample_size * i + sample_size,
                                 sample_size * j:sample_size * j + sample_size, sub_image]
-                    if numpy.count_nonzero(roi != background_value) > 0.1 * roi.size:
+                    if numpy.count_nonzero(roi == background_value) < background_threshold * roi.size:
                         small_img[i, j, sub_image] = numpy.median(roi[roi != background_value])
                     else:
                         small_img[i, j, sub_image] = background_value
@@ -68,7 +67,8 @@ def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
         fig, ax = plt.subplots(1, 1)
 
     cmap_mod = copy.copy(plt.get_cmap(cmap))
-    im = ax.imshow(parameter_map, interpolation='nearest', origin='lower', cmap=cmap_mod, alpha=alpha)
+    #parameter_map = numpy.swapaxes(parameter_map, -1, 0)
+    im = ax.imshow(parameter_map, interpolation='nearest', cmap=cmap_mod, alpha=alpha)
     im.cmap.set_under(color='k')  # Color for values less than vmin
     im.cmap.set_over(color='w')  # Color for values more than vmax
     im.set_clim(vmin, vmax)
@@ -78,7 +78,7 @@ def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
     return fig, ax
 
 
-def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8):
+def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8, background_threshold=0.5):
     if ax is None:
         ax = plt.gca()
 
@@ -87,11 +87,11 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=0.8):
         thinout = 1
     else:
         original_size = UnitX.shape[:-1]
-        small_unit_x = downsample(UnitX, thinout, background_value=0)
+        small_unit_x = downsample(UnitX, thinout, background_value=0, background_threshold=background_threshold)
         for i in range(UnitX.shape[-1]):
             UnitX[:, :, i] = numpy.array(Image.fromarray(small_unit_x[:, :, i])
                                          .resize(original_size[::-1], resample=Image.NEAREST))
-        small_unit_y = downsample(UnitY, thinout, background_value=0)
+        small_unit_y = downsample(UnitY, thinout, background_value=0, background_threshold=background_threshold)
         for i in range(UnitY.shape[-1]):
             UnitY[:, :, i] = numpy.array(Image.fromarray(small_unit_y[:, :, i])
                                          .resize(original_size[::-1], resample=Image.NEAREST))
