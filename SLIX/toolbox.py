@@ -663,9 +663,13 @@ def read_image(FILEPATH):
     if FILEPATH.endswith('.nii'):
         data = nibabel.load(FILEPATH).get_fdata()
         data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
-    else:
+    elif FILEPATH.endswith('.tif') or FILEPATH.endswith('.tiff'):
         data = tifffile.imread(FILEPATH)
         data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
+    else:
+        raise ValueError('Datatype not supported. Expected .nii or .tiff/.tif file with three dimensions.')
+    if len(data.shape) < 3:
+        raise ValueError('Datatype not supported. Expected .nii or .tiff/.tif file with three dimensions.')
 
     return data
 
