@@ -67,9 +67,8 @@ def num_peaks_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=nu
     -------
     NumPy array where each entry corresponds to the number of detected peaks within the first dimension of the SLI image series.
     """
-    print('Generating number of peaks image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.int32)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Number of peaks')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -182,9 +181,8 @@ def peakdistance_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence
     -------
     NumPy array of floating point values containing the mean peak distance of the line profiles in degrees.
     """
-    print('Generating peak distance image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Peak distance')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -255,9 +253,8 @@ def prominence_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=n
     -------
     NumPy array where each entry corresponds to the mean peak prominence of the line profile.
     """
-    print('Generating prominence image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Peak prominence')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -327,9 +324,8 @@ def peakwidth_image(roiset, low_prominence=TARGET_PROMINENCE, high_prominence=nu
     -------
     NumPy array where each entry corresponds to the mean peak width of the line profile.
     """
-    print('Generating peak width image')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Peak width')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -420,9 +416,8 @@ def crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_prom
     will be BACKGROUND_COLOR instead.
 
     """
-    print('Generating direction image')
     return_value = pymp.shared.array((roiset.shape[0], 3), dtype=numpy.float)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Direction')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -502,9 +497,8 @@ def non_crossing_direction_image(roiset, low_prominence=TARGET_PROMINENCE, high_
     NumPy array of floating point values containing the direction angle in degree.
     If a direction angle is invalid or missing, the returned value will be BACKGROUND_COLOR instead.
     """
-    print('Generating direction image without crossing pixels')
     return_value = pymp.shared.array((roiset.shape[0], 1), dtype=numpy.float)
-    pbar = tqdm.tqdm(total=len(roiset))
+    pbar = tqdm.tqdm(total=len(roiset), desc='Non crossing direction')
     number_of_finished_pixels = pymp.shared.array(CPU_COUNT, dtype=numpy.long)
     last_sum_of_finished_pixels = 0
     active_cores = pymp.shared.array(CPU_COUNT, dtype=numpy.bool)
@@ -811,7 +805,7 @@ def reshape_array_to_image(image, x, ROISIZE):
     Returns:
         numpy.array -- Reshaped image based on the input array
     """
-    if image.shape[-1] == 1:
+    if image.shape[-1] == 1 or len(image.shape) == 1:
         image_reshaped = image.reshape(
             (numpy.ceil(x / ROISIZE).astype('int'), image.shape[0] // numpy.ceil(x / ROISIZE).astype('int')))
     else:
