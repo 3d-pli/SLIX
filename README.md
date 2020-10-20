@@ -21,6 +21,7 @@
   - [Optional Arguments](#optional-arguments-1)
   - [Example](#example-1)
   - [Resulting Parameter Maps](#resulting-parameter-maps)
+- [Tutorial](#tutorial)
 - [Performance Metrics](#performance-metrics)
 - [Authors](#authors)
 - [References](#references)
@@ -33,9 +34,8 @@
 ## Introduction 
 
 *Scattered Light Imaging (SLI)* is a novel neuroimaging technique that allows to explore the substructure of nerve fibers, especially in regions with crossing nerve fibers, in whole brain sections with micrometer resolution ([Menzel et al. (2020)](https://arxiv.org/abs/2008.01037)). By illuminating histological brain sections from different angles and measuring the transmitted light under normal incidence, characteristic light intensity profiles (SLI profiles) can be obtained which provide crucial information such as the directions of crossing nerve fibers in each measured image pixel. 
-<!-- Details of the SLI measurement and the evaluation of the SLI profiles are described [below](#sli-measurement). -->
 
-This repository contains the *Scattered Light Imaging ToolboX (SLIX)* &ndash; an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) is able to compute up to 12 parameter maps, providing information about the measured brain tissue sample such as the individual in-plane direction angles of the nerve fibers for regions with up to three crossing nerve fiber bundles.
+This repository contains the *Scattered Light Imaging ToolboX (SLIX)* &ndash; an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps. The purpose of SLIX is twofold: First, it allows to transform the raw data of SLI measurements (SLI image stack) to human-readable parameter maps that can be used for further analysis and interpreted by researchers. To this end, SLIX also contains functions to visualize the resulting parameter maps, e.g. as colored vector maps. Second, the results of SLIX can be processed further for use in tractography algorithms. For example, the resulting fiber direction maps can be stored as angles or as unit vectors, which can be used as input for streamline tractography algorithms ([Nolden et al. (2019)](https://doi.org/10.1007/978-3-658-25326-4_17)).
 
 The figure belows shows the different steps, from the SLI measurement to the generation of parameter maps: 
 
@@ -62,7 +62,9 @@ By evaluating the SLI profiles of each image pixel, *SLIX* generates different p
 - The [average map](#average) shows the overall scattering of the tissue; [maximum](#maximum) and [minimum](#minimum) can be used to get an idea of the signal amplitude and the signal-to-noise ratio.
 - The [number of non-prominent peaks](#low-prominence-peaks) and the [number of prominent peaks](#high-prominence-peaks) indicate the clarity of the signal (regions with indefinite scattering signals, such as background or regions with a small number of nerve fibers, show a higher number of non-prominent peaks); the [average peak prominence](#average-peak-prominence) indicates the reliability of the peak positions.
 - The [average peak width](#average-peak-width) and the [peak distance](#peak-distance) correlate with the out-of-plane angle of the nerve fibers (in-plane fibers show two narrow peaks with a large distance of about 180°).
-- The [direction maps](#direction-angles) show the in-plane direction angles of the nerve fibers for up to three different crossing fibers.
+- The [direction maps](#direction-angles) show the in-plane direction angles of the nerve fibers for up to three different crossing fibers. The fiber directions can be represented by a colored vector map, as described in the [tutorial](#tutorial) below.
+
+With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) computes the desired parameter maps for all image pixels.
 
 ## Installation of SLIX
 ##### How to clone SLIX
@@ -263,30 +265,11 @@ The in-plane direction angles are only computed if the SLI profile has one, two,
 
 `_min.tiff` shows the minimum of the SLI profile for each image pixel. 
 To obtain a measure for the signal-to-noise, the difference between maximum and minimum can be divided by the average.
- 
-<!-- <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/low_prominence_peaks.jpg" width="327">
 
-Average&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Low Prominence Peaks
- 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/high_prominence_peaks.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
+## Tutorial
+The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/3-vector-visualization/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), `thinout = 30` (i.e. 30 x 30 pixels were evaluated together), and `background_threshold = 0.7` (i.e. if more than 70% of the evaluated pixels are `-1`, no vector will be computed). 
 
-High Prominence Peaks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakprominence
-
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakwidth.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakdistance.jpg" width="327">
-
-Peakwidth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Peakdistance
-
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_1.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_2.jpg" width="327">
-
-Direction 1 (`_dir_1.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Direction 2 (`_dir_2.tiff`)
-
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir_3.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/dir.jpg" width="327">
-
-Direction 3 (`_dir_3.tiff`)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Direction(`_dir.tiff`)
-
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/max.jpg" width="327"><img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/min.jpg" width="327">
-
-Maximum&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Minimum -->
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/output_unit_vectors.png" height="327">
 
 ## Performance Metrics
 The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, four different SLI image stacks from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) were analyzed by running the program (generation of all 12 parameter maps with high resolution: `--optional --roisize 1`), using different thread counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation. All performance measurements were taken without times for reading and writing files.

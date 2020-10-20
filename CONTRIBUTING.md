@@ -1,6 +1,6 @@
 # Contributing to SLIX (Scattered Light Imaging ToolboX)
 
-We would love your input to this repository! We want to make contributing to this project as easy and transparent as possible, whether it's:
+We would love your input to this repository! We want to make contributing to this project as easy and transparent as possible, whether it is:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -9,12 +9,12 @@ We would love your input to this repository! We want to make contributing to thi
 
 The development of SLIX is done through GitHub. A copy of the repository is also hosted on the [Forschungszentrum Jülich GitLab](https://jugit.fz-juelich.de/j.reuter/slix). All images shown in the [README.md](https://github.com/3d-pli/SLIX/blob/master/README.md) are hosted there.
 
-Pull requests, issues and feature requests are accepted via GitHub. If you plan to contribute to SLIX please follow the guidelines below.
+Pull requests, issues, and feature requests are accepted via GitHub. If you plan to contribute to SLIX, please follow the guidelines below.
 
 ## Seek support
-The Scattered Light Imaging ToolboX is maintained by Jan André Reuter and Miriam Menzel. For bug reports, feature requests and pull requests, please read the instructions below. For further support, you can contact both per mail.
+The Scattered Light Imaging ToolboX is maintained by Jan André Reuter and Miriam Menzel. For bug reports, feature requests, and pull requests, please read the instructions below. For further support, you can contact both per e-mail.
 
-| Person           | Mail adress            |
+| Person           | E-mail address         |
 | ---------------- | ---------------------- |
 | Jan André Reuter | j.reuter@fz-juelich.de |
 |    Miriam Menzel | m.menzel@fz-juelich.de |
@@ -25,15 +25,23 @@ The Scattered Light Imaging ToolboX is maintained by Jan André Reuter and Miria
 We use GitHub issues to track public bugs. Report a bug by opening a new issue [here](https://github.com/3d-pli/SLIX/issues).
 Write bug reports with detail, background, and add sample code if possible.
 
-Great Bug Reports tend to have:
+A good bug report should contain:
 
 - A quick summary and/or background
 - Steps to reproduce
     - Be specific!
-    - Give sample code if you can. 
+    - Give sample code if you can
 - What you expected would happen
 - What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+- Notes (possibly including why you think this might be happening, or stuff you tried that did not work)
+
+## Feature additions
+
+SLIX is a project to support users in the evaluation of Scattered Light Imaging (SLI) measurements of brain slices. For this purpose, several parameter maps are generated with the toolbox. For further analysis, the parameter maps can be visualized using an additional visualization toolbox.
+
+While these features are sufficient for the current framework of the project, other users might have additional requirements for the software. Therefore, pull-requests including additional features and the reporting of errors in the program are welcome.
+
+Currently, SLIX consists of two main files that contain most of the source code: `toolbox.py` and `visualization.py`. The first file does most of the work containing methods for preparing the measurement data (extracting relevant information from the SLI profiles), generating the parameter arrays, and reshaping them to an image. The second file contains all methods to visualize the generated parameter maps or even convert the direction maps to unit vectors and display them as colored lines. If any new features shall be added, consider if a new file is more suitable than implementing the new functions into an already existing file.
 
 ## Pull requests
 
@@ -47,9 +55,9 @@ Pull requests are the best way to propose changes to the codebase. When proposin
 
 ## Testing
 
-SLIX does use [pytest](https://docs.pytest.org/en/stable/) to test the code for errors. In addition [flake8](https://flake8.pycqa.org/en/latest/) and [pylint](https://www.pylint.org/) are used for linting. 
+SLIX uses [pytest](https://docs.pytest.org/en/stable/) to test the code for errors. In addition, [flake8](https://flake8.pycqa.org/en/latest/) and [pylint](https://www.pylint.org/) are used for linting. 
 
-Pull requests and commits to the master branch should be automatically tested using GitHub actions with a simple workflow. If you want to test your code locally follow the next steps:
+Pull requests and commits to the master branch should be automatically tested using GitHub actions with a simple workflow. If you want to test your code locally, follow the next steps:
 
 1. Change your directory to the root of SLIX
 2. If not done yet, install pytest, flake8 and via pip (or conda in an Anaconda environment)
