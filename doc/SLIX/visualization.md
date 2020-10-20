@@ -5,52 +5,52 @@ Functions
 ---------
 
     
-`downsample(image, sample_size, background_value=-1, background_threshold=0.5)`
-:   Reduce image dimensions of a parameter map by applying a median filter in each image in the z-axis.
-    The background will not be considered for the median filter except when the magnitude of it is above the given
-    threshold.
+`downsample(image, kernel_size, background_value=-1, background_threshold=0.5)`
+:   Reduce image dimensions of a parameter map by replacing (N x N) pixels by their median value for each image.
+    Image pixels with undefined values (background) will not be considered for computing the median, 
+    except when the fraction of background pixels lies above the defined threshold.
     
     Parameters
     ----------
-    image: 2D or 3D parameter map calculated with SLIX.toolbox.
-    sample_size: Down sampling parameter.
-    background_value: Background value in this parameter map. This is generally -1 but can differ for unit vectors.
-    background_threshold: If magnitude of the background values exceeds this value, the downsampled image will have
-                          background_value as it's resulting pixel value.
+    image: 2D or 3D parameter map (single image or image stack) calculated with SLIX.toolbox.
+    kernel_size: Downsampling parameter N (defines how many image pixels (N x N) are replaced by their median value).
+    background_value: Background value of the parameter map. This is generally -1 but can differ for unit vector maps.
+    background_threshold: Fraction of background pixels in the considered (N x N) area for which the image pixels are set to background_value. 
+    If the fraction of background pixels lies below this defined threshold, background pixels will not be considered for computing the median.
     
     Returns
     -------
-    2D or 3D Numpy array with reduced image dimensions
+    2D or 3D NumPy array with reduced image dimensions.
 
     
 `unit_vectors(directions)`
-:   Calculates the unit vector from direction and inclination
+:   Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
     
     Parameters
     ----------
-    directions : 3d-array
-        direction in radian
+    directions: 3D NumPy array
+        direction angles in degrees
     
     Returns
     -------
-    res : 3d-array, 3d-array
+    UnitX, UnitY: 3D NumPy array, 3D NumPy array
         x- and y-vector component in arrays
 
     
 `visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1, cmap='viridis', vmin=0, vmax=None, colorbar=True)`
-:   This method will create a Matplotlib plot based on imshow to represent the given parameter map.
-    Here, the parameter map be plotted to the current axis and figure. If none is applied, the method will create a new
+:   This method will create a Matplotlib plot based on imshow to display the given parameter map in different colors.
+    The parameter map is plotted to the current axis and figure. If neither is given, the method will create a new
     subfigure. To show the results, please use pyplot.show().
     
     Parameters
     ----------
     parameter_map: 2D parameter map calculated with SLIX.toolbox.
-    fig: Matplotlib figure. If None a new subfigure will be created for fig and ax.
-    ax: Matplotlib axis. If None a new subfigure will be created for fig and ax.
-    alpha: Apply alpha to Matplotlib plots to overlay them with some other plots like the original measurement.
-    cmap: Matplotlib color map which is used for the shown image.
-    vmin: Minimum value in the resulting plot. If any value is below vmin it will be displayed in black.
-    vmax: Maximum value in the resulting plot. If any value is above vmax it will be displayed in white.
+    fig: Matplotlib figure. If None, a new subfigure will be created for fig and ax.
+    ax: Matplotlib axis. If None, a new subfigure will be created for fig and ax.
+    alpha: Apply alpha to Matplotlib plots to overlay them with some other image like the averaged transmitted light intensity.
+    cmap: Matplotlib color map which is used for displaying the image.
+    vmin: Minimum value in the resulting plot. If any value is below vmin, it will be displayed in black.
+    vmax: Maximum value in the resulting plot. If any value is above vmax, it will be displayed in white.
     colorbar: Boolean value controlling if a color bar will be displayed in the current subplot.
     
     Returns
@@ -59,21 +59,21 @@ Functions
 
     
 `visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1, background_threshold=0.5)`
-:   This method will create a Matplotlib plot based on quiver to represent the given unit vectors in a more readable
-    way. Parameters like thinout can be used to reduce the computing load. If thinout = 1 the resulting vectors might
-    not be visible without zooming in significantly.
-    Here, the vectors will only be plotted to the current axis. To show the results, please use pyplot.show().
+:   This method will create a Matplotlib plot based on quiver to represent the given unit vectors as colored lines (vector map). 
+    Parameters like thinout can be used to reduce the computing load. If thinout = 1, the resulting vectors might not be visible 
+    without zooming in significantly. Here, the vectors will only be plotted to the current axis. To show the results, please use pyplot.show().
     
     Parameters
     ----------
-    UnitX: Unit vectors in x-axis
-    UnitY: Unit vectors in y-axis
-    thinout: Unit vectors will be thinned out using downsampling and thinning in combination. This will increase the
-             vector size in the resulting image but will also reduce the information density. Please use with caution.
-    ax: Matplotlib axis. If none, the current context axis will be used.
-    alpha: Apply alpha to Matplotlib plots to overlay them with some other plots like the original measurement.
-    background_threshold: If magnitude of the background values exceeds this value, the downsampled image will have
-                          background_value as it's resulting pixel value.
+    UnitX: Unit vector components along the x-axis (3D NumPy array).
+    UnitY: Unit vector components along the y-axis (3D NumPy array).
+    thinout: Downsampling parameter N (defines how many vectors N x N are replaced by one vector using the downsample function). 
+    Unit vectors will be thinned out using downsampling and thinning in combination. This will increase the
+    vector size in the resulting image but will also reduce the information density. Please use with caution.
+    ax: Matplotlib axis. If None, the current context axis will be used.
+    alpha: Apply alpha to Matplotlib plots to overlay them with some other other image like the averaged transmitted light intensity.
+    background_threshold: If the fraction of background pixels (number of pixels without vector within N x N pixels) exceeds this threshold, 
+    the downsampled pixel will not show a vector.
     
     Returns
     -------
