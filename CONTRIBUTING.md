@@ -35,6 +35,13 @@ Great Bug Reports tend to have:
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
+## Feature additions
+SLIX is a project to support users in the evaluation of scatter measurements of brain slices. For this purpose, several parameter maps are already generated, which can be viewed for further analysis. A small visualization toolbox is also provided.
+
+While these features are sufficient for the current project framework, other users might have additional requirements for the software. Therefore pull-requests with further features and the reporting of errors in the program are welcome.
+
+The toolbox currently has two main files which contain most of the source code: `toolbox.py` and `visualization.py`. The first file does most of the work containing methods for preparing the measurement, generating the parameter arrays and reshaping them to an image. Visualization contains all methods to show generated parameter maps or even convert the direction maps to unit vectors. If any new features shall be added, consider if a new file is more fitting than implementing the new functions into an already existing file.
+
 ## Pull requests
 
 Pull requests are the best way to propose changes to the codebase. When proposing a pull request, please follow these guidelines:
