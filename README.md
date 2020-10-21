@@ -110,7 +110,7 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 ### Example
 The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
 ```
-SLIXLinePlotParameterGenerator -i examples/*.txt -o output --with_plots
+SLIXLineplotParameterGenerator -i examples/*.txt -o output --with_plots
 ```
 The resulting plot and txt-file are shown below, exemplary for one of the SLI profiles (90-Stack-1647-1234.txt):
 
