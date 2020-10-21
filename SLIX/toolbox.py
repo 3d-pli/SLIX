@@ -692,7 +692,7 @@ def create_background_mask(IMAGE, threshold=10):
     return mask
 
 
-def create_roiset(IMAGE, ROISIZE, extend=True):
+def create_roiset(IMAGE, ROISIZE=1, extend=True):
     """
     Create roi set of the given image by creating an image containing the average value of pixels within the
     specified ROISIZE. The returned image will have twice the size in the third axis as the both halfs will be doubled

@@ -67,7 +67,7 @@ By evaluating the SLI profiles of each image pixel, *SLIX* generates different p
 With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) computes the desired parameter maps for all image pixels.
 
 ## Installation of SLIX
-##### How to clone SLIX
+##### How to clone SLIX (for further work)
 ```
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
@@ -81,10 +81,13 @@ pip3 install -r requirements.txt
 
 ##### How to install SLIX as Python package
 ```
+# Install via PyPi
+pip install SLIX
+
+# Install after cloning locally
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
-
-python3 setup.py install
+pip install .
 ```
 
 ## Evaluation of SLI Profiles
