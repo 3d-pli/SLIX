@@ -1,7 +1,8 @@
-/dist/
-/build/
-/SLIX.egg-info/
+dist/
+build/
+SLIX.egg-info/
 /venv/
 /.idea/
 /*/__pycache__/
 .vscode/settings.json
+SLIX.egg-info/
