@@ -82,7 +82,7 @@ def _peakwidth(image, peak_image, prominence, target_height):
                 i_max = 1.5 * len(sub_peak_array)
 
                 i = int(pos)
-                while i_min < i and height - sub_image[i % len(sub_peak_array)] > 1e-7:
+                while i_min < i and sub_image[i % len(sub_peak_array)] - height > 1e-7:
                     i -= 1
                 left_ip = numpy.float32(i)
                 if sub_image[i % len(sub_peak_array)] < height:
@@ -92,7 +92,7 @@ def _peakwidth(image, peak_image, prominence, target_height):
 
                 # Find intersection point on right side
                 i = int(pos)
-                while i < i_max and height - sub_image[i % len(sub_peak_array)] > 1e-7:
+                while i < i_max and sub_image[i % len(sub_peak_array)] - height > 1e-7:
                     i += 1
                 right_ip = numpy.float32(i)
                 if sub_image[i % len(sub_peak_array)] < height:
