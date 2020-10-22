@@ -236,7 +236,7 @@ def _centroid(image, peak_image, left_bases, right_bases):
             if sub_peaks[pos] == 1:
                 centroid_sum_top = 0.0
                 centroid_sum_bottom = 1e-15
-                for x in range(-sub_left_bases[pos], sub_right_bases[pos]+1):
+                for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                     img_pixel = sub_image[(pos + x) % len(sub_image)]
                     next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                     for interp in range(NUMBER_OF_SAMPLES+1):

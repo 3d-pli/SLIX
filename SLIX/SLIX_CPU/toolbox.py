@@ -148,7 +148,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
         high_prominence = -numpy.inf
 
     [image_x, image_y, image_z] = image.shape
-    image = image.reshape(image_x * image_y, image_z)
+    image = image.reshape(image_x * image_y, image_z).astype('float32')
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
 
     reverse_image = -1 * image
