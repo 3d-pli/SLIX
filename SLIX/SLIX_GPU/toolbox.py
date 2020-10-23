@@ -33,9 +33,9 @@ def peaks(image, return_numpy=True):
 
 
 def num_peaks(image=None, peak_image=None, return_numpy=True):
-    if peaks is None and image is not None:
+    if peak_image is None and image is not None:
         peak_image = peaks(image, return_numpy=False)
-    elif peaks is not None:
+    elif peak_image is not None:
         peak_image = cupy.array(peak_image)
     else:
         raise ValueError('Either image or peak_image has to be defined.')

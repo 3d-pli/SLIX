@@ -7,7 +7,7 @@ import tifffile
 
 class TestToolbox:
     def setup_method(self, method):
-        self.example = SLIX.toolbox.read_image('tests/files/demo.nii')
+        self.example = SLIX.io.imread('tests/files/demo.nii')
 
     def test_compare_peaks(self):
         gpu_peaks = SLIX.toolbox.gpu_toolbox.peaks(self.example)

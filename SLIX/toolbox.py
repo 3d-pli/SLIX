@@ -60,9 +60,14 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominen
         peaks[prominence < low_prominence] = False
         peaks[prominence > high_prominence] = False
         del prominence
-        return gpu_toolbox.num_peaks()
+        return gpu_toolbox.num_peaks(peaks)
     else:
-        return cpu_toolbox.peaks(image)
+        peaks = cpu_toolbox.peaks(image)
+        prominence = cpu_toolbox.peak_prominence(image, peaks)
+        peaks[prominence < low_prominence] = False
+        peaks[prominence > high_prominence] = False
+        del prominence
+        return cpu_toolbox.num_peaks(peaks)
 
 
 def direction(peak_image, centroids, number_of_directions=3, use_gpu=gpu_available, return_numpy=True):

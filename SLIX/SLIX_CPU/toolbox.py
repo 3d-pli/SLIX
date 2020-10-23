@@ -21,9 +21,9 @@ def peaks(image):
 
 
 def num_peaks(image=None, peak_image=None):
-    if peaks is None and image is not None:
+    if peak_image is None and image is not None:
         peak_image = peaks(image)
-    elif peaks is not None:
+    elif peak_image is not None:
         peak_image = numpy.array(peak_image)
     else:
         raise ValueError('Either image or peak_image has to be defined.')
