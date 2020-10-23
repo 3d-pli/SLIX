@@ -32,8 +32,13 @@ def peaks(image, return_numpy=True):
         return resulting_peaks.astype('bool')
 
 
-def num_peaks(image, return_numpy=True):
-    peak_image = peaks(image, return_numpy=False)
+def num_peaks(image=None, peak_image=None, return_numpy=True):
+    if peaks is None and image is not None:
+        peak_image = peaks(image, return_numpy=False)
+    elif peaks is not None:
+        peak_image = cupy.array(peak_image)
+    else:
+        raise ValueError('Either image or peak_image has to be defined.')
 
     resulting_image = cupy.count_nonzero(peak_image, axis=-1)
     if return_numpy:
