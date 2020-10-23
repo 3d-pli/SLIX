@@ -1,3 +1,5 @@
+#/usr/bin/env python
+
 from SLIX import toolbox, io
 import tifffile
 import numpy
@@ -115,15 +117,20 @@ if __name__ == "__main__":
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
-        image = toolbox.read_image(path)
+        image = io.imread(path)
         if args['verbose']:
             print(path)
             start_time = time.time()
 
+        peaks = None
+        print('peaks')
+        peaks = toolbox.peaks(image)
+        prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
+        significant_peaks = peaks.copy()
+        significant_peaks[prominence_full < 0.08] = 0
         if PEAKS:
-            print('peaks')
-            peaks = toolbox.peaks(image)
-            tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.moveaxis(peaks, -1, 0))
+            io.imwrite(output_path_name+'_all_peak_positions.tiff', peaks)
+            io.imwrite(output_path_name+'_all_peak_positions.tiff', significant_peaks)
 
         if PEAKPROMINENCE:
             print('peakprominence')
@@ -133,32 +140,30 @@ if __name__ == "__main__":
             del peak_prominence_full
 
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
-            peaks[peak_prominence_full < 0.08] = False
             peak_prominence_full[peak_prominence_full < 0.08] = 0
             io.imwrite(output_path_name+'_prominence_filtered.tiff', peak_prominence_full)
-            io.imwrite(output_path_name+'_peak_positions_filtered.tiff', peaks)
 
         if PEAKWIDTH:
             print('peakwidth')
-            peak_width_full = toolbox.peak_width(image, peaks)
+            peak_width_full = toolbox.peak_width(image, significant_peaks)
             io.imwrite(output_path_name+'_peak_width.tiff', peak_width_full)
             del peak_width_full
 
         if args['no_centroids']:
             print('centroids')
-            centroids = toolbox.centroid_correction(image, peaks)
+            centroids = toolbox.centroid_correction(image, significant_peaks)
             io.imwrite(output_path_name+'_centroid_peaks.tiff', centroids)
         else:
             print('no centroids')
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
-            peak_distance_full = toolbox.peak_distance(peaks, centroids)
+            peak_distance_full = toolbox.peak_distance(significant_peaks, centroids)
             io.imwrite(output_path_name+'_peak_distance.tiff', peak_distance_full)
             del peak_distance_full
 
         if DIRECTION:
-            direction = toolbox.direction(peaks, centroids)
+            direction = toolbox.direction(significant_peaks, centroids)
             for dim in range(direction.shape[-1]):
                 io.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
 

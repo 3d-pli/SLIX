@@ -8,6 +8,8 @@ try:
         gpu_available = False
 except ModuleNotFoundError:
     gpu_available = False
+    print('[WARNING] CuPy is not installed. The toolbox will use the CPU variant instead. If you want to use the GPU'
+          ' variant, please run `pip install cupy`.')
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
 
 import numpy
@@ -35,6 +37,11 @@ def peaks(image, use_gpu=gpu_available, return_numpy=True):
         return cpu_toolbox.peaks(image)
 
 
+def significant_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=numpy.inf,
+                      use_gpu=gpu_available, return_numpy=True):
+    pass
+
+
 def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=numpy.inf,
               use_gpu=gpu_available, return_numpy=True):
     """
@@ -55,18 +62,10 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominen
     first dimension of the SLI image series.
     """
     if use_gpu:
-        peaks = gpu_toolbox.peaks(image, False)
-        prominence = gpu_toolbox.peak_prominence(image, peaks)
-        peaks[prominence < low_prominence] = False
-        peaks[prominence > high_prominence] = False
-        del prominence
+        peaks = gpu_toolbox.significant_peaks(image, low_prominence, high_prominence, False)
         return gpu_toolbox.num_peaks(peaks)
     else:
-        peaks = cpu_toolbox.peaks(image)
-        prominence = cpu_toolbox.peak_prominence(image, peaks)
-        peaks[prominence < low_prominence] = False
-        peaks[prominence > high_prominence] = False
-        del prominence
+        peaks = gpu_toolbox.significant_peaks(image, low_prominence, high_prominence)
         return cpu_toolbox.num_peaks(peaks)
 
 

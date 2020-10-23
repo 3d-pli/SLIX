@@ -45,9 +45,12 @@ def imread(filepath):
     return data
 
 
-def imwrite(data, filepath):
+def imwrite(filepath, data):
     if len(data.shape) == 3:
         swap_axes = True
+    else:
+        swap_axes = False
+
     if filepath.endswith('.nii'):
         if swap_axes:
             save_data = numpy.swapaxes(data, 0, 1)
