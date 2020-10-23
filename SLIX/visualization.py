@@ -4,30 +4,6 @@ from PIL import Image
 import copy
 
 
-def unit_vectors(directions):
-    """
-    Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
-
-    Parameters
-    ----------
-    directions: 3D NumPy array
-        direction angles in degrees
-
-    Returns
-    -------
-    UnitX, UnitY: 3D NumPy array, 3D NumPy array
-        x- and y-vector component in arrays
-    """
-    directions_rad = numpy.deg2rad(directions)
-    UnitX = -numpy.sin(0.5 * numpy.pi) * numpy.cos(directions_rad)
-    UnitY = numpy.sin(0.5 * numpy.pi) * numpy.sin(directions_rad)
-
-    UnitX[numpy.isclose(directions, -1)] = 0
-    UnitY[numpy.isclose(directions, -1)] = 0
-
-    return UnitX, UnitY
-
-
 def downsample(image, kernel_size, background_value=-1, background_threshold=0.5):
     """
     Reduce image dimensions of a parameter map by replacing (N x N) pixels by their median value for each image.
