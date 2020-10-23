@@ -281,3 +281,19 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
         return result_img_cpu
     else:
         return gpu_centroid_peaks
+
+
+def unit_vectors(direction, return_numpy=True):
+    direction_gpu = cupy.array(direction)
+    direction_gpu_rad = cupy.deg2rad(direction_gpu)
+    UnitX = -cupy.sin(0.5 * cupy.pi) * numpy.cos(direction_gpu_rad)
+    UnitY = cupy.sin(0.5 * cupy.pi) * numpy.sin(direction_gpu_rad)
+    del direction_gpu_rad
+
+    UnitX[cupy.isclose(direction_gpu, -1)] = 0
+    UnitY[cupy.isclose(direction_gpu, -1)] = 0
+    del direction_gpu
+
+    if return_numpy:
+        return UnitX.get(), UnitY.get()
+    return UnitX, UnitY

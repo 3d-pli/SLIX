@@ -173,3 +173,14 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, hig
     centroid_peaks = centroid_peaks.reshape((image_x, image_y, image_z))
 
     return centroid_peaks
+
+
+def unit_vectors(direction):
+    directions_rad = numpy.deg2rad(direction)
+    UnitX = -numpy.sin(0.5 * numpy.pi) * numpy.cos(directions_rad)
+    UnitY = numpy.sin(0.5 * numpy.pi) * numpy.sin(directions_rad)
+
+    UnitX[numpy.isclose(direction, -1)] = 0
+    UnitY[numpy.isclose(direction, -1)] = 0
+
+    return UnitX, UnitY
