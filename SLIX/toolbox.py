@@ -10,6 +10,8 @@ except ModuleNotFoundError:
     gpu_available = False
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
 
+import numpy
+
 
 def peaks(image, use_gpu=gpu_available, return_numpy=True):
     """
@@ -33,7 +35,7 @@ def peaks(image, use_gpu=gpu_available, return_numpy=True):
         return cpu_toolbox.peaks(image)
 
 
-def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=None,
+def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=numpy.inf,
               use_gpu=gpu_available, return_numpy=True):
     """
     Calculate the number of peaks from each line profile in an SLI image series by detecting
@@ -195,7 +197,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_avail
         return cpu_toolbox.mean_peak_width(image, peak_image, target_height)
 
 
-def centroid_correction(image, peak_image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=None,
+def centroid_correction(image, peak_image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominence=numpy.inf,
                         use_gpu=gpu_available, return_numpy=True):
     """
     Correct peak positions from a line profile by looking at only the peak with a given threshold using a centroid
@@ -226,12 +228,16 @@ def unit_vectors(direction, use_gpu=gpu_available, return_numpy=True):
 
     Parameters
     ----------
-    directions: 3D NumPy array
-        direction angles in degrees
+    direction: 3D NumPy array - direction angles in degrees
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
     Returns
     -------
     UnitX, UnitY: 3D NumPy array, 3D NumPy array
         x- and y-vector component in arrays
     """
-    pass
+    if use_gpu:
+        return gpu_toolbox.unit_vectors(direction, return_numpy=return_numpy)
+    else:
+        return cpu_toolbox.unit_vectors(direction)

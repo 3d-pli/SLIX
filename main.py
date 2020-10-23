@@ -1,19 +1,10 @@
-from SLIX import toolbox
+from SLIX import toolbox, io
 import tifffile
 import numpy
 import argparse
 import os
 import time
 
-try:
-    try:
-        import cupy
-        cupy.empty(0)
-        USE_GPU = True
-    except cupy.cuda.runtime.CUDARuntimeError:
-        USE_GPU = False
-except ModuleNotFoundError:
-    USE_GPU = False
 
 DIRECTION = True
 PEAKS = True
@@ -129,52 +120,47 @@ if __name__ == "__main__":
             print(path)
             start_time = time.time()
 
-        if USE_GPU:
-            image = cupy.asarray(image)
-        else:
-            print('No GPU or CuPy detected. Falling back to CPU computation.')
-
         if PEAKS:
             print('peaks')
-            peaks = toolbox.peaks(image, use_gpu=USE_GPU)
+            peaks = toolbox.peaks(image)
             tifffile.imwrite(output_path_name+'_peak_positions.tiff', numpy.moveaxis(peaks, -1, 0))
 
         if PEAKPROMINENCE:
             print('peakprominence')
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks,
-                                                           kind_of_normalization=1, use_gpu=USE_GPU).astype('float32')
-            tifffile.imwrite(output_path_name+'_prominence.tiff', numpy.moveaxis(peak_prominence_full, -1, 0))
+                                                           kind_of_normalization=1).astype('float32')
+            io.imwrite(output_path_name+'_prominence.tiff', peak_prominence_full)
             del peak_prominence_full
 
-            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks, use_gpu=USE_GPU).astype('float32')
+            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
             peaks[peak_prominence_full < 0.08] = False
             peak_prominence_full[peak_prominence_full < 0.08] = 0
-            tifffile.imwrite(output_path_name+'_prominence_filtered.tiff', numpy.moveaxis(peak_prominence_full, -1, 0))
-            tifffile.imwrite(output_path_name+'_peak_positions_filtered.tiff', numpy.moveaxis(peaks, -1, 0))
+            io.imwrite(output_path_name+'_prominence_filtered.tiff', peak_prominence_full)
+            io.imwrite(output_path_name+'_peak_positions_filtered.tiff', peaks)
 
         if PEAKWIDTH:
             print('peakwidth')
-            peak_width_full = toolbox.peak_width(image, peaks, use_gpu=USE_GPU)
-            tifffile.imwrite(output_path_name+'_peak_width.tiff', numpy.moveaxis(peak_width_full, -1, 0))
+            peak_width_full = toolbox.peak_width(image, peaks)
+            io.imwrite(output_path_name+'_peak_width.tiff', peak_width_full)
             del peak_width_full
 
         if args['no_centroids']:
             print('centroids')
-            centroids = toolbox.centroid_correction(image, peaks, use_gpu=USE_GPU)
-            tifffile.imwrite(output_path_name+'_centroid_peaks.tiff', numpy.moveaxis(centroids, -1, 0))
+            centroids = toolbox.centroid_correction(image, peaks)
+            io.imwrite(output_path_name+'_centroid_peaks.tiff', centroids)
         else:
             print('no centroids')
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
-            peak_distance_full = toolbox.peak_distance(peaks, centroids, use_gpu=USE_GPU)
-            tifffile.imwrite(output_path_name+'_peak_distance.tiff', numpy.moveaxis(peak_distance_full, -1, 0))
+            peak_distance_full = toolbox.peak_distance(peaks, centroids)
+            io.imwrite(output_path_name+'_peak_distance.tiff', peak_distance_full)
             del peak_distance_full
 
         if DIRECTION:
-            direction = toolbox.direction(peaks, centroids, use_gpu=USE_GPU)
+            direction = toolbox.direction(peaks, centroids)
             for dim in range(direction.shape[-1]):
-                tifffile.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
+                io.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
 
         if args['verbose']:
             print("--- %s seconds ---" % (time.time() - start_time))

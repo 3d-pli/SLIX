@@ -3,14 +3,22 @@ import tifffile
 import nibabel
 import h5py
 from PIL import Image
+import sys
+import getpass
 
 
 def hdf5_read(filepath, dataset):
-    pass
+    with h5py.File(filepath, mode='r') as file:
+        return file[dataset][:]
 
 
-def hdf5_write(filepath, dataset):
-    pass
+def hdf5_write(filepath, dataset, data):
+    with h5py.File(filepath, mode='w') as file:
+        file_dataset = file.create_dataset(dataset, data.shape, numpy.float32, data=data)
+        file_dataset.attrs['created_by'] = getpass.getuser()
+        file_dataset.attrs['software'] = sys.argv[0]
+        file_dataset.attrs['software_parameters'] = ' '.join(sys.argv[1:])
+        file_dataset.attrs['filename'] = filepath
 
 
 def imread(filepath):
@@ -38,9 +46,19 @@ def imread(filepath):
 
 
 def imwrite(data, filepath):
+    if len(data.shape) == 3:
+        swap_axes = True
     if filepath.endswith('.nii'):
-        nibabel.save(nibabel.Nifti1Image(numpy.swapaxes(data, 0, 1), numpy.eye(4)), filepath)
+        if swap_axes:
+            save_data = numpy.swapaxes(data, 0, 1)
+        else:
+            save_data = data
+        nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
-        tifffile.imwrite(filepath, numpy.moveaxis(data, -1, 0))
+        if swap_axes:
+            save_data = numpy.swapaxes(data, -1, 0)
+        else:
+            save_data = data
+        tifffile.imwrite(filepath, save_data)
     else:
         Image.fromarray(data).save(filepath)
