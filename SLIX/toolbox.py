@@ -6,7 +6,7 @@ try:
         gpu_available = True
     except cupy.cuda.runtime.CUDARuntimeError:
         gpu_available = False
-except ModuleNotFoundError:
+except (ModuleNotFoundError, NameError):
     gpu_available = False
     print('[WARNING] CuPy is not installed. The toolbox will use the CPU variant instead. If you want to use the GPU'
           ' variant, please run `pip install cupy`.')
