@@ -12,6 +12,7 @@ TARGET_PROMINENCE = 0.08
 
 @jit(nopython=True)
 def _peak_cleanup(peaks):
+    peaks = peaks.copy()
     resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
     for idx in range(peaks.shape[0]):
         sub_peak_array = peaks[idx]
