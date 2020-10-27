@@ -11,12 +11,18 @@ test:python36:
         - pytest
         - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
+    tags:
+        - docker
+        - gpu 
+        
 install:python36:
     stage: install
     image: python:3.6
     script:
         - pip install .
+    tags:
+    - docker
+    - gpu 
 
 pack:python36:
     stage: pack
@@ -24,3 +30,6 @@ pack:python36:
     script:
         - pip install pep517
         - pep517.build --source --binary --out-dir dist/ .
+    tags:
+    - docker
+    - gpu 
