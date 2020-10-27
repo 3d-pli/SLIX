@@ -17,7 +17,7 @@ test:python3:
         - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     artifacts:
             paths:
-                htmlcov/
+                - htmlcov/
     tags:
         - docker
         - gpu 
