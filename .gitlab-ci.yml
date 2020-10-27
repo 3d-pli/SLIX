@@ -6,11 +6,10 @@ stages:
 before_script:
     - apt-get update -qq && apt-get upgrade -y
     - apt-get install -y python3 python3-pip
-    - apt-get install -y cuda-10-1
 
 test:python3:
     stage: test
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
         - pip3 install -r requirements.txt
         - pytest --cov=SLIX --cov-config=.coveragerc tests --cov-report=html
@@ -25,7 +24,7 @@ test:python3:
         
 install:python3:
     stage: install
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
         - pip3 install .
     tags:
@@ -34,7 +33,7 @@ install:python3:
 
 pack:python3:
     stage: pack
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
         - pip3 install pep517
         - pep517.build --source --binary --out-dir dist/ .
