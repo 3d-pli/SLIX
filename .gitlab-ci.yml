@@ -4,8 +4,8 @@ stages:
     - pack
 
 test:python36:
-    stage:test
-    image:python:3.6
+    stage: test
+    image: python:3.6
     script:
         - pip install -r requirements.txt
         - pytest
@@ -13,14 +13,14 @@ test:python36:
         - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 install:python36:
-    stage:install
-    image:python:3.6
+    stage: install
+    image: python:3.6
     script:
         - pip install .
 
 pack:python36:
-    stage:pack
-    image:python:3.6
+    stage: pack
+    image: python:3.6
     script:
         - pip install pep517
         - pep517.build --source --binary --out-dir dist/ .
