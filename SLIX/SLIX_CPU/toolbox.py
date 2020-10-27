@@ -13,10 +13,12 @@ def peaks(image):
     del right
     del left
 
-    [image_x, image_y, image_z] = resulting_image.shape
-    resulting_image = resulting_image.reshape(image_x * image_y, image_z)
+    if len(image.shape) == 3:
+        [image_x, image_y, image_z] = resulting_image.shape
+        resulting_image = resulting_image.reshape(image_x * image_y, image_z)
     resulting_image = _peak_cleanup(resulting_image)
-    resulting_image = resulting_image.reshape(image_x, image_y, image_z)
+    if len(image.shape) == 3:
+        resulting_image = resulting_image.reshape(image_x, image_y, image_z)
     return resulting_image.astype('bool')
 
 

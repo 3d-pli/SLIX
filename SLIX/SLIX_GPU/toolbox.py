@@ -20,6 +20,7 @@ def peaks(image, return_numpy=True):
     threads_per_block = (1, 1)
     blocks_per_grid = image.shape[:-1]
     _peak_cleanup[blocks_per_grid, threads_per_block](peaks, resulting_peaks)
+    print(resulting_peaks)
     cuda.synchronize()
     del peaks
 
