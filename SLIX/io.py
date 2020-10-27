@@ -67,7 +67,7 @@ def imwrite(filepath, data):
         nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if swap_axes:
-            save_data = numpy.swapaxes(save_data, -1, 0)
+            save_data = numpy.moveaxis(save_data, -1, 0)
         else:
             save_data = save_data
         tifffile.imwrite(filepath, save_data)
