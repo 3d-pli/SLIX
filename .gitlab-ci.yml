@@ -6,6 +6,7 @@ stages:
 before_script:
     - apt-get update -qq && apt-get upgrade -y
     - apt-get install -y python3 python3-pip
+    - apt-get install -y cuda-10-1
 
 test:python3:
     stage: test
