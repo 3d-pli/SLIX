@@ -1,0 +1,7 @@
+[run]
+omit = 
+    tests/test_compare_cpu_gpu.py
+    tests/test_numba_cpu.py
+    tests/test_numba_gpu.py
+    SLIX/SLIX_CPU/_toolbox.py
+    SLIX/SLIX_GPU/_toolbox.py

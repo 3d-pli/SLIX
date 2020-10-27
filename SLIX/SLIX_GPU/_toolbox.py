@@ -177,15 +177,15 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, rig
     sub_peaks = peak_image[idx, idy]
     sub_reverse_peaks = reverse_peaks[idx, idy]
 
-    max_pos = 0
+    max_val = 0
     for pos in range(len(sub_image)):
-        if sub_image[pos] > max_pos:
-            max_pos = sub_image[pos]
+        if sub_image[pos] > max_val:
+            max_val = sub_image[pos]
 
     for pos in range(len(sub_peaks)):
         if sub_peaks[pos] == 1:
 
-            target_peak_height = max(0, sub_image[pos] - max_pos * (1 - TARGET_PEAK_HEIGHT))
+            target_peak_height = max(0, sub_image[pos] - max_val * (1 - TARGET_PEAK_HEIGHT))
             left_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
             right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
 
@@ -193,11 +193,13 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks, left_bases, rig
             for offset in range(1, MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
                 if sub_reverse_peaks[pos - offset] == 1:
                     left_position = offset
+                    break
                 if sub_reverse_peaks[(pos + offset) % len(sub_reverse_peaks)] == 1:
                     right_position = offset
+                    break
 
             # Check for peak height
-            for offset in range(abs(left_position)):
+            for offset in range(left_position):
                 if sub_image[pos - offset] < target_peak_height:
                     left_position = offset
                     break

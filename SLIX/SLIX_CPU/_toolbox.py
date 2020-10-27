@@ -202,8 +202,10 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks):
                 for offset in range(1, MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
                     if sub_reverse_peaks[pos - offset] == 1:
                         left_position = offset
+                        break
                     if sub_reverse_peaks[(pos + offset) % len(sub_reverse_peaks)] == 1:
                         right_position = offset
+                        break
 
                 # Check for peak height
                 for offset in range(abs(left_position)):
