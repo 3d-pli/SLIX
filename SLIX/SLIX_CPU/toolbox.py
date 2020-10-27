@@ -147,7 +147,6 @@ def direction(peak_image, centroids, number_of_directions=3):
 
 
 def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE, high_prominence=None):
-    print('centroid_correction')
     if peak_image is None:
         peak_image = peaks(image).astype('uint8')
     if low_prominence is None:

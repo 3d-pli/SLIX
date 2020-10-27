@@ -122,7 +122,7 @@ def direction(peak_image, centroids, number_of_directions=3, use_gpu=gpu_availab
     if use_gpu:
         return gpu_toolbox.direction(peak_image, centroids, number_of_directions, return_numpy)
     else:
-        return cpu_toolbox.direction(peak_image, number_of_directions)
+        return cpu_toolbox.direction(peak_image, centroids, number_of_directions)
 
 
 def peak_distance(peak_image, centroids, use_gpu=gpu_available, return_numpy=True):
@@ -147,7 +147,7 @@ def peak_distance(peak_image, centroids, use_gpu=gpu_available, return_numpy=Tru
     if use_gpu:
         return gpu_toolbox.peak_distance(peak_image, centroids, return_numpy)
     else:
-        return cpu_toolbox.peak_distance(peak_image)
+        return cpu_toolbox.peak_distance(peak_image, centroids)
 
 
 def mean_peak_distance(peak_image, centroids, use_gpu=gpu_available, return_numpy=True):

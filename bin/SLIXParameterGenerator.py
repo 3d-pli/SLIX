@@ -45,6 +45,10 @@ def create_argument_parser():
                           help='Value for filtering background noise when calculating masks.'
                                'Higher values might result in the removal of some of the gray matter in the mask'
                                'but will remove the background more effectively.')
+    optional.add_argument('--disable_gpu',
+                          action='store_false',
+                          help='Use the CPU in combination with Numba instead of the GPU variant. This is only'
+                               ' recommended if your GPU is significantly slower than your CPU.')
     optional.add_argument(
         '-h',
         '--help',
@@ -92,6 +96,8 @@ if __name__ == "__main__":
         PEAKWIDTH = args['peakwidth']
         PEAKDISTANCE = args['peakdistance']
     OPTIONAL = args['optional']
+    if toolbox.gpu_available:
+        toolbox.gpu_available = args['disable_gpu']
 
     print(
         'SLI Feature Generator:\n' +
@@ -119,9 +125,9 @@ if __name__ == "__main__":
         tqdm_paths.set_description(filename_without_extension)
         image = io.imread(path)
 
-        significant_peaks = toolbox.significant_peaks(image)
+        significant_peaks = toolbox.significant_peaks(image, use_gpu=toolbox.gpu_available)
         if PEAKS:
-            peaks = toolbox.peaks(image)
+            peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
                 io.imwrite(output_path_name+'_high_prominence_peaks_detailed.tiff', significant_peaks)
@@ -131,14 +137,14 @@ if __name__ == "__main__":
 
         if PEAKPROMINENCE:
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=significant_peaks,
-                                                           kind_of_normalization=1)
+                                                           kind_of_normalization=1, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_prominence_detailed.tiff', peak_prominence_full)
             io.imwrite(output_path_name+'_prominence.tiff', numpy.average(peak_prominence_full, axis=-1))
             del peak_prominence_full
 
         if PEAKWIDTH:
-            peak_width_full = toolbox.peak_width(image, significant_peaks)
+            peak_width_full = toolbox.peak_width(image, significant_peaks, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_peakwidth_detailed.tiff', peak_width_full)
             io.imwrite(output_path_name+'_peakwidth.tiff',
@@ -147,14 +153,14 @@ if __name__ == "__main__":
             del peak_width_full
 
         if args['no_centroids']:
-            centroids = toolbox.centroid_correction(image, significant_peaks)
+            centroids = toolbox.centroid_correction(image, significant_peaks, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_centroid_correction.tiff', centroids)
         else:
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
-            peak_distance_full = toolbox.peak_distance(significant_peaks, centroids)
+            peak_distance_full = toolbox.peak_distance(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name + '_distance_detailed.tiff', peak_distance_full)
             io.imwrite(output_path_name + '_distance.tiff',
@@ -163,7 +169,7 @@ if __name__ == "__main__":
             del peak_distance_full
 
         if DIRECTION:
-            direction = toolbox.direction(significant_peaks, centroids)
+            direction = toolbox.direction(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
             for dim in range(direction.shape[-1]):
                 io.imwrite(output_path_name+'_direction_'+str(dim+1)+'.tiff', direction[:, :, dim])
 
@@ -180,5 +186,6 @@ if __name__ == "__main__":
             io.imwrite(output_path_name + '_avg.tiff', avg_img)
             del avg_img
 
-            non_crossing_direction = toolbox.direction(significant_peaks, centroids, number_of_directions=1)
+            non_crossing_direction = toolbox.direction(significant_peaks, centroids,
+                                                       number_of_directions=1, use_gpu=toolbox.gpu_available)
             io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
