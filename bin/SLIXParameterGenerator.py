@@ -163,9 +163,22 @@ if __name__ == "__main__":
             del peak_distance_full
 
         if DIRECTION:
-            direction = toolbox.direction(significant_peaks, centroids).astype('float32')
+            direction = toolbox.direction(significant_peaks, centroids)
             for dim in range(direction.shape[-1]):
                 io.imwrite(output_path_name+'_direction_'+str(dim+1)+'.tiff', direction[:, :, dim])
 
         if OPTIONAL:
-            pass
+            min_img = numpy.min(image, axis=-1)
+            io.imwrite(output_path_name + '_min.tiff', min_img)
+            del min_img
+
+            max_img = numpy.max(image, axis=-1)
+            io.imwrite(output_path_name + '_max.tiff', max_img)
+            del max_img
+
+            avg_img = numpy.average(image, axis=-1)
+            io.imwrite(output_path_name + '_avg.tiff', avg_img)
+            del avg_img
+
+            non_crossing_direction = toolbox.direction(significant_peaks, centroids, number_of_directions=1)
+            io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
