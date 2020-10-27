@@ -91,22 +91,34 @@ class TestNumbaToolboxGPU:
              toolbox_direction)
         assert cupy.all(expected_direction == toolbox_direction)
 
-    """def test_centroid_correction_bases(self):
+    def test_centroid_correction_bases(self):
         # simple test case: one distinct peak
         test_array = cupy.array([0] * 9 + [1] + [0] * 14).reshape((1, 1, 24))
         test_high_peaks = SLIX.toolbox.peaks(test_array)
         test_reverse_peaks = SLIX.toolbox.peaks(-test_array)
 
-        left_bases, right_bases = ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block](test_array, test_high_peaks, test_reverse_peaks)
+        left_bases = cupy.zeros(test_array.shape, dtype='uint8')
+        right_bases = cupy.zeros(test_array.shape, dtype='uint8')
+        ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block]\
+            (test_array,
+             test_high_peaks,
+             test_reverse_peaks,
+             left_bases,
+             right_bases)
         assert cupy.sum(left_bases) == 1
         assert cupy.sum(right_bases) == 1
 
         # simple test case: one distinct peak
-        test_array = cupy.array([0] * 8 + [0.95, 1, 0.5] + [0] * 13).reshape((1, 1, 24))
+        test_array = cupy.array([0] * 8 + [0.95, 1, 0.5] + [0] * 13, dtype='float32').reshape((1, 1, 24))
         test_high_peaks = SLIX.toolbox.peaks(test_array)
         test_reverse_peaks = SLIX.toolbox.peaks(-test_array)
 
-        left_bases, right_bases = ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block](test_array, test_high_peaks, test_reverse_peaks)
+        ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block] \
+            (test_array,
+             test_high_peaks,
+             test_reverse_peaks,
+             left_bases,
+             right_bases)
         assert cupy.sum(left_bases) == 2
         assert cupy.sum(right_bases) == 1
 
@@ -115,7 +127,12 @@ class TestNumbaToolboxGPU:
         test_high_peaks = SLIX.toolbox.peaks(test_array)
         test_reverse_peaks = SLIX.toolbox.peaks(-test_array)
 
-        left_bases, right_bases = ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block](test_array, test_high_peaks, test_reverse_peaks)
+        ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block] \
+            (test_array,
+             test_high_peaks,
+             test_reverse_peaks,
+             left_bases,
+             right_bases)
         assert cupy.sum(left_bases) == 1
         assert cupy.sum(right_bases) == 2
 
@@ -124,7 +141,13 @@ class TestNumbaToolboxGPU:
         test_high_peaks = SLIX.toolbox.peaks(test_array)
         test_reverse_peaks = SLIX.toolbox.peaks(-test_array)
 
-        left_bases, right_bases = ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block](test_array, test_high_peaks, test_reverse_peaks)
+        ntoolbox._centroid_correction_bases[blocks_per_grid, threads_per_block] \
+            (test_array,
+             test_high_peaks,
+             test_reverse_peaks,
+             left_bases,
+             right_bases)
+
         assert cupy.sum(left_bases) == 2
         assert cupy.sum(right_bases) == 2
 
@@ -137,6 +160,7 @@ class TestNumbaToolboxGPU:
                      .reshape((1, 1, 24))
         peak = cupy.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])\
                     .reshape((1, 1, 24))
+        result_centroid = cupy.zeros(image.shape, dtype='float32')
 
-        result_centroid = ntoolbox._centroid[blocks_per_grid, threads_per_block](image, peak, left, right)
-        assert cupy.sum(result_centroid) == 0"""
+        ntoolbox._centroid[blocks_per_grid, threads_per_block](image, peak, left, right, result_centroid)
+        assert cupy.sum(result_centroid) == 0
