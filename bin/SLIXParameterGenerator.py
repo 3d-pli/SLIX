@@ -4,8 +4,7 @@ from SLIX import toolbox, io
 import numpy
 import argparse
 import os
-import time
-
+import tqdm
 
 DIRECTION = True
 PEAKS = True
@@ -33,9 +32,10 @@ def create_argument_parser():
                           required=True)
     # Optional parameters
     optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('-v',
-                          '--verbose',
-                          action='store_true')
+    optional.add_argument('--detailed',
+                          action='store_true',
+                          help='Save 3D images in addition to 2D mean images which include more detailed information'
+                          ' but will need a lot more disk space.')
     optional.add_argument('--with_mask',
                           action='store_true',
                           help='Use mask to try to remove some of the background')
@@ -93,17 +93,16 @@ if __name__ == "__main__":
         PEAKDISTANCE = args['peakdistance']
     OPTIONAL = args['optional']
 
-    if args['verbose']:
-        print(
-            'SLI Feature Generator:\n' +
-            'Chosen feature maps:\n' +
-            'Direction maps: ' + str(DIRECTION) + '\n' +
-            'Peak maps: ' + str(PEAKS) + '\n' +
-            'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
-            'Peak width map: ' + str(PEAKWIDTH) + '\n' +
-            'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-            'Optional maps: ' + str(OPTIONAL) + '\n'
-        )
+    print(
+        'SLI Feature Generator:\n' +
+        'Chosen feature maps:\n' +
+        'Direction maps: ' + str(DIRECTION) + '\n' +
+        'Peak maps: ' + str(PEAKS) + '\n' +
+        'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
+        'Peak width map: ' + str(PEAKWIDTH) + '\n' +
+        'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
+        'Optional maps: ' + str(OPTIONAL) + '\n'
+    )
 
     paths = args['input']
     if not isinstance(paths, list):
@@ -112,59 +111,61 @@ if __name__ == "__main__":
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
-    for path in paths:
+    tqdm_paths = tqdm.tqdm(paths)
+    for path in tqdm_paths:
         folder = os.path.dirname(path)
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
+        tqdm_paths.set_description(filename_without_extension)
         image = io.imread(path)
-        if args['verbose']:
-            print(path)
-            start_time = time.time()
 
-        peaks = None
-        print('peaks')
-        peaks = toolbox.peaks(image)
-        prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
-        significant_peaks = peaks.copy()
-        significant_peaks[prominence_full < 0.08] = 0
+        significant_peaks = toolbox.significant_peaks(image)
         if PEAKS:
-            io.imwrite(output_path_name+'_all_peak_positions.tiff', peaks)
-            io.imwrite(output_path_name+'_all_peak_positions.tiff', significant_peaks)
+            peaks = toolbox.peaks(image)
+            if args['detailed']:
+                io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
+                io.imwrite(output_path_name+'_high_prominence_peaks_detailed.tiff', significant_peaks)
+            io.imwrite(output_path_name+'_high_prominence_peaks.tiff', numpy.sum(significant_peaks, axis=-1))
+            io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
+                       numpy.sum(peaks, axis=-1) - numpy.sum(significant_peaks, axis=-1))
 
         if PEAKPROMINENCE:
-            print('peakprominence')
-            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks,
-                                                           kind_of_normalization=1).astype('float32')
-            io.imwrite(output_path_name+'_prominence.tiff', peak_prominence_full)
+            peak_prominence_full = toolbox.peak_prominence(image, peak_image=significant_peaks,
+                                                           kind_of_normalization=1)
+            if args['detailed']:
+                io.imwrite(output_path_name+'_prominence_detailed.tiff', peak_prominence_full)
+            io.imwrite(output_path_name+'_prominence.tiff', numpy.average(peak_prominence_full, axis=-1))
             del peak_prominence_full
 
-            peak_prominence_full = toolbox.peak_prominence(image, peak_image=peaks).astype('float32')
-            peak_prominence_full[peak_prominence_full < 0.08] = 0
-            io.imwrite(output_path_name+'_prominence_filtered.tiff', peak_prominence_full)
-
         if PEAKWIDTH:
-            print('peakwidth')
             peak_width_full = toolbox.peak_width(image, significant_peaks)
-            io.imwrite(output_path_name+'_peak_width.tiff', peak_width_full)
+            if args['detailed']:
+                io.imwrite(output_path_name+'_peakwidth_detailed.tiff', peak_width_full)
+            io.imwrite(output_path_name+'_peakwidth.tiff',
+                       numpy.sum(peak_width_full, axis=-1) /
+                       numpy.maximum(1, numpy.count_nonzero(significant_peaks, axis=-1)))
             del peak_width_full
 
         if args['no_centroids']:
-            print('centroids')
             centroids = toolbox.centroid_correction(image, significant_peaks)
-            io.imwrite(output_path_name+'_centroid_peaks.tiff', centroids)
+            if args['detailed']:
+                io.imwrite(output_path_name+'_centroid_correction.tiff', centroids)
         else:
-            print('no centroids')
             centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
             peak_distance_full = toolbox.peak_distance(significant_peaks, centroids)
-            io.imwrite(output_path_name+'_peak_distance.tiff', peak_distance_full)
+            if args['detailed']:
+                io.imwrite(output_path_name + '_distance_detailed.tiff', peak_distance_full)
+            io.imwrite(output_path_name + '_distance.tiff',
+                       numpy.sum(peak_distance_full, axis=-1) /
+                       numpy.maximum(1, numpy.count_nonzero(significant_peaks, axis=-1)))
             del peak_distance_full
 
         if DIRECTION:
-            direction = toolbox.direction(significant_peaks, centroids)
+            direction = toolbox.direction(significant_peaks, centroids).astype('float32')
             for dim in range(direction.shape[-1]):
-                io.imwrite(output_path_name+'_direction_'+str(dim)+'.tiff', direction[:, :, dim])
+                io.imwrite(output_path_name+'_direction_'+str(dim+1)+'.tiff', direction[:, :, dim])
 
-        if args['verbose']:
-            print("--- %s seconds ---" % (time.time() - start_time))
+        if OPTIONAL:
+            pass
