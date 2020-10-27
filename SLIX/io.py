@@ -36,10 +36,12 @@ def imread(filepath):
     # Load NIfTI dataset
     if filepath.endswith('.nii'):
         data = nibabel.load(filepath).get_fdata()
-        data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
+        if len(data.shape) > 2:
+            data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         data = tifffile.imread(filepath)
-        data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
+        if len(data.shape) > 2:
+            data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
     else:
         data = numpy.array(Image.open(filepath))
     return data

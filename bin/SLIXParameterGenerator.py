@@ -1,7 +1,6 @@
-#/usr/bin/env python
+#!/usr/bin/env python3
 
 from SLIX import toolbox, io
-import tifffile
 import numpy
 import argparse
 import os
