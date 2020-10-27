@@ -1,8 +1,8 @@
+from PIL import Image
 import numpy
 import tifffile
 import nibabel
 import h5py
-from PIL import Image
 import sys
 import getpass
 

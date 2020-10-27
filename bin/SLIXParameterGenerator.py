@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from SLIX import toolbox, io
+if toolbox.gpu_available:
+    import cupy
 import numpy
 import argparse
 import os
@@ -123,17 +125,26 @@ if __name__ == "__main__":
         filename_without_extension = os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
         tqdm_paths.set_description(filename_without_extension)
-        image = io.imread(path)
 
-        significant_peaks = toolbox.significant_peaks(image, use_gpu=toolbox.gpu_available)
+        image = io.imread(path)
+        if toolbox.gpu_available:
+            image = cupy.array(image)
+
+        significant_peaks = toolbox.significant_peaks(image, use_gpu=toolbox.gpu_available,
+                                                      return_numpy=not toolbox.gpu_available)
+        if toolbox.gpu_available:
+            significant_peaks_cpu = significant_peaks.get()
+        else:
+            significant_peaks_cpu = significant_peaks
+
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
-                io.imwrite(output_path_name+'_high_prominence_peaks_detailed.tiff', significant_peaks)
-            io.imwrite(output_path_name+'_high_prominence_peaks.tiff', numpy.sum(significant_peaks, axis=-1))
+                io.imwrite(output_path_name+'_high_prominence_peaks_detailed.tiff', significant_peaks_cpu)
+            io.imwrite(output_path_name+'_high_prominence_peaks.tiff', numpy.sum(significant_peaks_cpu, axis=-1))
             io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
-                       numpy.sum(peaks, axis=-1) - numpy.sum(significant_peaks, axis=-1))
+                       numpy.sum(peaks, axis=-1) - numpy.sum(significant_peaks_cpu, axis=-1))
 
         if PEAKPROMINENCE:
             peak_prominence_full = toolbox.peak_prominence(image, peak_image=significant_peaks,
@@ -149,15 +160,19 @@ if __name__ == "__main__":
                 io.imwrite(output_path_name+'_peakwidth_detailed.tiff', peak_width_full)
             io.imwrite(output_path_name+'_peakwidth.tiff',
                        numpy.sum(peak_width_full, axis=-1) /
-                       numpy.maximum(1, numpy.count_nonzero(significant_peaks, axis=-1)))
+                       numpy.maximum(1, numpy.count_nonzero(significant_peaks_cpu, axis=-1)))
             del peak_width_full
 
         if args['no_centroids']:
-            centroids = toolbox.centroid_correction(image, significant_peaks, use_gpu=toolbox.gpu_available)
+            centroids = toolbox.centroid_correction(image, significant_peaks, use_gpu=toolbox.gpu_available,
+                                                    return_numpy=not toolbox.gpu_available)
             if args['detailed']:
                 io.imwrite(output_path_name+'_centroid_correction.tiff', centroids)
         else:
-            centroids = numpy.zeros(image.shape)
+            if toolbox.gpu_available:
+                centroids = cupy.zeros(image.shape)
+            else:
+                centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
             peak_distance_full = toolbox.peak_distance(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
@@ -165,7 +180,7 @@ if __name__ == "__main__":
                 io.imwrite(output_path_name + '_distance_detailed.tiff', peak_distance_full)
             io.imwrite(output_path_name + '_distance.tiff',
                        numpy.sum(peak_distance_full, axis=-1) /
-                       numpy.maximum(1, numpy.count_nonzero(significant_peaks, axis=-1)))
+                       numpy.maximum(1, numpy.count_nonzero(significant_peaks_cpu, axis=-1)))
             del peak_distance_full
 
         if DIRECTION:
