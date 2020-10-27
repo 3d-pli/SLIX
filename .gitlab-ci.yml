@@ -11,7 +11,7 @@ test:python3:
     stage: test
     image: nvidia/cuda:10.1-base
     script:
-        - pip install -r requirements.txt
+        - pip3 install -r requirements.txt
         - pytest
         - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
@@ -23,7 +23,7 @@ install:python3:
     stage: install
     image: nvidia/cuda:10.1-base
     script:
-        - pip install .
+        - pip3 install .
     tags:
     - docker
     - gpu 
@@ -32,7 +32,7 @@ pack:python3:
     stage: pack
     image: nvidia/cuda:10.1-base
     script:
-        - pip install pep517
+        - pip3 install pep517
         - pep517.build --source --binary --out-dir dist/ .
     tags:
     - docker
