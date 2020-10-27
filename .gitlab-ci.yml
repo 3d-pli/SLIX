@@ -6,23 +6,26 @@ stages:
 before_script:
     - apt-get update -qq && apt-get upgrade -y
     - apt-get install -y python3 python3-pip
-    - apt-get install -y cuda-10-1
+    - /usr/bin/python3 -m pip install --upgrade pip
 
 test:python3:
     stage: test
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
-        - pip3 install -r requirements.txt
-        - pytest
+        - pip3 install tifffile numpy nibabel h5py pillow numba matplotlib pytest flake8 pytest-cov
+        - pytest --cov=SLIX --cov-config=.coveragerc tests --cov-report=html
         - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    artifacts:
+            paths:
+                - htmlcov/
     tags:
         - docker
         - gpu 
         
 install:python3:
     stage: install
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
         - pip3 install .
     tags:
@@ -31,10 +34,10 @@ install:python3:
 
 pack:python3:
     stage: pack
-    image: nvidia/cuda:10.1-base
+    image: cupy/cupy:v8.0.0
     script:
         - pip3 install pep517
-        - pep517.build --source --binary --out-dir dist/ .
+        - python3 -m pep517.build --source --binary --out-dir dist/ .
     tags:
     - docker
     - gpu 
