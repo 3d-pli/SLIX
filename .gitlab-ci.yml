@@ -3,9 +3,13 @@ stages:
     - install
     - pack
 
-test:python36:
+before_script:
+    - apt-get update -qq && apt-get upgrade -y
+    - apt-get install -y python3 python3-pip
+
+test:python3:
     stage: test
-    image: python:3.6
+    image: nvidia/cuda:10.1-base
     script:
         - pip install -r requirements.txt
         - pytest
@@ -15,18 +19,18 @@ test:python36:
         - docker
         - gpu 
         
-install:python36:
+install:python3:
     stage: install
-    image: python:3.6
+    image: nvidia/cuda:10.1-base
     script:
         - pip install .
     tags:
     - docker
     - gpu 
 
-pack:python36:
+pack:python3:
     stage: pack
-    image: python:3.6
+    image: nvidia/cuda:10.1-base
     script:
         - pip install pep517
         - pep517.build --source --binary --out-dir dist/ .
