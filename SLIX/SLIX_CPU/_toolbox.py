@@ -11,24 +11,27 @@ TARGET_PROMINENCE = 0.08
 
 
 @jit(nopython=True)
-def _peak_cleanup(peaks):
-    peaks = peaks.copy()
-    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
+def _peaks(image):
+    peaks = image.copy()
+    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.int8)
     for idx in range(peaks.shape[0]):
-        sub_peak_array = peaks[idx]
+        sub_image = image[idx]
+
         pos = 0
-        while pos < len(sub_peak_array):
-            if sub_peak_array[pos] == 1:
-                sub_peak_array[pos] = 0
-                offset = 1
-                while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
-                    resulting_peaks[idx, (pos + offset) % len(sub_peak_array)] = 0
-                    sub_peak_array[(pos + offset) % len(sub_peak_array)] = 0
-                    offset = offset + 1
-                resulting_peaks[idx, (pos + (offset - 1) // 2) % len(sub_peak_array)] = 1
-                pos = pos + offset
+        while pos < len(sub_image):
+            if sub_image[pos] - sub_image[pos - 1] > 0:
+                pos_ahead = pos + 1
+
+                while sub_image[pos_ahead % len(sub_image)] == sub_image[pos]:
+                    pos_ahead = pos_ahead + 1
+
+                if sub_image[pos] - sub_image[pos_ahead] > 0:
+                    left = pos
+                    right = pos_ahead - 1
+                    resulting_peaks[idx, (left + right) // 2] = 1
+
+                pos = pos_ahead
             else:
-                resulting_peaks[idx, pos] = 0
                 pos = pos + 1
     return resulting_peaks
 

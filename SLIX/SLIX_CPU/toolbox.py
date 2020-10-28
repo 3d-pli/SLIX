@@ -1,6 +1,6 @@
 import numpy
 from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, \
-    _centroid, _centroid_correction_bases, _peak_cleanup, TARGET_PROMINENCE
+    _centroid, _centroid_correction_bases, _peaks, TARGET_PROMINENCE
 
 
 def background_mask(image, threshold=10):
@@ -11,19 +11,17 @@ def background_mask(image, threshold=10):
 
 def peaks(image):
     image = numpy.array(image, dtype=numpy.float32)
-    image = normalize(image)
-    right = numpy.roll(image, 1, axis=-1) - image
-    left = numpy.roll(image, -1, axis=-1) - image
 
-    resulting_image = (left <= 1e-10) & (right <= 1e-10) & numpy.invert(numpy.isclose(image, 0))
-    del right
-    del left
+    reshape = False
+    if len(image.shape) == 3:
+        reshape = True
+        [image_x, image_y, image_z] = image.shape
+        image = image.reshape(image_x * image_y, image_z)
 
-    if len(image.shape) == 3:
-        [image_x, image_y, image_z] = resulting_image.shape
-        resulting_image = resulting_image.reshape(image_x * image_y, image_z)
-    resulting_image = _peak_cleanup(resulting_image)
-    if len(image.shape) == 3:
+    resulting_image = _peaks(image)
+
+    if reshape:
+        image = image.reshape(image_x, image_y, image_z)
         resulting_image = resulting_image.reshape(image_x, image_y, image_z)
     return resulting_image.astype('bool')
 

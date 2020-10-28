@@ -3,7 +3,7 @@ import numpy
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdistance, TARGET_PROMINENCE, \
-    _centroid_correction_bases, _centroid, _peak_cleanup
+    _centroid_correction_bases, _centroid, _peaks
 
 
 def background_mask(image, threshold=10, return_numpy=True):
@@ -21,20 +21,13 @@ def background_mask(image, threshold=10, return_numpy=True):
 
 def peaks(image, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
-    gpu_image = normalize(gpu_image, return_numpy=False)
-    right = cupy.roll(gpu_image, 1, axis=-1) - gpu_image
-    left = cupy.roll(gpu_image, -1, axis=-1) - gpu_image
-    peaks = (left <= 1e-10) & (right <= 1e-10) & cupy.invert(cupy.isclose(gpu_image, 0))
-    del gpu_image
-    del right
-    del left
 
-    resulting_peaks = cupy.zeros(peaks.shape, dtype='int8')
+    resulting_peaks = cupy.zeros(gpu_image.shape, dtype='int8')
     threads_per_block = (1, 1)
     blocks_per_grid = image.shape[:-1]
-    _peak_cleanup[blocks_per_grid, threads_per_block](peaks, resulting_peaks)
+    _peaks[blocks_per_grid, threads_per_block](gpu_image, resulting_peaks)
     cuda.synchronize()
-    del peaks
+    print(resulting_peaks)
 
     if return_numpy:
         peaks_cpu = cupy.asnumpy(resulting_peaks)
@@ -208,10 +201,8 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
     else:
         gpu_peak_image = peaks(peak_image, return_numpy=False).astype('uint8')
     peak_distance_gpu = peak_distance(peak_image, centroids, return_numpy=False)
-    peak_distance_gpu = cupy.sum(peak_distance_gpu, axis=-1) / cupy.maximum(1,
-                                                                            cupy.count_nonzero(gpu_peak_image,
-                                                                                               axis=-1))
-
+    peak_distance_gpu = cupy.sum(peak_distance_gpu, axis=-1) / cupy.maximum(1, cupy.count_nonzero(gpu_peak_image,
+                                                                                                  axis=-1))
     del gpu_peak_image
     if return_numpy:
         peak_width_cpu = cupy.asnumpy(peak_distance_gpu)

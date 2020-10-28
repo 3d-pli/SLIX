@@ -11,7 +11,6 @@ class TestToolbox:
             array[:, 2] = numpy.arange(0, 256)
 
             toolbox_mask = toolbox.background_mask(array, use_gpu=use_gpu)
-            print(toolbox_mask)
             assert numpy.all(toolbox_mask[:10] == True)
             assert numpy.all(toolbox_mask[10:] == False)
 
@@ -83,6 +82,16 @@ class TestToolbox:
             assert numpy.all(high_peaks == toolbox_high_peaks)
             assert numpy.all(low_peaks == toolbox_low_peaks)
 
+    def test_mean_peakprominence(self):
+        for use_gpu in [True, False]:
+            test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0]).reshape(1, 1, 11)
+            comparison = toolbox.cpu_toolbox.normalize(test_arr, kind_of_normalization=1)
+
+            toolbox_peaks = toolbox.peaks(test_arr)
+            toolbox_prominence = toolbox.mean_peak_prominence(test_arr, toolbox_peaks,
+                                                              kind_of_normalization=1, use_gpu=use_gpu)
+            assert numpy.isclose(toolbox_prominence, numpy.mean(comparison[comparison > 0]))
+
     def test_peakdistance(self):
         for use_gpu in [True, False]:
             # Test one peak
@@ -123,6 +132,9 @@ class TestToolbox:
             assert toolbox_distance[0, 0, 7] == expected_distance_2
             assert toolbox_distance[0, 0, 15] == 360 - expected_distance_2
 
+    def test_mean_peakdistance(self):
+        pass
+
     def test_peakwidth(self):
         for use_gpu in [True, False]:
             test_arr = numpy.array([0, 0.5, 1, 0.5, 0] + [0] * 19)
@@ -130,9 +142,20 @@ class TestToolbox:
             expected_width = 30
 
             toolbox_peaks = toolbox.peaks(test_arr, use_gpu=use_gpu)
+            print(toolbox_peaks)
             toolbox_width = toolbox.peak_width(test_arr, toolbox_peaks, use_gpu=use_gpu)
             assert toolbox_width[0, 0, 2] == expected_width
             assert numpy.sum(toolbox_width) == expected_width
+
+    def test_mean_peakwidth(self):
+        for use_gpu in [True, False]:
+            test_arr = numpy.array([0, 0.5, 1, 0.5, 0, 0, 0.5, 0.6, 0.7, 1, 0.7, 0.6, 0.5] + [0] * 11)
+            test_arr = test_arr.reshape((1, 1, 24))
+            expected_width = 60
+
+            toolbox_peaks = toolbox.peaks(test_arr, use_gpu=use_gpu)
+            toolbox_width = toolbox.mean_peak_width(test_arr, toolbox_peaks, use_gpu=use_gpu)
+            assert toolbox_width[0, 0] == expected_width
 
     def test_direction(self):
         for use_gpu in [True, False]:

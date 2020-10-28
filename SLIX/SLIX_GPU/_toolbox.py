@@ -10,24 +10,26 @@ TARGET_PEAK_HEIGHT = 0.94
 TARGET_PROMINENCE = 0.08
 
 
-@cuda.jit('void(int8[:, :, :], int8[:, :, :])')
-def _peak_cleanup(peaks, resulting_peaks):
+@cuda.jit('void(float32[:, :, :], int8[:, :, :])')
+def _peaks(image, resulting_peaks):
     idx, idy = cuda.grid(2)
-    sub_peak_array = peaks[idx, idy]
+    sub_image = image[idx, idy]
 
     pos = 0
-    while pos < len(sub_peak_array):
-        if sub_peak_array[pos] == 1:
-            sub_peak_array[pos] = 0
-            offset = 1
-            while sub_peak_array[(pos + offset) % len(sub_peak_array)] == 1:
-                resulting_peaks[idx, idy, (pos + offset) % len(sub_peak_array)] = 0
-                sub_peak_array[(pos + offset) % len(sub_peak_array)] = 0
-                offset = offset + 1
-            resulting_peaks[idx, idy, (pos + (offset-1) // 2) % len(sub_peak_array)] = 1
-            pos = pos + offset
+    while pos < len(sub_image):
+        if sub_image[pos] - sub_image[pos - 1] > 0:
+            pos_ahead = pos + 1
+
+            while sub_image[pos_ahead % len(sub_image)] == sub_image[pos]:
+                pos_ahead = pos_ahead + 1
+
+            if sub_image[pos] - sub_image[pos_ahead] > 0:
+                left = pos
+                right = pos_ahead - 1
+                resulting_peaks[idx, idy, (left + right)//2] = 1
+
+            pos = pos_ahead
         else:
-            resulting_peaks[idx, idy, pos] = 0
             pos = pos + 1
 
 
