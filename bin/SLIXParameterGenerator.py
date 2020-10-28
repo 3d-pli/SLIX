@@ -42,7 +42,7 @@ def create_argument_parser():
                           action='store_true',
                           help='Use mask to try to remove some of the background')
     optional.add_argument('--mask_threshold',
-                          type=int,
+                          type=float,
                           default=10,
                           help='Value for filtering background noise when calculating masks.'
                                'Higher values might result in the removal of some of the gray matter in the mask'
@@ -129,6 +129,10 @@ if __name__ == "__main__":
         image = io.imread(path)
         if toolbox.gpu_available:
             image = cupy.array(image)
+        if args['with_mask']:
+            mask = toolbox.background_mask(image, args['mask_threshold'], use_gpu=toolbox.gpu_available,
+                                           return_numpy=not toolbox.gpu_available)
+            image[mask, :] = 0
 
         significant_peaks = toolbox.significant_peaks(image, use_gpu=toolbox.gpu_available,
                                                       return_numpy=not toolbox.gpu_available)

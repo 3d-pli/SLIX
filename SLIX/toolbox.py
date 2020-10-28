@@ -14,6 +14,13 @@ from SLIX.SLIX_CPU import toolbox as cpu_toolbox
 import numpy
 
 
+def background_mask(image, threshold=10, use_gpu=gpu_available, return_numpy=True):
+    if use_gpu:
+        return gpu_toolbox.background_mask(image, threshold, return_numpy)
+    else:
+        return cpu_toolbox.background_mask(image, threshold)
+
+
 def peaks(image, use_gpu=gpu_available, return_numpy=True):
     """
     Detect all peaks from a full SLI measurement. Peaks will not be filtered in any way.
