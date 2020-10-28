@@ -20,10 +20,10 @@ def _peaks(image, resulting_peaks):
         if sub_image[pos] - sub_image[pos - 1] > 0:
             pos_ahead = pos + 1
 
-            while sub_image[pos_ahead % len(sub_image)] == sub_image[pos]:
+            while pos_ahead < 2 * len(sub_image) and sub_image[pos_ahead % len(sub_image)] == sub_image[pos]:
                 pos_ahead = pos_ahead + 1
 
-            if sub_image[pos] - sub_image[pos_ahead] > 0:
+            if sub_image[pos] - sub_image[pos_ahead % len(sub_image)] > 0:
                 left = pos
                 right = pos_ahead - 1
                 resulting_peaks[idx, idy, (left + right)//2] = 1

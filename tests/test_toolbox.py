@@ -142,7 +142,6 @@ class TestToolbox:
             expected_width = 30
 
             toolbox_peaks = toolbox.peaks(test_arr, use_gpu=use_gpu)
-            print(toolbox_peaks)
             toolbox_width = toolbox.peak_width(test_arr, toolbox_peaks, use_gpu=use_gpu)
             assert toolbox_width[0, 0, 2] == expected_width
             assert numpy.sum(toolbox_width) == expected_width

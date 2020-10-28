@@ -12,23 +12,23 @@ class TestNumbaToolboxGPU:
         test_one_peak = cupy.array([0, 1, 0, 0]).reshape((1, 1, 4))
 
         result = cupy.zeros(test_one_peak.shape, dtype='int8')
-        ntoolbox._peak_cleanup[blocks_per_grid, threads_per_block](test_one_peak, result)
+        ntoolbox._peaks[blocks_per_grid, threads_per_block](test_one_peak, result)
         cuda.synchronize()
         assert cupy.all(cupy.array([0, 1, 0, 0]) == result)
 
         test_two_peak = cupy.array([0, 1, 1, 0]).reshape((1, 1, 4))
         result = cupy.zeros(test_two_peak.shape, dtype='int8')
-        ntoolbox._peak_cleanup[blocks_per_grid, threads_per_block](test_two_peak, result)
+        ntoolbox._peaks[blocks_per_grid, threads_per_block](test_two_peak, result)
         assert cupy.all(cupy.array([0, 1, 0, 0]) == result)
 
         test_three_peak = cupy.array([0, 1, 1, 1, 0]).reshape((1, 1, 5))
         result = cupy.zeros(test_three_peak.shape, dtype='int8')
-        ntoolbox._peak_cleanup[blocks_per_grid, threads_per_block](test_three_peak, result)
+        ntoolbox._peaks[blocks_per_grid, threads_per_block](test_three_peak, result)
         assert cupy.all(cupy.array([0, 0, 1, 0, 0]) == result)
 
         test_double_three_peak = cupy.array([0, 1, 1, 1, 0, 1, 1, 1, 0]).reshape((1, 1, 9))
         result = cupy.zeros(test_double_three_peak.shape, dtype='int8')
-        ntoolbox._peak_cleanup[blocks_per_grid, threads_per_block](test_double_three_peak, result)
+        ntoolbox._peaks[blocks_per_grid, threads_per_block](test_double_three_peak, result)
         assert cupy.all(cupy.array([0, 0, 1, 0, 0, 0, 1, 0, 0]) == result)
 
     def test_prominence(self):

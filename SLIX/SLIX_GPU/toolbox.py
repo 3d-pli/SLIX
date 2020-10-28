@@ -27,7 +27,6 @@ def peaks(image, return_numpy=True):
     blocks_per_grid = image.shape[:-1]
     _peaks[blocks_per_grid, threads_per_block](gpu_image, resulting_peaks)
     cuda.synchronize()
-    print(resulting_peaks)
 
     if return_numpy:
         peaks_cpu = cupy.asnumpy(resulting_peaks)
@@ -59,7 +58,8 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
     if kind_of_normalization == 0:
         gpu_image = (gpu_image - cupy.min(gpu_image, axis=-1)[..., None]) / \
-                    (cupy.max(gpu_image, axis=-1)[..., None] - cupy.min(gpu_image, axis=-1)[..., None])
+                    cupy.maximum(1e-15, (cupy.max(gpu_image, axis=-1)[..., None] -
+                                         cupy.min(gpu_image, axis=-1)[..., None]))
     else:
         gpu_image = gpu_image / cupy.mean(gpu_image, axis=-1)[..., None]
 
@@ -79,9 +79,8 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0, return_nump
         gpu_peak_image = peaks(gpu_image, return_numpy=False).astype('uint8')
     gpu_image = normalize(gpu_image, kind_of_normalization, return_numpy=False)
 
-    result_img_gpu = cupy.empty(gpu_image.shape, dtype='float32')
+    result_img_gpu = cupy.zeros(gpu_image.shape, dtype='float32')
 
-    # https://github.com/scipy/scipy/blob/master/scipy/signal/_peak_finding_utils.pyx
     threads_per_block = (1, 1)
     blocks_per_grid = gpu_peak_image.shape[:-1]
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image, result_img_gpu)
@@ -106,9 +105,9 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0, return
     else:
         gpu_peak_image = peaks(image, return_numpy=False).astype('uint8')
     peak_prominence_gpu = peak_prominence(image, peak_image, kind_of_normalization, return_numpy=False)
-    peak_prominence_gpu = cupy.sum(peak_prominence_gpu, axis=-1) / cupy.maximum(1,
-                                                                                cupy.count_nonzero(gpu_peak_image,
-                                                                                                   axis=-1))
+    peak_prominence_gpu = cupy.sum(peak_prominence_gpu, axis=-1) / cupy.maximum(1, cupy.count_nonzero(gpu_peak_image,
+                                                                                                      axis=-1))
+    peak_prominence_gpu = peak_prominence_gpu.astype('float32')
 
     del gpu_peak_image
     if return_numpy:
@@ -176,7 +175,7 @@ def peak_distance(peak_image, centroids, return_numpy=True):
     gpu_peak_image = cupy.array(peak_image).astype('uint8')
     gpu_centroids = cupy.array(centroids).astype('float32')
 
-    number_of_peaks = num_peaks(gpu_peak_image, return_numpy=False).astype('int8')
+    number_of_peaks = num_peaks(peak_image=gpu_peak_image, return_numpy=False).astype('int8')
     result_image_gpu = cupy.zeros(gpu_peak_image.shape, dtype='float32')
 
     threads_per_block = (1, 1)

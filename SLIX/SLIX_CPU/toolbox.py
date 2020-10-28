@@ -73,7 +73,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
         peak_image = peaks(image).astype('uint8')
     result_img = peak_prominence(image, peak_image, kind_of_normalization)
     result_img = numpy.sum(result_img, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peak_image, axis=-1))
-    return result_img
+    return result_img.astype('float32')
 
 
 def peak_width(image, peak_image=None, target_height=0.5):

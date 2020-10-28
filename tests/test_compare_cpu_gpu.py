@@ -61,10 +61,6 @@ class TestToolbox:
         gpu_centroids = SLIX.toolbox.gpu_toolbox.centroid_correction(self.example, gpu_peaks)
         cpu_centroids = SLIX.toolbox.cpu_toolbox.centroid_correction(self.example, cpu_peaks)
 
-        print(gpu_centroids.shape)
-        tifffile.imwrite('/tmp/gpu.tiff', numpy.moveaxis(gpu_centroids, -1, 0))
-        tifffile.imwrite('/tmp/cpu.tiff', numpy.moveaxis(cpu_centroids, -1, 0))
-
         assert numpy.all(numpy.isclose(cpu_centroids, gpu_centroids))
 
     def test_compare_direction(self):
