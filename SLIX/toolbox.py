@@ -96,10 +96,10 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominen
     first dimension of the SLI image series.
     """
     if use_gpu:
-        peaks = gpu_toolbox.significant_peaks(image, low_prominence, high_prominence, False)
-        return gpu_toolbox.num_peaks(peaks)
+        peaks = significant_peaks(image, low_prominence, high_prominence, False)
+        return gpu_toolbox.num_peaks(peaks, return_numpy=return_numpy)
     else:
-        peaks = gpu_toolbox.significant_peaks(image, low_prominence, high_prominence)
+        peaks = significant_peaks(image, low_prominence, high_prominence)
         return cpu_toolbox.num_peaks(peaks)
 
 
