@@ -1,8 +1,6 @@
 import SLIX
 import numpy
 
-import tifffile
-
 
 class TestToolbox:
     def setup_method(self, method):
