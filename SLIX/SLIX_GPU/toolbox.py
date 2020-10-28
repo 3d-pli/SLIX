@@ -8,7 +8,7 @@ from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, _peakdis
 
 def background_mask(image, threshold=10, return_numpy=True):
     gpu_image = cupy.array(image, dtype='float32')
-    gpu_mask = cupy.max(gpu_image < threshold, axis=-1)
+    gpu_mask = cupy.min(gpu_image < threshold, axis=-1)
 
     if return_numpy:
         cpu_mask = cupy.asnumpy(gpu_mask)

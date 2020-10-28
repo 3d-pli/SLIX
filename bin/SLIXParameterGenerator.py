@@ -130,9 +130,9 @@ if __name__ == "__main__":
         if toolbox.gpu_available:
             image = cupy.array(image)
         if args['with_mask']:
-            mask = toolbox.background_mask(image, args['mask_threshold'], use_gpu=toolbox.gpu_available,
-                                           return_numpy=not toolbox.gpu_available)
+            mask = toolbox.background_mask(image, args['mask_threshold'], use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
+            io.imwrite(output_path_name + '_background_mask.tiff', mask)
 
         significant_peaks = toolbox.significant_peaks(image, use_gpu=toolbox.gpu_available,
                                                       return_numpy=not toolbox.gpu_available)

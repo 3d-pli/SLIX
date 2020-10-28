@@ -5,7 +5,7 @@ from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, _peakdis
 
 def background_mask(image, threshold=10):
     image = numpy.array(image, dtype='float32')
-    mask = numpy.max(image < threshold, axis=-1)
+    mask = numpy.min(image < threshold, axis=-1)
     return mask
 
 

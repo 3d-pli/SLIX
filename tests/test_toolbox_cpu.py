@@ -4,9 +4,20 @@ import numpy
 
 
 class TestToolbox:
+    def test_background_mask(self):
+        array = numpy.empty((256, 3))
+        array[:, 0] = numpy.zeros(256)
+        array[:, 1] = numpy.ones(256)
+        array[:, 2] = numpy.arange(0, 256)
+
+        toolbox_mask = toolbox.background_mask(array)
+        print(toolbox_mask)
+        assert numpy.all(toolbox_mask[:10] == True)
+        assert numpy.all(toolbox_mask[10:] == False)
+
     def test_all_peaks(self):
         # Create an absolute simple peak array
-        arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] * 1)
+        arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0])
         arr = arr.reshape((1, 1, 11))
         real_peaks = arr == 1
         toolbox_peaks = toolbox.peaks(arr)
