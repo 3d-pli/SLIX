@@ -9,11 +9,14 @@ import getpass
 
 def hdf5_read(filepath, dataset):
     with h5py.File(filepath, mode='r') as file:
-        return file[dataset][:]
+        data = file[dataset][:]
+        data = numpy.moveaxis(data, 0, -1)
+        return data
 
 
 def hdf5_write(filepath, dataset, data):
     with h5py.File(filepath, mode='w') as file:
+        data = numpy.moveaxis(data, -1, 0)
         file_dataset = file.create_dataset(dataset, data.shape, numpy.float32, data=data)
         file_dataset.attrs['created_by'] = getpass.getuser()
         file_dataset.attrs['software'] = sys.argv[0]
