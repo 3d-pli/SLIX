@@ -133,7 +133,17 @@ class TestToolbox:
             assert toolbox_distance[0, 0, 15] == 360 - expected_distance_2
 
     def test_mean_peakdistance(self):
-        pass
+        for use_gpu in [True, False]:
+            # Test four peaks
+            test_arr = numpy.array(([False, False, True, False, False, False, False, True, False,
+                                     False, False, True, False, False, False, True, False, False] + [False] * 6))
+            test_arr = test_arr.reshape((1, 1, 24))
+            expected_distance = (135 + 120) / 2
+
+            toolbox_peaks = toolbox.peaks(test_arr, use_gpu=use_gpu)
+            toolbox_distance = toolbox.mean_peak_distance(toolbox_peaks, numpy.zeros(toolbox_peaks.shape,
+                                                                                     dtype=float), use_gpu=use_gpu)
+            assert numpy.isclose(toolbox_distance[0, 0], expected_distance)
 
     def test_peakwidth(self):
         for use_gpu in [True, False]:

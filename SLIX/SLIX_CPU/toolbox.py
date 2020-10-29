@@ -123,12 +123,9 @@ def peak_distance(peak_image, centroids):
 
 
 def mean_peak_distance(peak_image, centroids):
-    if peak_image is not None:
-        peak_image = numpy.array(peak_image)
-    else:
-        peak_image = peaks(peak_image)
     result_image = peak_distance(peak_image, centroids)
-    result_image = numpy.sum(result_image, axis=-1) / numpy.maximum(1, numpy.count_nonzero(peak_image, axis=-1))
+    result_image[result_image > 180] = 0
+    result_image = numpy.sum(result_image, axis=-1) / numpy.maximum(1, numpy.count_nonzero(result_image, axis=-1))
     return result_image
 
 

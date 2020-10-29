@@ -178,7 +178,7 @@ def mean_peak_distance(peak_image, centroids, use_gpu=gpu_available, return_nump
     if use_gpu:
         return gpu_toolbox.mean_peak_distance(peak_image, centroids, return_numpy)
     else:
-        return cpu_toolbox.mean_peak_distance(peak_image)
+        return cpu_toolbox.mean_peak_distance(peak_image, centroids)
 
 
 def peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gpu=gpu_available, return_numpy=True):

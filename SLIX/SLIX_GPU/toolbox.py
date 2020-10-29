@@ -195,14 +195,10 @@ def peak_distance(peak_image, centroids, return_numpy=True):
 
 
 def mean_peak_distance(peak_image, centroids, return_numpy=True):
-    if peak_image is not None:
-        gpu_peak_image = cupy.array(peak_image).astype('uint8')
-    else:
-        gpu_peak_image = peaks(peak_image, return_numpy=False).astype('uint8')
     peak_distance_gpu = peak_distance(peak_image, centroids, return_numpy=False)
-    peak_distance_gpu = cupy.sum(peak_distance_gpu, axis=-1) / cupy.maximum(1, cupy.count_nonzero(gpu_peak_image,
+    peak_distance_gpu[peak_distance_gpu > 180] = 0
+    peak_distance_gpu = cupy.sum(peak_distance_gpu, axis=-1) / cupy.maximum(1, cupy.count_nonzero(peak_distance_gpu,
                                                                                                   axis=-1))
-    del gpu_peak_image
     if return_numpy:
         peak_width_cpu = cupy.asnumpy(peak_distance_gpu)
         del peak_distance_gpu
