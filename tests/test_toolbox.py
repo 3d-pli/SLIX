@@ -238,3 +238,9 @@ class TestToolbox:
 
             toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks, use_gpu=use_gpu)
             assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
+
+    def test_unit_vectors(self):
+        for use_gpu in [True, False]:
+            direction = numpy.arange(0, 180).reshape((1, 1, 180))
+            unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=use_gpu)
+            assert numpy.all(numpy.isclose(numpy.rad2deg(numpy.arctan2(unit_y, unit_x)), 180 - direction))

@@ -71,3 +71,18 @@ class TestToolbox:
         cpu_direction = SLIX.toolbox.cpu_toolbox.direction(cpu_peaks, cpu_centroids)
 
         assert numpy.all(numpy.isclose(cpu_direction, gpu_direction))
+
+    def test_compare_unit_vectors(self):
+        gpu_peaks = SLIX.toolbox.gpu_toolbox.peaks(self.example, return_numpy=False)
+        cpu_peaks = SLIX.toolbox.cpu_toolbox.peaks(self.example)
+        gpu_centroids = SLIX.toolbox.gpu_toolbox.centroid_correction(self.example, gpu_peaks, return_numpy=False)
+        cpu_centroids = SLIX.toolbox.cpu_toolbox.centroid_correction(self.example, cpu_peaks)
+
+        gpu_direction = SLIX.toolbox.gpu_toolbox.direction(gpu_peaks, gpu_centroids, return_numpy=False)
+        cpu_direction = SLIX.toolbox.cpu_toolbox.direction(cpu_peaks, cpu_centroids)
+
+        gpu_unit_x, gpu_unit_y = SLIX.toolbox.gpu_toolbox.unit_vectors(gpu_direction)
+        cpu_unit_x, cpu_unit_y = SLIX.toolbox.cpu_toolbox.unit_vectors(cpu_direction)
+
+        assert numpy.all(numpy.isclose(cpu_unit_x, gpu_unit_x))
+        assert numpy.all(numpy.isclose(cpu_unit_y, gpu_unit_y))
