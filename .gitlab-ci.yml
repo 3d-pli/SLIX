@@ -14,8 +14,8 @@ lint:python3:
     image: cupy/cupy:v8.0.0
     script:
         - pip3 install flake8
-        - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        - flake8 . --count --exit-zero --max-complexity=10 --statistics
+        - flake8 SLIX/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        - flake8 SLIX/ --count --exit-zero --max-complexity=10 --statistics
     tags:
         - docker
         - gpu

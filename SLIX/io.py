@@ -16,8 +16,8 @@ def hdf5_read(filepath, dataset):
         dataset: Path to dataset in HDF5 file
 
     Returns:
-        numpy.array: Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number
-                     of measurements
+        numpy.array: Image with shape [x, y, z] where [x, y] is the size of a
+        single image and z specifies the number of measurements
     """
     with h5py.File(filepath, mode='r') as file:
         data = file[dataset][:]
@@ -33,14 +33,15 @@ def hdf5_write(filepath, dataset, data, mode='w'):
         filepath: Path to image
         dataset: Path to dataset in HDF5 file
         data: Data which will be written to the disk
-        mode: Mode with which the HDF5 file will be created. Please change 'w' to 'a' if appending to a already
-        exisiting HDF5 file
+        mode: Mode with which the HDF5 file will be created.
+        Please change 'w' to 'a' if appending to a already exisiting HDF5 file
     Returns:
         None
     """
     with h5py.File(filepath, mode=mode) as file:
         data = numpy.moveaxis(data, -1, 0)
-        file_dataset = file.create_dataset(dataset, data.shape, numpy.float32, data=data)
+        file_dataset = file.create_dataset(dataset, data.shape, numpy.float32,
+                                           data=data)
         file_dataset.attrs['created_by'] = getpass.getuser()
         file_dataset.attrs['software'] = sys.argv[0]
         file_dataset.attrs['software_parameters'] = ' '.join(sys.argv[1:])
@@ -56,8 +57,8 @@ def imread(filepath):
         filepath: Path to image
 
     Returns:
-        numpy.array: Image with shape [x, y, z] where [x, y] is the size of a single image and z specifies the number
-                     of measurements
+        numpy.array: Image with shape [x, y, z] where [x, y] is the size
+        of a single image and z specifies the number of measurements
     """
     # Load NIfTI dataset
     if filepath.endswith('.nii'):
@@ -77,7 +78,8 @@ def imwrite(filepath, data):
     """
     Write generated image to given filepath.
     Supported file formats: NIfTI, Tiff.
-    Other file formats are only indirectly supported and might result in errors.
+    Other file formats are only indirectly supported and might result in
+    errors.
 
     Arguments:
         filepath: Path to image
