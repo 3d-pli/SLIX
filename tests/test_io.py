@@ -4,7 +4,6 @@ import os
 import shutil
 import numpy
 
-from matplotlib import pyplot as plt
 
 class TestIO:
     def test_read_hdf5(self):
