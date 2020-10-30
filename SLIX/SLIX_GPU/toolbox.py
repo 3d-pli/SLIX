@@ -116,7 +116,7 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
     1 : Divide line profile through its mean value
 
     Arguments:
-        image: Full SLI measurement (series of images) which is 
+        image: Full SLI measurement (series of images) which is
                prepared for the pipeline using the SLIX toolbox methods.
         kind_of_normalization: Normalization technique which will be used for
         the calculation

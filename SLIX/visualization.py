@@ -25,7 +25,7 @@ def downsample(image, kernel_size, background_value=-1,
     (N x N) area for which the image pixels are set to background_value.
     If the fraction of background pixels lies below this defined threshold,
     background pixels will not be considered for computing the median.
-    
+
     Returns
     -------
     2D or 3D NumPy array with reduced image dimensions.
@@ -179,8 +179,8 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
         mesh_v = mesh_v[skip][mask]
 
         # Normalize the arrows:
-        mesh_u_normed = thinout * mesh_u / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
-        mesh_v_normed = thinout * mesh_v / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
+        mesh_u_normed = thinout * mesh_u / numpy.sqrt(mesh_u**2 + mesh_v**2)
+        mesh_v_normed = thinout * mesh_v / numpy.sqrt(mesh_u**2 + mesh_v**2)
 
         ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
                   numpy.arctan2(mesh_v_normed, mesh_u_normed),
@@ -188,4 +188,3 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
                   alpha=alpha, headwidth=0, headlength=0, headaxislength=0,
                   minlength=0, pivot='mid', clim=(0, numpy.pi))
     return ax
-

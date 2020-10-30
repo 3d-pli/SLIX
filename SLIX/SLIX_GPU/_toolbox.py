@@ -127,7 +127,8 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
                 result_image[idx, idy, i] = 360.0
                 break
             elif current_number_of_peaks % 2 == 0:
-                left = (i + sub_centroid_array[i]) * 360.0 / len(sub_peak_array)
+                left = (i + sub_centroid_array[i]) * \
+                       360.0 / len(sub_peak_array)
                 right_side_peak = current_number_of_peaks//2
                 current_position = i
                 while right_side_peak > 0 and \
