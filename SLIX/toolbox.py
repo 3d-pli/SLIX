@@ -97,10 +97,10 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE, high_prominen
     """
     if use_gpu:
         peaks = significant_peaks(image, low_prominence, high_prominence, False)
-        return gpu_toolbox.num_peaks(peaks, return_numpy=return_numpy)
+        return gpu_toolbox.num_peaks(peak_image=peaks, return_numpy=return_numpy)
     else:
         peaks = significant_peaks(image, low_prominence, high_prominence)
-        return cpu_toolbox.num_peaks(peaks)
+        return cpu_toolbox.num_peaks(peak_image=peaks)
 
 
 def direction(peak_image, centroids, number_of_directions=3, use_gpu=gpu_available, return_numpy=True):
@@ -244,7 +244,7 @@ def peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_available,
     image: Original line profile used to detect all peaks. This array will be further
            analyzed to better determine the peak positions.
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
-    target_height:
+    target_height: Relative peak height in relation to the prominence of the peak
     use_gpu: If available use the GPU for calculation
     return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
@@ -267,7 +267,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_avail
     image: Original line profile used to detect all peaks. This array will be further
            analyzed to better determine the peak positions.
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
-    target_height:
+    target_height: Relative peak height in relation to the prominence of the peak
     use_gpu: If available use the GPU for calculation
     return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
