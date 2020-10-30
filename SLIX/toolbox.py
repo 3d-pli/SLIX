@@ -139,7 +139,7 @@ def peak_distance(peak_image, centroids, use_gpu=gpu_available, return_numpy=Tru
 
     Parameters
     ----------
-    peak_image: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     centroids: Use centroid calculation to better determine the peak position regardless of the number of
     measurements / illumination angles used.
     use_gpu: If available use the GPU for calculation
@@ -164,7 +164,7 @@ def mean_peak_distance(peak_image, centroids, use_gpu=gpu_available, return_nump
 
     Parameters
     ----------
-    peak_image: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     centroids: Use centroid calculation to better determine the peak position regardless of the number of
     measurements / illumination angles used.
     use_gpu: If available use the GPU for calculation
@@ -181,23 +181,49 @@ def mean_peak_distance(peak_image, centroids, use_gpu=gpu_available, return_nump
         return cpu_toolbox.mean_peak_distance(peak_image, centroids)
 
 
-def peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gpu=gpu_available, return_numpy=True):
+def peak_prominence(image, peak_image=None, kind_of_normalization=1, use_gpu=gpu_available, return_numpy=True):
+    """
+    Calculate the peak prominence of all given peak positions within a line profile. The line profile will be
+    normalized by dividing the line profile through its mean value. Therefore, values above 1 are possible.
+
+    Parameters
+    ----------
+    image: Original line profile used to detect all peaks. This array will be further
+           analyzed to better determine the peak positions.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
+    kind_of_normalization: Normalize given line profile by using a normalization technique based on the
+                           kind_of_normalization parameter.
+                           0 : Scale line profile to be between 0 and 1
+                           1 : Divide line profile through its mean value
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+
+    Returns
+    -------
+    Floating point value containing the mean peak prominence of the line profile in degrees.
+    """
     if use_gpu:
         return gpu_toolbox.peak_prominence(image, peak_image, kind_of_normalization, return_numpy)
     else:
         return cpu_toolbox.peak_prominence(image, peak_image, kind_of_normalization)
 
 
-def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gpu=gpu_available, return_numpy=True):
+def mean_peak_prominence(image, peak_image=None, kind_of_normalization=1, use_gpu=gpu_available, return_numpy=True):
     """
     Calculate the mean peak prominence of all given peak positions within a line profile. The line profile will be
     normalized by dividing the line profile through its mean value. Therefore, values above 1 are possible.
 
     Parameters
     ----------
-    peak_positions: Detected peak positions of the 'all_peaks' method.
-    line_profile: Original line profile used to detect all peaks. This array will be further
-    analyzed to better determine the peak positions.
+    image: Original line profile used to detect all peaks. This array will be further
+           analyzed to better determine the peak positions.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
+    kind_of_normalization: Normalize given line profile by using a normalization technique based on the
+                           kind_of_normalization parameter.
+                           0 : Scale line profile to be between 0 and 1
+                           1 : Divide line profile through its mean value
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
     Returns
     -------
@@ -210,6 +236,22 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0, use_gp
 
 
 def peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_available, return_numpy=True):
+    """
+    Calculate the peak width of all given peak positions within a line profile.
+
+    Parameters
+    ----------
+    image: Original line profile used to detect all peaks. This array will be further
+           analyzed to better determine the peak positions.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
+    target_height:
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+
+    Returns
+    -------
+    NumPy array where each entry corresponds to the peak width of the line profile. The values are in degree.
+    """
     if use_gpu:
         return gpu_toolbox.peak_width(image, peak_image, target_height, return_numpy=return_numpy)
     else:
@@ -218,16 +260,20 @@ def peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_available,
 
 def mean_peak_width(image, peak_image=None, target_height=0.5, use_gpu=gpu_available, return_numpy=True):
     """
+    Calculate the mean peak width of all given peak positions within a line profile.
+
     Parameters
     ----------
-    roiset: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
-    low_prominence: Lower prominence bound for detecting a peak.
-    high_prominence: Higher prominence bound for detecting a peak.
-    cut_edges: If True, only consider peaks within the second third of all detected peaks.
+    image: Original line profile used to detect all peaks. This array will be further
+           analyzed to better determine the peak positions.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
+    target_height:
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
     Returns
     -------
-    NumPy array where each entry corresponds to the mean peak width of the line profile.
+    NumPy array where each entry corresponds to the mean peak width of the line profile. The values are in degree.
     """
     if use_gpu:
         return gpu_toolbox.mean_peak_width(image, peak_image, target_height, return_numpy=return_numpy)
@@ -244,11 +290,13 @@ def centroid_correction(image, peak_image, low_prominence=cpu_toolbox.TARGET_PRO
 
     Parameters
     ----------
-    line_profile: Original line profile used to detect all peaks. This array will be further
-    analyzed to better determine the peak positions.
-    peak_positions: Detected peak positions of the 'all_peaks' method.
+    image: Original line profile used to detect all peaks. This array will be further
+           analyzed to better determine the peak positions.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
 
     Returns
     -------

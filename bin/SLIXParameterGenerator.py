@@ -151,27 +151,31 @@ if __name__ == "__main__":
                        numpy.sum(peaks, axis=-1) - numpy.sum(significant_peaks_cpu, axis=-1))
 
         if PEAKPROMINENCE:
-            peak_prominence_full = toolbox.peak_prominence(image, peak_image=significant_peaks,
-                                                           kind_of_normalization=1, use_gpu=toolbox.gpu_available)
             if args['detailed']:
+                peak_prominence_full = toolbox.peak_prominence(image, peak_image=significant_peaks,
+                                                               kind_of_normalization=1, use_gpu=toolbox.gpu_available)
                 io.imwrite(output_path_name+'_prominence_detailed.tiff', peak_prominence_full)
-            io.imwrite(output_path_name+'_prominence.tiff', numpy.average(peak_prominence_full, axis=-1))
-            del peak_prominence_full
+                del peak_prominence_full
+            io.imwrite(output_path_name+'_prominence.tiff',
+                       toolbox.mean_peak_prominence(image, significant_peaks, use_gpu=toolbox.gpu_available))
 
         if PEAKWIDTH:
-            peak_width_full = toolbox.peak_width(image, significant_peaks, use_gpu=toolbox.gpu_available)
             if args['detailed']:
+                peak_width_full = toolbox.peak_width(image, significant_peaks, use_gpu=toolbox.gpu_available)
                 io.imwrite(output_path_name+'_peakwidth_detailed.tiff', peak_width_full)
+                del peak_width_full
             io.imwrite(output_path_name+'_peakwidth.tiff',
-                       numpy.sum(peak_width_full, axis=-1) /
-                       numpy.maximum(1, numpy.count_nonzero(significant_peaks_cpu, axis=-1)))
-            del peak_width_full
+                       toolbox.mean_peak_width(image, significant_peaks, use_gpu=toolbox.gpu_available))
 
         if args['no_centroids']:
             centroids = toolbox.centroid_correction(image, significant_peaks, use_gpu=toolbox.gpu_available,
                                                     return_numpy=not toolbox.gpu_available)
             if args['detailed']:
-                io.imwrite(output_path_name+'_centroid_correction.tiff', centroids)
+                if toolbox.gpu_available:
+                    centroids_cpu = centroids.get()
+                else:
+                    centroids_cpu = centroids
+                io.imwrite(output_path_name+'_centroid_correction.tiff', centroids_cpu)
         else:
             if toolbox.gpu_available:
                 centroids = cupy.zeros(image.shape)
@@ -179,13 +183,12 @@ if __name__ == "__main__":
                 centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
-            peak_distance_full = toolbox.peak_distance(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
             if args['detailed']:
+                peak_distance_full = toolbox.peak_distance(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
                 io.imwrite(output_path_name + '_distance_detailed.tiff', peak_distance_full)
+                del peak_distance_full
             io.imwrite(output_path_name + '_distance.tiff',
-                       numpy.sum(peak_distance_full, axis=-1) /
-                       numpy.maximum(1, numpy.count_nonzero(significant_peaks_cpu, axis=-1)))
-            del peak_distance_full
+                       toolbox.mean_peak_distance(significant_peaks, centroids, use_gpu=toolbox.gpu_available))
 
         if DIRECTION:
             direction = toolbox.direction(significant_peaks, centroids, use_gpu=toolbox.gpu_available)
