@@ -1,3 +1,5 @@
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02675/status.svg)](https://doi.org/10.21105/joss.02675)
+
 # SLIX &ndash; Scattered Light Imaging ToolboX
 
 ![https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/SLIX_Logo.png)
