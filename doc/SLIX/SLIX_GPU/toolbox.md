@@ -1,11 +1,11 @@
-Module SLIX.toolbox
-===================
+Module SLIX.SLIX_GPU.toolbox
+============================
 
 Functions
 ---------
 
     
-`background_mask(image, threshold=10, use_gpu=True, return_numpy=True)`
+`background_mask(image, threshold=10, return_numpy=True)`
 :   Creates a background mask by setting all image pixels with low scattering signals to zero. As all background pixels
     are near zero for all images in the SLI image stack, this method should remove most of the background allowing
     for better approximations using the available features. It is advised to use this function.
@@ -14,7 +14,6 @@ Functions
     ----------
     image: Complete SLI measurement image stack as a 2D/3D Numpy array
     threshold: Threshhold for mask creation (default: 10)
-    use_gpu: If available use the GPU for calculation
     return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
     
     Returns
@@ -22,7 +21,7 @@ Functions
     numpy.array: 1D/2D-image which masks the background as True and foreground as False
 
     
-`centroid_correction(image, peak_image, low_prominence=0.08, high_prominence=inf, use_gpu=True, return_numpy=True)`
+`centroid_correction(image, peak_image, low_prominence=0.08, high_prominence=None, return_numpy=True)`
 :   Correct peak positions from a line profile by looking at only the peak with a given threshold using a centroid
     calculation. If a minimum is found in the considered interval, this minimum will be used as the limit instead.
     The range for the peak correction is limited by MAX_DISTANCE_FOR_CENTROID_ESTIMATION.
@@ -34,15 +33,14 @@ Functions
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     low_prominence: Lower prominence bound for detecting a peak.
     high_prominence: Higher prominence bound for detecting a peak.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     NumPy array with the positions of all detected peak positions corrected with the centroid calculation.
 
     
-`direction(peak_image, centroids, number_of_directions=3, use_gpu=True, return_numpy=True)`
+`direction(peak_image, centroids, number_of_directions=3, return_numpy=True)`
 :   Calculate up to `number_of_directions` direction angles based on the given peak positions.
     If more than `number_of_directions*2` peaks are present, no
     direction angle will be calculated to avoid errors. This will result in a direction angle of BACKGROUND_COLOR.
@@ -55,8 +53,7 @@ Functions
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     centroids: Centroids resulting from `centroid_correction` for more accurate results
     number_of_directions: Number of directions which shall be generated.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
@@ -65,7 +62,7 @@ Functions
     will be BACKGROUND_COLOR instead.
 
     
-`mean_peak_distance(peak_image, centroids, use_gpu=True, return_numpy=True)`
+`mean_peak_distance(peak_image, centroids, return_numpy=True)`
 :   Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image
     series.
     
@@ -74,15 +71,14 @@ Functions
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     centroids: Use centroid calculation to better determine the peak position regardless of the number of
     measurements / illumination angles used.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     NumPy array of floating point values containing the mean peak distance of the line profiles in degrees.
 
     
-`mean_peak_prominence(image, peak_image=None, kind_of_normalization=1, use_gpu=True, return_numpy=True)`
+`mean_peak_prominence(image, peak_image=None, kind_of_normalization=0, return_numpy=True)`
 :   Calculate the mean peak prominence of all given peak positions within a line profile. The line profile will be
     normalized by dividing the line profile through its mean value. Therefore, values above 1 are possible.
     
@@ -95,15 +91,14 @@ Functions
                            kind_of_normalization parameter.
                            0 : Scale line profile to be between 0 and 1
                            1 : Divide line profile through its mean value
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     Floating point value containing the mean peak prominence of the line profile in degrees.
 
     
-`mean_peak_width(image, peak_image=None, target_height=0.5, use_gpu=True, return_numpy=True)`
+`mean_peak_width(image, peak_image=None, target_height=0.5, return_numpy=True)`
 :   Calculate the mean peak width of all given peak positions within a line profile.
     
     Parameters
@@ -112,25 +107,38 @@ Functions
            analyzed to better determine the peak positions.
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     target_height: Relative peak height in relation to the prominence of the peak
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     NumPy array where each entry corresponds to the mean peak width of the line profile. The values are in degree.
 
     
-`num_peaks(image, low_prominence=0.08, high_prominence=inf, use_gpu=True, return_numpy=True)`
+`normalize(image, kind_of_normalization=0, return_numpy=True)`
+:   Normalize given line profile by using a normalization technique based on the kind_of_normalization parameter.
+    
+    0 : Scale line profile to be between 0 and 1
+    1 : Divide line profile through its mean value
+    
+    Arguments:
+        image: Full SLI measurement (series of images) which is 
+               prepared for the pipeline using the SLIX toolbox methods.
+        kind_of_normalization: Normalization technique which will be used for the calculation
+        return_numpy:  Specifies if a CuPy or Numpy array will be returned.
+    
+    Returns:
+        numpy.array -- Image where each pixel is normalized by the last axis of the image
+
+    
+`num_peaks(image=None, peak_image=None, return_numpy=True)`
 :   Calculate the number of peaks from each line profile in an SLI image series by detecting
     all peaks and applying thresholds to remove unwanted peaks.
     
     Parameters
     ----------
     image: Full SLI measurement (series of images) which is prepared for the pipeline using the SLIX toolbox methods.
-    low_prominence: Lower prominence bound for detecting a peak.
-    high_prominence: Higher prominence bound for detecting a peak.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
@@ -138,7 +146,7 @@ Functions
     first dimension of the SLI image series.
 
     
-`peak_distance(peak_image, centroids, use_gpu=True, return_numpy=True)`
+`peak_distance(peak_image, centroids, return_numpy=True)`
 :   Calculate the mean peak distance in degrees between two corresponding peaks for each line profile in an SLI image
     series.
     
@@ -147,8 +155,7 @@ Functions
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     centroids: Use centroid calculation to better determine the peak position regardless of the number of
     measurements / illumination angles used.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
@@ -157,7 +164,7 @@ Functions
     the second peak will show 360 - (peak_2 - peak_1).
 
     
-`peak_prominence(image, peak_image=None, kind_of_normalization=1, use_gpu=True, return_numpy=True)`
+`peak_prominence(image, peak_image=None, kind_of_normalization=0, return_numpy=True)`
 :   Calculate the peak prominence of all given peak positions within a line profile. The line profile will be
     normalized by dividing the line profile through its mean value. Therefore, values above 1 are possible.
     
@@ -170,15 +177,14 @@ Functions
                            kind_of_normalization parameter.
                            0 : Scale line profile to be between 0 and 1
                            1 : Divide line profile through its mean value
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     Floating point value containing the mean peak prominence of the line profile in degrees.
 
     
-`peak_width(image, peak_image=None, target_height=0.5, use_gpu=True, return_numpy=True)`
+`peak_width(image, peak_image=None, target_height=0.5, return_numpy=True)`
 :   Calculate the peak width of all given peak positions within a line profile.
     
     Parameters
@@ -187,55 +193,34 @@ Functions
            analyzed to better determine the peak positions.
     peak_image: Boolean NumPy array specifying the peak positions in the full SLI stack
     target_height: Relative peak height in relation to the prominence of the peak
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     NumPy array where each entry corresponds to the peak width of the line profile. The values are in degree.
 
     
-`peaks(image, use_gpu=True, return_numpy=True)`
+`peaks(image, return_numpy=True)`
 :   Detect all peaks from a full SLI measurement. Peaks will not be filtered in any way.
     To detect only significant peaks, filter the peaks by using the prominence as a threshold.
     
     Parameters
     ----------
     image: Complete SLI measurement image stack as a 2D/3D Numpy array
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------
     2D/3D boolean image containing masking the peaks with `True`
 
     
-`significant_peaks(image, low_prominence=0.08, high_prominence=inf, use_gpu=True, return_numpy=True)`
-:   Detect all peaks from a full SLI measurement and filter them by passing thresholds.
-    
-    Parameters
-    ----------
-    image: Complete SLI measurement image stack as a 2D/3D Numpy array
-    low_prominence: Minimum prominence needed by peak to count as a peak.
-                    Peaks below this threshold will not be considered as a peak.
-    high_prominence: Maximum prominence needed by peak to count as a peak.
-                     Peaks below this threshold will not be considered as a peak.
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
-    
-    Returns
-    -------
-    2D/3D boolean image containing masking the peaks with `True`
-
-    
-`unit_vectors(direction, use_gpu=True, return_numpy=True)`
+`unit_vectors(direction, return_numpy=True)`
 :   Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
     
     Parameters
     ----------
     direction: 3D NumPy array - direction angles in degrees
-    use_gpu: If available use the GPU for calculation
-    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+    return_numpy:  Specifies if a CuPy or Numpy array will be returned.
     
     Returns
     -------

@@ -23,20 +23,6 @@ Functions
     2D or 3D NumPy array with reduced image dimensions.
 
     
-`unit_vectors(directions)`
-:   Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
-    
-    Parameters
-    ----------
-    directions: 3D NumPy array
-        direction angles in degrees
-    
-    Returns
-    -------
-    UnitX, UnitY: 3D NumPy array, 3D NumPy array
-        x- and y-vector component in arrays
-
-    
 `visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1, cmap='viridis', vmin=0, vmax=None, colorbar=True)`
 :   This method will create a Matplotlib plot based on imshow to display the given parameter map in different colors.
     The parameter map is plotted to the current axis and figure. If neither is given, the method will create a new

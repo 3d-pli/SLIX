@@ -15,6 +15,23 @@ import numpy
 
 
 def background_mask(image, threshold=10, use_gpu=gpu_available, return_numpy=True):
+    """
+    Creates a background mask by setting all image pixels with low scattering signals to zero. As all background pixels
+    are near zero for all images in the SLI image stack, this method should remove most of the background allowing
+    for better approximations using the available features. It is advised to use this function.
+
+    Parameters
+    ----------
+    image: Complete SLI measurement image stack as a 2D/3D Numpy array
+    threshold: Threshhold for mask creation (default: 10)
+    use_gpu: If available use the GPU for calculation
+    return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy array will be returned.
+
+    Returns
+    -------
+    numpy.array: 1D/2D-image which masks the background as True and foreground as False
+    """
+
     if use_gpu:
         return gpu_toolbox.background_mask(image, threshold, return_numpy)
     else:
