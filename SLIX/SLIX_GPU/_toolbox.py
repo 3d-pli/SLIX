@@ -3,7 +3,7 @@ import numpy
 
 # DEFAULT PARAMETERS
 BACKGROUND_COLOR = -1
-MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 3
+MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
@@ -263,7 +263,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
                 for interp in range(NUMBER_OF_SAMPLES+1):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
-                    if func_val > sub_peaks[pos] * TARGET_PEAK_HEIGHT:
+                    if func_val > TARGET_PEAK_HEIGHT:
                         centroid_sum_top += (x + step) * func_val
                         centroid_sum_bottom += func_val
 

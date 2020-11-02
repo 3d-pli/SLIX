@@ -196,6 +196,29 @@ class TestCommandFullImage:
                                      '--input',
                                      'tests/files/demo.nii',
                                      '--output',
+                                     'tests/files/output/single/cpu',
+                                     '--direction',
+                                     '--no_centroids']):
+            cmd_full_image.main()
+            assert os.path.isdir('tests/files/output/cpu')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_high_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_low_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakwidth.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakprominence.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakdistance.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_max.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_min.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_avg.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir.tiff')
+            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_1.tiff')
+            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_2.tiff')
+            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_3.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_background_mask.tiff')
+
+        with mock.patch('sys.argv', ['SLIXParameterGenerator',
+                                     '--input',
+                                     'tests/files/demo.nii',
+                                     '--output',
                                      'tests/files/output/detailed/gpu',
                                      '--detailed']):
             cmd_full_image.main()

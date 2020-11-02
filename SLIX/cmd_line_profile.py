@@ -5,6 +5,7 @@ import numpy
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, SUPPRESS
 import os
 import tqdm
+from matplotlib import pyplot as plt
 
 
 def create_argument_parser():
@@ -34,6 +35,12 @@ def create_argument_parser():
                                ' for further evaluation. (Default: 8%% of'
                                ' total signal amplitude.) Only recommended for'
                                ' experienced users!')
+    optional.add_argument('--with_plots',
+                          action='store_true',
+                          help='Generates plots (png-files) showing the SLI '
+                               'profiles and the determined peak positions '
+                               '(orange dots: before correction; '
+                               'green crosses: after correction).')
     optional.add_argument(
         '-h',
         '--help',
@@ -130,11 +137,11 @@ def main():
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=False)
             output_string += 'High Prominence Peaks,' + \
-                             str(int(numpy.sum(significant_peaks, axis=-1)))\
+                             str(int(numpy.sum(significant_peaks, axis=-1))) \
                              + '\n'
             output_string += 'Low Prominence Peaks,' + \
                              str(int(numpy.sum(peaks, axis=-1) -
-                                 numpy.sum(significant_peaks, axis=-1)))\
+                                     numpy.sum(significant_peaks, axis=-1))) \
                              + '\n'
 
         if PEAKPROMINENCE:
@@ -185,6 +192,20 @@ def main():
             output_string += 'Avg,' + str(float(avg_img.flatten())) + '\n'
             del avg_img
 
-        with open(output_path_name+'.csv', mode='w') as f:
+        if args['with_plots']:
+            plt.plot(image.flatten())
+            significant_peaks = numpy.argwhere(significant_peaks.flatten()).flatten()
+            centroids = centroids.flatten()[significant_peaks]
+            plt.plot(significant_peaks,
+                     image.flatten()[significant_peaks], 'x')
+            b = image.flatten()[(significant_peaks + numpy.minimum(numpy.sign(centroids), 0)).astype('int')]
+            a = image.flatten()[((significant_peaks + numpy.maximum(numpy.sign(centroids), 0)) % len(image.flatten())).astype('int')] - \
+                image.flatten()[(significant_peaks + numpy.minimum(numpy.sign(centroids), 0)).astype('int')]
+            centroid_positions = a * numpy.abs(centroids) + b
+            plt.plot(significant_peaks + centroids.flatten(),
+                     centroid_positions, 'o')
+            plt.show()
+
+        with open(output_path_name + '.csv', mode='w') as f:
             f.write(output_string)
             f.flush()
