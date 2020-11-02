@@ -156,7 +156,7 @@ def main():
 
         significant_peaks = toolbox.\
             significant_peaks(image,
-                              low_prominence=toolbox['prominence_theshold'],
+                              low_prominence=args['prominence_threshold'],
                               use_gpu=toolbox.gpu_available,
                               return_numpy=not toolbox.gpu_available)
         if toolbox.gpu_available:
@@ -184,10 +184,10 @@ def main():
                                             peak_image=significant_peaks,
                                             kind_of_normalization=1,
                                             use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name+'_prominence_detailed.tiff',
+                io.imwrite(output_path_name+'_peakprominence_detailed.tiff',
                            peak_prominence_full)
                 del peak_prominence_full
-            io.imwrite(output_path_name+'_prominence.tiff',
+            io.imwrite(output_path_name+'_peakprominence.tiff',
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
                                             use_gpu=toolbox.gpu_available))
@@ -227,10 +227,10 @@ def main():
                 peak_distance_full = toolbox.\
                     peak_distance(significant_peaks, centroids,
                                   use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_distance_detailed.tiff',
+                io.imwrite(output_path_name + '_peakdistance_detailed.tiff',
                            peak_distance_full)
                 del peak_distance_full
-            io.imwrite(output_path_name + '_distance.tiff',
+            io.imwrite(output_path_name + '_peakdistance.tiff',
                        toolbox.
                        mean_peak_distance(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available))
@@ -239,7 +239,7 @@ def main():
             direction = toolbox.direction(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available)
             for dim in range(direction.shape[-1]):
-                io.imwrite(output_path_name+'_direction_'+str(dim+1)+'.tiff',
+                io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
                            direction[:, :, dim])
 
         if OPTIONAL:
