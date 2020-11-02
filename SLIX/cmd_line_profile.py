@@ -193,18 +193,33 @@ def main():
             del avg_img
 
         if args['with_plots']:
-            plt.plot(image.flatten())
-            significant_peaks = numpy.argwhere(significant_peaks.flatten()).flatten()
+            image = image.flatten()
+            plt.plot(image)
+            significant_peaks = numpy.argwhere(significant_peaks.flatten())\
+                .flatten()
             centroids = centroids.flatten()[significant_peaks]
             plt.plot(significant_peaks,
-                     image.flatten()[significant_peaks], 'x')
-            b = image.flatten()[(significant_peaks + numpy.minimum(numpy.sign(centroids), 0)).astype('int')]
-            a = image.flatten()[((significant_peaks + numpy.maximum(numpy.sign(centroids), 0)) % len(image.flatten())).astype('int')] - \
-                image.flatten()[(significant_peaks + numpy.minimum(numpy.sign(centroids), 0)).astype('int')]
-            centroid_positions = a * numpy.abs(centroids) + b
-            plt.plot(significant_peaks + centroids.flatten(),
-                     centroid_positions, 'o')
-            plt.show()
+                     image[significant_peaks], 'x',
+                     label='Peak position')
+
+            centroid_positions = numpy.where(centroids < 0,
+                                             # True
+                                             image[significant_peaks] -
+                                             (image[significant_peaks] -
+                                              image[significant_peaks - 1]) *
+                                             numpy.abs(centroids),
+                                             # False
+                                             image[significant_peaks] +
+                                             (image[(significant_peaks + 1) %
+                                                    len(image)] -
+                                              image[significant_peaks]) *
+                                             centroids)
+
+            plt.plot(significant_peaks + centroids,
+                     centroid_positions, 'o', label='Corrected peak position')
+            plt.legend()
+            plt.savefig(output_path_name + '.png', dpi=100)
+            plt.clf()
 
         with open(output_path_name + '.csv', mode='w') as f:
             f.write(output_string)
