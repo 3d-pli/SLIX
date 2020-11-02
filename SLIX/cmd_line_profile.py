@@ -219,7 +219,7 @@ def main():
                      centroid_positions, 'o', label='Corrected peak position')
             plt.legend()
             plt.savefig(output_path_name + '.png', dpi=100)
-            plt.clf()
+            plt.close()
 
         with open(output_path_name + '.csv', mode='w') as f:
             f.write(output_string)
