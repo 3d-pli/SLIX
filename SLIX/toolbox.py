@@ -1,21 +1,19 @@
 try:
     try:
         import cupy
-
         cupy.empty(0)
         from SLIX.SLIX_GPU import toolbox as gpu_toolbox
 
         gpu_available = True
     except cupy.cuda.runtime.CUDARuntimeError:
         gpu_available = False
-except (ModuleNotFoundError, NameError):
+except (ModuleNotFoundError, NameError) as error:
     gpu_available = False
     print(
         '[WARNING] CuPy is not installed. The toolbox will use the CPU '
         'variant instead. If you want to use the GPU variant, please run '
         '`pip install cupy`.')
 import numpy
-
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
 
 

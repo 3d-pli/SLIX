@@ -7,7 +7,6 @@ MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 3
 
 NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.94
-TARGET_PROMINENCE = 0.08
 
 
 @cuda.jit('void(float32[:, :, :], int8[:, :, :])')

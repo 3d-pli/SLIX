@@ -51,6 +51,14 @@ def create_argument_parser():
                                'of the GPU variant. This is only recommended '
                                'if your GPU is significantly slower than your '
                                'CPU.')
+    optional.add_argument('--prominence_threshold',
+                          type=float,
+                          default=0.08,
+                          help='Change the threshold for prominent peaks. Peaks'
+                               ' with lower prominences will not be used'
+                               ' for further evaluation. (Default: 8%% of'
+                               ' total signal amplitude.) Only recommended for'
+                               ' experienced users!')
     optional.add_argument(
         '-h',
         '--help',
@@ -132,7 +140,6 @@ def main():
 
     tqdm_paths = tqdm.tqdm(paths)
     for path in tqdm_paths:
-        folder = os.path.dirname(path)
         filename_without_extension = \
             os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
@@ -148,7 +155,9 @@ def main():
             io.imwrite(output_path_name + '_background_mask.tiff', mask)
 
         significant_peaks = toolbox.\
-            significant_peaks(image, use_gpu=toolbox.gpu_available,
+            significant_peaks(image,
+                              low_prominence=toolbox['prominence_theshold'],
+                              use_gpu=toolbox.gpu_available,
                               return_numpy=not toolbox.gpu_available)
         if toolbox.gpu_available:
             significant_peaks_cpu = significant_peaks.get()

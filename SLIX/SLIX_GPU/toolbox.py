@@ -3,8 +3,10 @@ import numpy
 from numba import cuda
 
 from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, \
-    _peakdistance, TARGET_PROMINENCE, _centroid_correction_bases, _centroid, \
+    _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks
+
+TARGET_PROMINENCE=0.08
 
 
 def background_mask(image, threshold=10, return_numpy=True):
