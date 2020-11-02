@@ -118,5 +118,29 @@ class TestCommandFullImage:
         assert args['peakdistance'] == True
         assert args['optional'] == True
 
+        test_string = minimal_string + ' --detailed'
+        args = vars(argparse.parse_args(shlex.split(test_string)))
+        assert args['input'] == ['input']
+        assert args['output'] == 'output'
+        assert args['detailed'] == True
+
+        test_string = minimal_string + ' --with_mask'
+        args = vars(argparse.parse_args(shlex.split(test_string)))
+        assert args['input'] == ['input']
+        assert args['output'] == 'output'
+        assert args['with_mask'] == True
+
+        test_string = minimal_string + ' --mask_threshold 55'
+        args = vars(argparse.parse_args(shlex.split(test_string)))
+        assert args['input'] == ['input']
+        assert args['output'] == 'output'
+        assert args['mask_threshold'] == 55
+
+        test_string = minimal_string + ' --disable_gpu'
+        args = vars(argparse.parse_args(shlex.split(test_string)))
+        assert args['input'] == ['input']
+        assert args['output'] == 'output'
+        assert args['disable_gpu'] == False
+
     def test_main(self):
         pass
