@@ -47,8 +47,9 @@ def create_argument_parser():
                                'more effectively.')
     optional.add_argument('--with_smoothing',
                           action='store_true',
-                          help='Apply smoothing for individual roi curves for noisy images.'
-                               'Recommended for measurements with less than 5 degree between each image.')
+                          help='Apply smoothing for individual roi curves for '
+                               'noisy images. Recommended for measurements'
+                               ' with less than 5 degree between each image.')
     optional.add_argument('--disable_gpu',
                           action='store_false',
                           help='Use the CPU in combination with Numba instead '
