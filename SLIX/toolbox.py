@@ -14,7 +14,14 @@ except (ModuleNotFoundError, NameError) as error:
         'variant instead. If you want to use the GPU variant, please run '
         '`pip install cupy`.')
 import numpy
+import scipy.signal
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
+
+
+def apply_smoothing(image, window_length=45, polyorder=10):
+    conc_image = numpy.concatenate((image[:, :, image.shape[2]//2:], image, image[:, :, :image.shape[2]//2]), axis=-1)
+    conc_image = scipy.signal.savgol_filter(conc_image, window_length, polyorder, axis=-1)
+    return conc_image[:, :, image.shape[2]//2:-image.shape[2]//2]
 
 
 def background_mask(image, threshold=10, use_gpu=gpu_available,

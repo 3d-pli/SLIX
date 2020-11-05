@@ -45,6 +45,10 @@ def create_argument_parser():
                                'in the removal of some of the gray matter in '
                                'the mask but will remove the background '
                                'more effectively.')
+    optional.add_argument('--with_smoothing',
+                          action='store_true',
+                          help='Apply smoothing for individual roi curves for noisy images.'
+                               'Recommended for measurements with less than 5 degree between each image.')
     optional.add_argument('--disable_gpu',
                           action='store_false',
                           help='Use the CPU in combination with Numba instead '
@@ -138,6 +142,15 @@ def main():
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
+    number_of_param_maps = numpy.count_nonzero([DIRECTION,
+                                                PEAKS,
+                                                PEAKPROMINENCE,
+                                                PEAKWIDTH,
+                                                PEAKDISTANCE,
+                                                OPTIONAL,
+                                                args['with_smoothing'],
+                                                args['with_mask'],
+                                                not args['no_centroids']]) + 1
     tqdm_paths = tqdm.tqdm(paths)
     for path in tqdm_paths:
         filename_without_extension = \
@@ -145,15 +158,28 @@ def main():
         output_path_name = args['output'] + '/' + filename_without_extension
         tqdm_paths.set_description(filename_without_extension)
 
+        tqdm_step = tqdm.tqdm(total=number_of_param_maps)
+        tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        tqdm_step.update(1)
+
+        if args['with_smoothing']:
+            tqdm_step.set_description('Applying smoothing')
+            image = toolbox.apply_smoothing(image)
+            tqdm_step.update(1)
+
         if toolbox.gpu_available:
             image = cupy.array(image)
+
         if args['with_mask']:
+            tqdm_step.set_description('Creating mask')
             mask = toolbox.background_mask(image, args['mask_threshold'],
                                            use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
             io.imwrite(output_path_name + '_background_mask.tiff', mask)
+            tqdm_step.update(1)
 
+        tqdm_step.set_description('Generating peaks')
         significant_peaks = toolbox.\
             significant_peaks(image,
                               low_prominence=args['prominence_threshold'],
@@ -176,8 +202,10 @@ def main():
             io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
                        numpy.sum(peaks, axis=-1) -
                        numpy.sum(significant_peaks_cpu, axis=-1))
+        tqdm_step.update(1)
 
         if PEAKPROMINENCE:
+            tqdm_step.set_description('Generating peak prominence')
             if args['detailed']:
                 peak_prominence_full = \
                     toolbox.peak_prominence(image,
@@ -191,8 +219,10 @@ def main():
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
                                             use_gpu=toolbox.gpu_available))
+            tqdm_step.update(1)
 
         if PEAKWIDTH:
+            tqdm_step.set_description('Generating peak width')
             if args['detailed']:
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
@@ -203,8 +233,10 @@ def main():
             io.imwrite(output_path_name+'_peakwidth.tiff',
                        toolbox.mean_peak_width(image, significant_peaks,
                                                use_gpu=toolbox.gpu_available))
+            tqdm_step.update(1)
 
         if args['no_centroids']:
+            tqdm_step.set_description('Generating centroids')
             centroids = toolbox.\
                 centroid_correction(image, significant_peaks,
                                     use_gpu=toolbox.gpu_available,
@@ -216,6 +248,7 @@ def main():
                     centroids_cpu = centroids
                 io.imwrite(output_path_name+'_centroid_correction.tiff',
                            centroids_cpu)
+            tqdm_step.update(1)
         else:
             if toolbox.gpu_available:
                 centroids = cupy.zeros(image.shape)
@@ -223,6 +256,7 @@ def main():
                 centroids = numpy.zeros(image.shape)
 
         if PEAKDISTANCE:
+            tqdm_step.set_description('Generating peak distance')
             if args['detailed']:
                 peak_distance_full = toolbox.\
                     peak_distance(significant_peaks, centroids,
@@ -234,15 +268,19 @@ def main():
                        toolbox.
                        mean_peak_distance(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available))
+            tqdm_step.update(1)
 
         if DIRECTION:
+            tqdm_step.set_description('Generating direction')
             direction = toolbox.direction(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available)
             for dim in range(direction.shape[-1]):
                 io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
                            direction[:, :, dim])
+            tqdm_step.update(1)
 
         if OPTIONAL:
+            tqdm_step.set_description('Generating optional maps')
             if toolbox.gpu_available:
                 image = image.get()
             min_img = numpy.min(image, axis=-1)
@@ -262,3 +300,4 @@ def main():
                           number_of_directions=1,
                           use_gpu=toolbox.gpu_available)
             io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
+            tqdm_step.update(1)
