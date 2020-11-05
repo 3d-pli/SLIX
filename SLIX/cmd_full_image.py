@@ -153,13 +153,13 @@ def main():
                                                 args['with_mask'],
                                                 not args['no_centroids']]) + 1
     tqdm_paths = tqdm.tqdm(paths)
+    tqdm_step = tqdm.tqdm(total=number_of_param_maps)
     for path in tqdm_paths:
         filename_without_extension = \
             os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
         tqdm_paths.set_description(filename_without_extension)
 
-        tqdm_step = tqdm.tqdm(total=number_of_param_maps)
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
         tqdm_step.update(1)
@@ -302,3 +302,6 @@ def main():
                           use_gpu=toolbox.gpu_available)
             io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
             tqdm_step.update(1)
+
+        tqdm_step.reset()
+    tqdm_step.close()
