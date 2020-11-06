@@ -27,9 +27,13 @@ def apply_smoothing(image, window_length=45, polyorder=2):
 
 
 def thin_out(image, factor=2, strategy='plain'):
+    strategy = strategy.lower()
     if strategy == 'plain':
         return _thin_out_plain(image, factor)
     elif strategy == 'average':
         return _thin_out_average(image, factor)
     elif strategy == 'median':
         return _thin_out_median(image, factor)
+    else:
+        raise ValueError('Strategy not implemented. Known strategies are:'
+                         ' plain, average, median.')
