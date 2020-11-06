@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from SLIX import toolbox, io
+from SLIX import toolbox, io, preparation
 if toolbox.gpu_available:
     import cupy
 import numpy
@@ -45,9 +45,15 @@ def create_argument_parser():
                                'in the removal of some of the gray matter in '
                                'the mask but will remove the background '
                                'more effectively.')
+    optional.add_argument('--thinout',
+                          type=int,
+                          default=1,
+                          help='Average every NxN pixels in the SLI image '
+                               'stack and run the evaluation on the resulting '
+                               '(downsampled) images.')
     optional.add_argument('--with_smoothing',
                           action='store_true',
-                          help='Apply smoothing for individual roi curves for '
+                          help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
                                ' with less than 5 degree between each image.')
     optional.add_argument('--disable_gpu',
@@ -61,8 +67,7 @@ def create_argument_parser():
                           default=0.08,
                           help='Change the threshold for prominent peaks. Peaks'
                                ' with lower prominences will not be used'
-                               ' for further evaluation. (Default: 8%% of'
-                               ' total signal amplitude.) Only recommended for'
+                               ' for further evaluation. Only recommended for'
                                ' experienced users!')
     optional.add_argument(
         '-h',
@@ -162,11 +167,15 @@ def main():
 
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        if args['thinout'] > 1:
+            image = preparation.thin_out(image, args['thinout'],
+                                         strategy='average')
+            io.imwrite(output_path_name + '_image.tiff', image)
         tqdm_step.update(1)
 
         if args['with_smoothing']:
             tqdm_step.set_description('Applying smoothing')
-            image = toolbox.apply_smoothing(image)
+            image = preparation.apply_smoothing(image)
             tqdm_step.update(1)
 
         if toolbox.gpu_available:

@@ -6,8 +6,11 @@ try:
 
         gpu_available = True
     except cupy.cuda.runtime.CUDARuntimeError:
+        print(
+            '[WARNING] CuPy is installed but an error was thrown by the '
+            'runtime. SLIX will fall back to the CPU variant.')
         gpu_available = False
-except (ModuleNotFoundError, NameError) as error:
+except (ModuleNotFoundError, NameError):
     gpu_available = False
     print(
         '[WARNING] CuPy is not installed. The toolbox will use the CPU '
@@ -16,28 +19,6 @@ except (ModuleNotFoundError, NameError) as error:
 import numpy
 import scipy.signal
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
-
-
-def apply_smoothing(image, window_length=45, polyorder=2):
-    """
-    Applies Savitzky-Golay filter to given roiset and returns the
-    smoothened measurement.
-
-    Args:
-        image: Complete SLI measurement image stack as a 2D/3D Numpy array
-        window_length: Used window length for the Savitzky-Golay filter
-        polyorder: Used polynomial order for the Savitzky-Golay filter
-
-    Returns: Complete SLI measurement image with applied Savitzky-Golay filter
-    and the same shape as the original image.
-    """
-
-    conc_image = numpy.concatenate((image[:, :, image.shape[2]//2:],
-                                    image,
-                                    image[:, :, :image.shape[2]//2]), axis=-1)
-    conc_image = scipy.signal.savgol_filter(conc_image, window_length,
-                                            polyorder, axis=-1)
-    return conc_image[:, :, image.shape[2]//2:-image.shape[2]//2]
 
 
 def background_mask(image, threshold=10, use_gpu=gpu_available,
