@@ -5,3 +5,4 @@ omit =
     tests/test_numba_gpu.py
     SLIX/SLIX_CPU/_toolbox.py
     SLIX/SLIX_GPU/_toolbox.py
+    SLIX/_preparation.py

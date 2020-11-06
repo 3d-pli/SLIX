@@ -6,19 +6,16 @@ try:
 
         gpu_available = True
     except cupy.cuda.runtime.CUDARuntimeError:
-        print(
-            '[WARNING] CuPy is installed but an error was thrown by the '
-            'runtime. SLIX will fall back to the CPU variant.')
+        print('[WARNING] CuPy is installed but an error was thrown by the '
+              'runtime. SLIX will fall back to the CPU variant.')
         gpu_available = False
 except (ModuleNotFoundError, NameError):
     gpu_available = False
-    print(
-        '[WARNING] CuPy is not installed. The toolbox will use the CPU '
-        'variant instead. If you want to use the GPU variant, please run '
-        '`pip install cupy`.')
-import numpy
-import scipy.signal
+    print('[WARNING] CuPy is not installed. The toolbox will use the CPU '
+          'variant instead. If you want to use the GPU variant, please run '
+          '`pip install cupy`.')
 from SLIX.SLIX_CPU import toolbox as cpu_toolbox
+import numpy
 
 
 def background_mask(image, threshold=10, use_gpu=gpu_available,
