@@ -13,6 +13,7 @@
   - [SLI Measurement](#sli-measurement)
   - [SLI Profiles](#sli-profiles)
   - [Parameter Maps](#parameter-maps)
+- [System recommendations](#system-recommendations)
 - [Installation of SLIX](#installation-of-slix)
 - [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
   - [Required Arguments](#required-arguments)
@@ -67,6 +68,13 @@ By evaluating the SLI profiles of each image pixel, *SLIX* generates different p
 - The [direction maps](#direction-angles) show the in-plane direction angles of the nerve fibers for up to three different crossing fibers. The fiber directions can be represented by a colored vector map, as described in the [tutorial](#tutorial) below.
 
 With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) computes the desired parameter maps for all image pixels.
+
+## System recommendations
+- Operating System: Windows, Linux, MacOS
+- Python version: Python 3.6+
+- Processor: At least four threads if executed on CPU only
+- RAM: 8 GiB or more
+- (optional GPU: NVIDIA GPU supported by CUDA 9.0+)
 
 ## Installation of SLIX
 
@@ -296,18 +304,18 @@ The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visua
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/output_unit_vectors.png" height="327">
 
 ## Performance Metrics
-The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py` (generation of all parameter maps with high resolution: `--optional --roisize 1 --detailed`) ten times. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark.
+The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark.
 
 | CPU | Operating system | With GPU | Time in seconds for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
 | ------------ | --------------------- | ----------------- | --------------------- |
-| Intel Core i5-3470 | Ubuntu 20.04 LTS | NVIDIA GTX 1070 | 34.169 ± 0.975 |
 | Intel Core i5-3470 | Ubuntu 20.04 LTS | Disabled | 77.768 ± 6.101 |
+| Intel Core i5-3470 | Ubuntu 20.04 LTS | NVIDIA GTX 1070 | 34.169 ± 0.975 |
 | 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | Disabled | 42.363 ± 3.475 |
 | 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | NVIDIA GTX 1080 | 27.712 ± 4.052 |
-| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | NVIDIA GTX 1070 | (placeholder) 35.169 ± 0.975 |
-| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | Disabled | (placeholder) 39.169 ± 0.975 |
+| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | Disabled | t.b.d. |
+| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | NVIDIA GTX 1070 | t.b.d. |
 | Intel Core i5-8350U | Ubuntu 20.10 | -N/A- | 58.945 ± 2.799 |
-
+| Intel Core i7-7820HQ | MacOS Big Sur Beta 11 | -N/A- | t.b.d.|
 ## Authors
 - Jan André Reuter
 - Miriam Menzel
