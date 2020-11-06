@@ -134,11 +134,12 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
     """
     if use_gpu:
         peaks = significant_peaks(image, low_prominence, high_prominence,
-                                  False)
+                                  return_numpy=False)
         return gpu_toolbox.num_peaks(peak_image=peaks,
                                      return_numpy=return_numpy)
     else:
-        peaks = significant_peaks(image, low_prominence, high_prominence)
+        peaks = significant_peaks(image, low_prominence, high_prominence,
+                                  use_gpu=False)
         return cpu_toolbox.num_peaks(peak_image=peaks)
 
 
