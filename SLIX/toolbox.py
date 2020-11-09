@@ -41,7 +41,7 @@ def background_mask(image, threshold=10, use_gpu=gpu_available,
     as False
     """
 
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.background_mask(image, threshold, return_numpy)
     else:
         return cpu_toolbox.background_mask(image, threshold)
@@ -65,7 +65,7 @@ def peaks(image, use_gpu=gpu_available, return_numpy=True):
     2D/3D boolean image containing masking the peaks with `True`
     """
 
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.peaks(image, return_numpy)
     else:
         return cpu_toolbox.peaks(image)
@@ -96,7 +96,7 @@ def significant_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
     2D/3D boolean image containing masking the peaks with `True`
 
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         peaks = gpu_toolbox.peaks(image, return_numpy=return_numpy)
         prominences = gpu_toolbox.peak_prominence(image, peaks,
                                                   return_numpy=return_numpy)
@@ -132,7 +132,7 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
     Array where each entry corresponds to the number of detected peaks within
     the first dimension of the SLI image series.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         peaks = significant_peaks(image, low_prominence, high_prominence,
                                   return_numpy=False)
         return gpu_toolbox.num_peaks(peak_image=peaks,
@@ -173,7 +173,7 @@ def direction(peak_image, centroids, number_of_directions=3,
     the SLI image series. If a direction angle is invalid or missing, the
     array entry will be BACKGROUND_COLOR instead.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.direction(peak_image, centroids,
                                      number_of_directions, return_numpy)
     else:
@@ -205,7 +205,7 @@ def peak_distance(peak_image, centroids, use_gpu=gpu_available,
     of each peak pair will show the distance between peak_1 and peak_2 while
     the second peak will show 360 - (peak_2 - peak_1).
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.peak_distance(peak_image, centroids, return_numpy)
     else:
         return cpu_toolbox.peak_distance(peak_image, centroids)
@@ -234,7 +234,7 @@ def mean_peak_distance(peak_image, centroids, use_gpu=gpu_available,
     the line profiles in degrees.
     """
 
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.mean_peak_distance(peak_image, centroids,
                                               return_numpy)
     else:
@@ -267,7 +267,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=1,
     Floating point value containing the mean peak prominence of the line
     profile in degrees.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.peak_prominence(image, peak_image,
                                            kind_of_normalization, return_numpy)
     else:
@@ -301,7 +301,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=1,
     Floating point value containing the mean peak prominence of the line
     profile in degrees.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.mean_peak_prominence(image, peak_image,
                                                 kind_of_normalization,
                                                 return_numpy)
@@ -332,7 +332,7 @@ def peak_width(image, peak_image=None, target_height=0.5,
     NumPy array where each entry corresponds to the peak width of the line
     profile. The values are in degree.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.peak_width(image, peak_image, target_height,
                                       return_numpy=return_numpy)
     else:
@@ -362,7 +362,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5,
     NumPy array where each entry corresponds to the mean peak width of the
     line profile. The values are in degree.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.mean_peak_width(image, peak_image, target_height,
                                            return_numpy=return_numpy)
     else:
@@ -397,7 +397,7 @@ def centroid_correction(image, peak_image,
     NumPy array with the positions of all detected peak positions corrected
     with the centroid calculation.
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.centroid_correction(image, peak_image,
                                                low_prominence, high_prominence,
                                                return_numpy)
@@ -422,7 +422,7 @@ def unit_vectors(direction, use_gpu=gpu_available, return_numpy=True):
     UnitX, UnitY: 3D NumPy array, 3D NumPy array
         x- and y-vector component in arrays
     """
-    if use_gpu:
+    if use_gpu and gpu_available:
         return gpu_toolbox.unit_vectors(direction, return_numpy=return_numpy)
     else:
         return cpu_toolbox.unit_vectors(direction)

@@ -98,7 +98,7 @@ class TestToolbox:
                                                           kind_of_normalization=1, use_gpu=use_gpu)
         assert numpy.isclose(toolbox_prominence, numpy.mean(comparison[comparison > 0]))
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_peakdistance(self, use_gpu):
         # Test one peak
         test_arr = numpy.array(([True, False, False] + [False] * 21))
