@@ -4,7 +4,6 @@ nibabel
 h5py
 pillow
 numba
-cupy>=8.0.0
 matplotlib
 pytest
 flake8

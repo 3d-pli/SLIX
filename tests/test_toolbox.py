@@ -2,9 +2,14 @@ from SLIX import toolbox
 import numpy
 import pytest
 
+if toolbox.gpu_available:
+    use_gpu_arr = [True, False]
+else:
+    use_gpu_arr = [False]
+
 
 class TestToolbox:
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_background_mask(self, use_gpu):
         array = numpy.empty((256, 3))
         array[:, 0] = numpy.zeros(256)
@@ -15,7 +20,7 @@ class TestToolbox:
         assert numpy.all(toolbox_mask[:10] == True)
         assert numpy.all(toolbox_mask[10:] == False)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_all_peaks(self, use_gpu):
         # Create an absolute simple peak array
         arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0])
@@ -54,7 +59,7 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr, use_gpu=use_gpu)
         assert numpy.all(toolbox_peaks == real_peaks)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_num_peaks(self, use_gpu):
         # Create an absolute simple peak array
         test_arr = numpy.array(([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), dtype=bool)
@@ -65,7 +70,7 @@ class TestToolbox:
         expected_value = numpy.count_nonzero(real_peaks[0, 0, :])
         assert numpy.all(toolbox_peaks == expected_value)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_peak_prominence(self, use_gpu):
         # Create an absolute simple peak array
         arr = numpy.array([0, 1, 0, 0.07, 0, 1, 0, 0.07, 0, 1, 0] * 1)
@@ -83,7 +88,7 @@ class TestToolbox:
         assert numpy.all(high_peaks == toolbox_high_peaks)
         assert numpy.all(low_peaks == toolbox_low_peaks)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_mean_peakprominence(self, use_gpu):
         test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0]).reshape(1, 1, 11)
         comparison = toolbox.cpu_toolbox.normalize(test_arr, kind_of_normalization=1)
@@ -133,7 +138,7 @@ class TestToolbox:
         assert toolbox_distance[0, 0, 7] == expected_distance_2
         assert toolbox_distance[0, 0, 15] == 360 - expected_distance_2
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_mean_peakdistance(self, use_gpu):
         # Test four peaks
         test_arr = numpy.array(([False, False, True, False, False, False, False, True, False,
@@ -146,7 +151,7 @@ class TestToolbox:
                                                                                  dtype=float), use_gpu=use_gpu)
         assert numpy.isclose(toolbox_distance[0, 0], expected_distance)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_peakwidth(self, use_gpu):
         test_arr = numpy.array([0, 0.5, 1, 0.5, 0] + [0] * 19)
         test_arr = test_arr.reshape((1, 1, 24))
@@ -157,7 +162,7 @@ class TestToolbox:
         assert toolbox_width[0, 0, 2] == expected_width
         assert numpy.sum(toolbox_width) == expected_width
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_mean_peakwidth(self, use_gpu):
         test_arr = numpy.array([0, 0.5, 1, 0.5, 0, 0, 0.5, 0.6, 0.7, 1, 0.7, 0.6, 0.5] + [0] * 11)
         test_arr = test_arr.reshape((1, 1, 24))
@@ -167,7 +172,7 @@ class TestToolbox:
         toolbox_width = toolbox.mean_peak_width(test_arr, toolbox_peaks, use_gpu=use_gpu)
         assert toolbox_width[0, 0] == expected_width
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_direction(self, use_gpu):
         # Test for one peak
         one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -216,7 +221,7 @@ class TestToolbox:
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_centroid_correction(self, use_gpu):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14)
@@ -250,7 +255,7 @@ class TestToolbox:
         toolbox_centroid = toolbox.centroid_correction(test_array, test_high_peaks, use_gpu=use_gpu)
         assert numpy.isclose(toolbox_centroid[0, 0, 9], 0)
 
-    @pytest.mark.parametrize("use_gpu", [True, False])
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_unit_vectors(self, use_gpu):
         direction = numpy.arange(0, 180).reshape((1, 1, 180))
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=use_gpu)
