@@ -1,13 +1,13 @@
 import SLIX
 
 if SLIX.toolbox.gpu_available:
+    print(SLIX.toolbox.gpu_available)
     from SLIX.SLIX_GPU import _toolbox as ntoolbox
     import cupy
     from numba import cuda
 
     threads_per_block = (1, 1)
     blocks_per_grid = (1, 1)
-
 
     class TestNumbaToolboxGPU:
         def test_peak_cleanup(self):
