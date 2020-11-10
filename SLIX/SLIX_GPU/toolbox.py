@@ -503,7 +503,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
     NumPy array with the positions of all detected peak positions corrected
     with the centroid calculation.
     """
-    gpu_image = cupy.array(image, dtype='float32')
+    gpu_image = normalize(cupy.array(image, dtype='float32'))
     if peak_image is not None:
         gpu_peak_image = cupy.array(peak_image, dtype='uint8')
     else:

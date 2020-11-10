@@ -6,7 +6,7 @@ BACKGROUND_COLOR = -1
 MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
 
 NUMBER_OF_SAMPLES = 100
-TARGET_PEAK_HEIGHT = 0.94
+TARGET_PEAK_HEIGHT = 0.06
 
 
 @cuda.jit('void(float32[:, :, :], int8[:, :, :])')
@@ -212,7 +212,7 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
         if sub_peaks[pos] == 1:
 
             target_peak_height = max(0, sub_image[pos] - max_val *
-                                     (1 - TARGET_PEAK_HEIGHT))
+                                     TARGET_PEAK_HEIGHT)
             left_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
             right_position = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
 
@@ -263,7 +263,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
             centroid_sum_top = 0.0
             centroid_sum_bottom = 1e-15
             target_peak_height = max(0, sub_image[pos] - max_pos *
-                                     (1 - TARGET_PEAK_HEIGHT))
+                                     TARGET_PEAK_HEIGHT)
 
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
