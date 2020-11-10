@@ -253,17 +253,25 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
     sub_left_bases = left_bases[idx, idy]
     sub_right_bases = right_bases[idx, idy]
 
+    max_pos = 0
+    for pos in range(len(sub_image)):
+        if sub_image[pos] > max_pos:
+            max_pos = sub_image[pos]
+
     for pos in range(len(sub_peaks)):
         if sub_peaks[pos] == 1:
             centroid_sum_top = 0.0
             centroid_sum_bottom = 1e-15
+            target_peak_height = max(0, sub_image[pos] - max_pos *
+                                     (1 - TARGET_PEAK_HEIGHT))
+
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
                 next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                 for interp in range(NUMBER_OF_SAMPLES+1):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
-                    if func_val > TARGET_PEAK_HEIGHT:
+                    if func_val > target_peak_height:
                         centroid_sum_top += (x + step) * func_val
                         centroid_sum_bottom += func_val
 
