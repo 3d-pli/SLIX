@@ -184,10 +184,12 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
                         right = (current_position +
                                  sub_centroid_array[current_position]) * \
                                 360.0 / len(sub_peak_array)
-                        if current_number_of_peaks == 2 or \
-                                abs(180 - (right - left)) < 35:
+                        if abs(180 - (right - left)) < 35:
                             result_image[idx, idy, current_direction] = \
                                 (270.0 - ((left + right) / 2.0)) % 180
+                        else:
+                            result_image[idx, idy] = BACKGROUND_COLOR
+                            break
                     current_direction += 1
 
                     if current_direction == current_number_of_peaks // 2:

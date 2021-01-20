@@ -209,14 +209,14 @@ class TestToolbox:
         # Test for angle outside of 180°+-35° distance
         error_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
         error_arr = error_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([82.5, -1, -1])
+        expected_direction = numpy.array([-1, -1, -1])
         peaks = toolbox.peaks(error_arr, use_gpu=use_gpu)
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
         error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
         error_arr = error_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([-1, -1, 60])
+        expected_direction = numpy.array([-1, -1, -1])
         peaks = toolbox.peaks(error_arr, use_gpu=use_gpu)
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
