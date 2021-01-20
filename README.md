@@ -133,7 +133,8 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 | -------------- | --------------------------------------------------------------------------- |
 | `--smoothing`  | Smoothing of SLI profiles before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps to reduce the impact of irrelevant details in the fiber structure, cf. orange vs. black curve in Figure 1c in the [paper](https://github.com/3d-pli/SLIX/blob/master/paper/paper.pdf).) |
 | `--with_plots` | Generates plots (png-files) showing the SLI profiles and the determined peak positions (orange dots: before correction; green crosses: after correction). |
-| `--target_peak_height` | Change peak tip height used for correcting the peak positions. (Default: 6% of total signal amplitude). Only recommended for experienced users! |
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! (default: 0.08) |
+
 
 ### Example
 The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
@@ -200,8 +201,6 @@ The arguments listed below determine which parameter maps will be generated from
 The following example demonstrates the generation of the parameter maps, for two artificially crossing sections of human optic tracts (left) and the upper left corner of a coronal vervet brain section (right): 
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo1.png" height="327">&nbsp;&nbsp;<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo2.png" height="327">
-
-![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
 #### How to run the demo yourself:
 
@@ -304,18 +303,21 @@ The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visua
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/output_unit_vectors.png" height="327">
 
 ## Performance Metrics
-The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark.
+The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark. Each benchmark used an Anaconda environment with Python 3.8.5 and all neccessary packages installed.
 
 | CPU | Operating system | With GPU | Time in seconds for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
 | ------------ | --------------------- | ----------------- | --------------------- |
+| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | Disabled | 23.000 ± 1.374 |
+| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | NVIDIA GTX 1070 | 32.013 ± 0.371 |
+| AMD Ryzen 3700X | Manjaro (Dez 8th 2020) | NVIDIA RTX 3070 | 22.467 ± 0.370 |
+| Intel Core i3-2120 | Ubuntu 18.04 LTS | -N/A- | 86.138 ± 3.57 |
 | Intel Core i5-3470 | Ubuntu 20.04 LTS | Disabled | 77.768 ± 6.101 |
 | Intel Core i5-3470 | Ubuntu 20.04 LTS | NVIDIA GTX 1070 | 34.169 ± 0.975 |
+| Intel Core i5-8350U | Ubuntu 20.10 | -N/A- | 58.945 ± 2.799 |
+| Intel Core i7-7820HQ | MacOS Big Sur | -N/A- | 55.709 ± 3.446 |
 | 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | Disabled | 42.363 ± 3.475 |
 | 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | NVIDIA GTX 1080 | 27.712 ± 4.052 |
-| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | Disabled | t.b.d. |
-| AMD Ryzen 3700X | Manjaro (Nov 6th 2020) | NVIDIA GTX 1070 | t.b.d. |
-| Intel Core i5-8350U | Ubuntu 20.10 | -N/A- | 58.945 ± 2.799 |
-| Intel Core i7-7820HQ | MacOS Big Sur Beta 11 | -N/A- | t.b.d.|
+
 ## Authors
 - Jan André Reuter
 - Miriam Menzel

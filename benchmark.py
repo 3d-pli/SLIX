@@ -36,9 +36,14 @@ for i in tqdm.tqdm(range(10)):
     toolbox.mean_peak_prominence(image, sig_peaks, use_gpu=use_gpu)
     toolbox.peak_width(image, sig_peaks, use_gpu=use_gpu)
     toolbox.mean_peak_width(image, sig_peaks, use_gpu=use_gpu)
+    del sig_peaks
+    del centroid
     total_time = time.time() - start
     times.append(total_time)
 
 # Show mean time and standard deviation
-print(numpy.array(times).mean(), numpy.array(times).std())
+average_time = numpy.array(times).mean()
+std_time = numpy.array(times).std()
+print('Used GPU:', toolbox.gpu_available)
+print('Average time is:', average_time, '+-', std_time)
 
