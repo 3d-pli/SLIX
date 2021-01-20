@@ -79,14 +79,14 @@ class TestToolbox:
 
         # Test for angle outside of 180°+-35° distance
         error_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
-        expected_direction = numpy.array([82.5, BACKGROUND_COLOR, BACKGROUND_COLOR])
+        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, BACKGROUND_COLOR])
         peaks = all_peaks(error_arr, cut_edges=False)
         high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
         toolbox_direction = crossing_direction(high_peaks, len(error_arr))
         assert numpy.all(expected_direction == toolbox_direction)
 
         error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
-        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, 60])
+        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, BACKGROUND_COLOR])
         peaks = all_peaks(error_arr, cut_edges=False)
         high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
         toolbox_direction = crossing_direction(high_peaks, len(error_arr))

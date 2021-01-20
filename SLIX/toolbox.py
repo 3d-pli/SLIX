@@ -386,9 +386,9 @@ def crossing_direction(peak_positions, number_of_measurements):
     elif num_peaks % 2 == 0 and num_peaks <= 6:
         ret_val[:num_peaks // 2] = (270.0 - ((peak_positions[num_peaks // 2:] +
                                               peak_positions[:num_peaks // 2]) / 2.0)) % 180
-        if num_peaks > 2:
-            distances = peak_positions[num_peaks // 2:] - peak_positions[:num_peaks // 2]
-            ret_val[:len(distances)][numpy.abs(distances - 180) > 35] = BACKGROUND_COLOR
+        distances = peak_positions[num_peaks // 2:] - peak_positions[:num_peaks // 2]
+        if numpy.any(ret_val[:len(distances)][numpy.abs(distances - 180) > 35]):
+            ret_val[:] = BACKGROUND_COLOR
     return ret_val
 
 
