@@ -236,7 +236,7 @@ SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
 
 ##### Average
-<img src="https://jugit.fz-juelich.de/jreuter/slix/-/raw/assets/avg.jpg" width="327">
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/avg.jpg" width="327">
 
 `_average.tiff` shows the average intensity for each SLI profile (image pixel). Regions with high scattering show higher values.
 
@@ -251,7 +251,7 @@ SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 `_high_prominence_peaks.tiff` shows the number of prominent peaks for each image pixel, i.e. peaks with a prominence above 8% of the total signal amplitude (max-min) of the SLI profile. The position of these peaks is used to compute the fiber direction angles.
 
 ##### Average Peak Prominence
-<img src="https://jugit.fz-juelich.de/jreuter/slix/-/raw/assets/peakprominence.jpg" width="327">
+<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/peakprominence.jpg" width="327">
 
 `_peakprominence.tiff` shows the average prominence of the peaks for each image pixel, normalized by the average of each profile. The higher the value, the clearer the signal.
 
