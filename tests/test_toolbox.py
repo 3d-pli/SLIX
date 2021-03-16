@@ -208,19 +208,6 @@ class TestToolbox:
 
         # Test for angle outside of 180°+-35° distance
         error_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
-<<<<<<< HEAD
-        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, BACKGROUND_COLOR])
-        peaks = all_peaks(error_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks, len(error_arr))
-        assert numpy.all(expected_direction == toolbox_direction)
-
-        error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
-        expected_direction = numpy.array([BACKGROUND_COLOR, BACKGROUND_COLOR, BACKGROUND_COLOR])
-        peaks = all_peaks(error_arr, cut_edges=False)
-        high_peaks = accurate_peak_positions(peaks, error_arr, centroid_calculation=False)
-        toolbox_direction = crossing_direction(high_peaks, len(error_arr))
-=======
         error_arr = error_arr.reshape((1, 1, 24))
         expected_direction = numpy.array([-1, -1, -1])
         peaks = toolbox.peaks(error_arr, use_gpu=use_gpu)
@@ -232,7 +219,6 @@ class TestToolbox:
         expected_direction = numpy.array([-1, -1, -1])
         peaks = toolbox.peaks(error_arr, use_gpu=use_gpu)
         toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
->>>>>>> gpu-optimization
         assert numpy.all(expected_direction == toolbox_direction)
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
