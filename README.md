@@ -13,6 +13,7 @@
   - [SLI Measurement](#sli-measurement)
   - [SLI Profiles](#sli-profiles)
   - [Parameter Maps](#parameter-maps)
+- [System recommendations](#system-recommendations)
 - [Installation of SLIX](#installation-of-slix)
 - [Evaluation of SLI Profiles](#evaluation-of-sli-profiles)
   - [Required Arguments](#required-arguments)
@@ -68,12 +69,17 @@ By evaluating the SLI profiles of each image pixel, *SLIX* generates different p
 
 With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is possible to evaluate individual SLI profiles and compute characteristics such as the number of peaks, their positions, and in-plane fiber direction angles. For a given SLI image stack, [`SLIXParameterGenerator`](#generation-of-parameter-maps) computes the desired parameter maps for all image pixels.
 
+## System recommendations
+- Operating System: Windows, Linux, MacOS
+- Python version: Python 3.6+
+- Processor: At least four threads if executed on CPU only
+- RAM: 8 GiB or more
+- (optional GPU: NVIDIA GPU supported by CUDA 9.0+)
+
 ## Installation of SLIX
 
-Note: The current version of SLIX can only be executed under macOS or Linux as operating system because of dependencies. If you want to use SLIX under Windows, please use the [Windows Subsystem for Linux](https://ubuntu.com/wsl). Support for Windows is planned for the future.
-
 ##### How to clone SLIX (for further work)
-```
+```bash
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 
@@ -85,7 +91,7 @@ pip3 install -r requirements.txt
 ```
 
 ##### How to install SLIX as Python package
-```
+```bash
 # Install via PyPi
 pip install SLIX
 
@@ -93,6 +99,20 @@ pip install SLIX
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
 pip install .
+```
+
+##### Run SLIX locally
+
+```bash
+git clone git@github.com:3d-pli/SLIX.git
+cd SLIX
+python3 SLIXParameterGenerator.py [options]
+python3 SLIXLineplotParameterGenerator.py [options]
+
+# alternatively, after installation of SLIX
+pip3 install SLIX
+SLIXParameterGenerator [options]
+SLIXLineplotParameterGenerator [options]
 ```
 
 ## Evaluation of SLI Profiles
@@ -113,7 +133,8 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 | -------------- | --------------------------------------------------------------------------- |
 | `--smoothing`  | Smoothing of SLI profiles before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps to reduce the impact of irrelevant details in the fiber structure, cf. orange vs. black curve in Figure 1c in the [paper](https://github.com/3d-pli/SLIX/blob/master/paper/paper.pdf).) |
 | `--with_plots` | Generates plots (png-files) showing the SLI profiles and the determined peak positions (orange dots: before correction; green crosses: after correction). |
-| `--target_peak_height` | Change peak tip height used for correcting the peak positions. (Default: 6% of total signal amplitude). Only recommended for experienced users! |
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! (default: 0.08) |
+
 
 ### Example
 The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
@@ -156,12 +177,14 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 
 | Argument          | Function                                                                                                                                            |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-r, --roisize`    | Average every NxN pixels in the SLI image stack and run the evaluation on the resulting (downsampled) images. Later on, the images will be upscaled to match the input file dimensions. (Default: N=1, i.e.`-r 1`) |
+| `--thinout`    | Average every NxN pixels in the SLI image stack and run the evaluation on the resulting (downsampled) images. (Default: N=1) |
 | `--with_mask`      | Consider all image pixels with low scattering as background: Pixels for which the maximum intensity value of the SLI profile is below a defined threshold (`--mask_threshold`) are set to zero and will not be further evaluated.                                                                |
 | `--mask_threshold` | Set the threshold for the background mask (can only be used together with `--with_mask`). Higher values might remove the background better but will also include more regions with gray matter. (Default = 10) |
-| `--num_procs`      | Run the program with the selected number of processes. (Default = either 16 threads or the maximum number of threads available.)                                  |
 | `--with_smoothing` | Apply smoothing to the SLI profiles for each image pixel before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps to reduce the impact of irrelevant details in the fiber structure, cf. orange vs. black curve in Figure 1c in the [paper](https://github.com/3d-pli/SLIX/blob/master/paper/paper.pdf).)                                                                                     |
-| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users!
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! |
+| `--detailed` | Save 3D images in addition to 2D mean images which include more detailed information but will need a lot more disk space. |
+| `--disable_gpu` | Use the CPU in combination with Numba instead of the GPU variant. This is only recommended if your GPU is significantly slower than your CPU. |
+| `--no_centroids` | Disable centroid calculation for the parameter maps. This is absolutely not recommended and will result in worse parameter maps but can lower the computing time significantly. |
 
 The arguments listed below determine which parameter maps will be generated from the SLI image stack.  If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated. If none of these arguments is used, all parameter maps except the optional ones will be generated: peakprominence, number of (prominent) peaks, peakwidth, peakdistance, direction angles in crossing regions.
 
@@ -178,8 +201,6 @@ The arguments listed below determine which parameter maps will be generated from
 The following example demonstrates the generation of the parameter maps, for two artificially crossing sections of human optic tracts (left) and the upper left corner of a coronal vervet brain section (right): 
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo1.png" height="327">&nbsp;&nbsp;<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Screenshot_Demo2.png" height="327">
-
-![](https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/demo.gif)
 
 #### How to run the demo yourself:
 
@@ -198,9 +219,9 @@ Links:
 
 ##### 2. Run SLIX:
 ```
-SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii -o . --num_procs 4 --roisize 5
+SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii -o . --thinout 5
 
-SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --roisize 10 --direction
+SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --thinout 10 --direction
 ```
 
 The execution of both commands should take around one minute max. The resulting parameter maps will be downsampled. To obtain full resolution parameter maps, do not use the `roisize` option. In this case, the computing time will be higher (around 25 times higher for the first example and 100 times higher for the second example). 
@@ -209,7 +230,7 @@ To display the resulting parameter maps, you can use e.g. [ImageJ](https://image
 
 ### Resulting Parameter Maps
 
-All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)). In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--roisize 10`, which greatly speeds up the generation of the parameter maps.
+All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)). In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--thinout 3`, which greatly speeds up the generation of the parameter maps.
 ```
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
@@ -282,18 +303,20 @@ The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visua
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/output_unit_vectors.png" height="327">
 
 ## Performance Metrics
-The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, four different SLI image stacks from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) were analyzed by running the program (generation of all 12 parameter maps with high resolution: `--optional --roisize 1`), using different thread counts and averaging the number of pixels evaluated per second. In total, 32.314.632 line profiles were evaluated for this performance evaluation. All performance measurements were taken without times for reading and writing files.
+The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark. Each benchmark used an Anaconda environment with Python 3.8.5 and all neccessary packages installed.
 
-Our testing system consists of an AMD Ryzen 3700X at 3.60-4.425 GHz paired with 16 GiB DDR4-3000 memory. Other system configurations might take longer or shorter to compute the parameter maps.
-
-| Thread count | Average pixels per second | Time in minutes for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
-| ------------ | --------------------- | --------------------- |
-| 4 | 4416 | 29:41 |
-| 6 | 6232 | 21:36 |
-| 8 | 7654 | 17:34 |
-| 10 | 8326 | 16:10 |
-| 12 | 9384 | 13:54 |
-| 16 | 11300 | 11:54 |
+| CPU | Operating system | With GPU | Time in seconds for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
+| ------------ | --------------------- | ----------------- | --------------------- |
+| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | Disabled | 23.000 ± 1.374 |
+| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | NVIDIA GTX 1070 | 32.013 ± 0.371 |
+| AMD Ryzen 3700X | Manjaro (Dez 8th 2020) | NVIDIA RTX 3070 | 22.467 ± 0.370 |
+| Intel Core i3-2120 | Ubuntu 18.04 LTS | -N/A- | 86.138 ± 3.57 |
+| Intel Core i5-3470 | Ubuntu 20.04 LTS | Disabled | 77.768 ± 6.101 |
+| Intel Core i5-3470 | Ubuntu 20.04 LTS | NVIDIA GTX 1070 | 34.169 ± 0.975 |
+| Intel Core i5-8350U | Ubuntu 20.10 | -N/A- | 58.945 ± 2.799 |
+| Intel Core i7-7820HQ | MacOS Big Sur | -N/A- | 55.709 ± 3.446 |
+| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | Disabled | 42.363 ± 3.475 |
+| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | NVIDIA GTX 1080 | 27.712 ± 4.052 |
 
 ## Authors
 - Jan André Reuter

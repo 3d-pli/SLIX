@@ -1,5 +1,4 @@
 """Module docstring text"""
-__version__ = 'v1.2.1'
+__version__ = '2.0.0'
 
-from . import toolbox
-from . import visualization
+from . import toolbox, io, visualization, preparation
