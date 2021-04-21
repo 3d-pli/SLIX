@@ -17,13 +17,14 @@ def apply_smoothing(image, window_length=45, polyorder=2):
     Returns: Complete SLI measurement image with applied Savitzky-Golay filter
     and the same shape as the original image.
     """
-
-    conc_image = numpy.concatenate((image[:, :, image.shape[2]//2:],
+    print(image.shape)
+    conc_image = numpy.concatenate((image[:, :, -window_length:],
                                     image,
-                                    image[:, :, :image.shape[2]//2]), axis=-1)
+                                    image[:, :, :window_length]), axis=-1)
+    print(conc_image.shape)
     conc_image = scipy.signal.savgol_filter(conc_image, window_length,
-                                            polyorder, axis=-1)
-    return conc_image[:, :, image.shape[2]//2:-image.shape[2]//2]
+                                            polyorder, axis=2)
+    return conc_image[:, :, window_length:-window_length]
 
 
 def thin_out(image, factor=2, strategy='plain'):

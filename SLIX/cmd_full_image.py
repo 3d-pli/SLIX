@@ -175,8 +175,9 @@ def main():
 
         if args['with_smoothing']:
             tqdm_step.set_description('Applying smoothing')
-            image = preparation.apply_smoothing(image)
+            image = preparation.apply_smoothing(image, 5, 2)
             tqdm_step.update(1)
+            io.imwrite(output_path_name+'_smoothed.tiff', image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
