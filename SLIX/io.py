@@ -5,7 +5,56 @@ import nibabel
 import h5py
 import sys
 import getpass
+import re
+import os
+import glob
 
+MEASUREMENT_REGEX_LEFT = r'.*_+p0*'
+MEASUREMENT_REGEX_RIGHT = r'_+.*\.(tif{1,2}|jpe*g|nii|h5|png)'
+
+
+def read_folder(filepath):
+    """
+    Reads multiple image files from a folder and returns the resulting stack.
+    The images are checked with the MEASUREMENT_REGEX_LEFT and
+    MEASUREMENT_REGEX_RIGHT.
+    Supported file formats: NIfTI, Tiff.
+
+    Arguments:
+        filepath: Path to folder
+
+    Returns:
+        numpy.array: Image with shape [x, y, z] where [x, y] is the size
+        of a single image and z specifies the number of measurements
+    """
+
+    files_in_folder = glob.glob(filepath+'/*')
+    image = None
+
+    # Measurement index
+    index = 1
+    file_found = True
+
+    while file_found:
+        file_found = False
+
+        # Check if files contain the needed regex for our measurements
+        for file in files_in_folder:
+            match = re.fullmatch(MEASUREMENT_REGEX_LEFT + str(index) + MEASUREMENT_REGEX_RIGHT, file)
+            if match is not None:
+                measurement_image = imread(file)
+                file_found = True
+                if image is None:
+                    image = measurement_image
+                elif len(image.shape) == 2:
+                    image = numpy.stack((image, measurement_image), axis=-1)
+                else:
+                    image = numpy.concatenate((image, measurement_image[:, :, numpy.newaxis]), axis=-1)
+                break
+
+        index = index + 1
+
+    return image
 
 def hdf5_read(filepath, dataset):
     """
@@ -60,8 +109,10 @@ def imread(filepath):
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
+    if os.path.isdir(filepath):
+        data = read_folder(filepath)
     # Load NIfTI dataset
-    if filepath.endswith('.nii'):
+    elif filepath.endswith('.nii'):
         data = nibabel.load(filepath).get_fdata()
         if len(data.shape) > 2:
             data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
