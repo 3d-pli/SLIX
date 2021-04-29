@@ -175,7 +175,7 @@ def main():
 
         if args['with_smoothing']:
             tqdm_step.set_description('Applying smoothing')
-            image = preparation.apply_smoothing(image, 5, 2)
+            image = preparation.low_pass_fourier_smoothing(image)
             tqdm_step.update(1)
             io.imwrite(output_path_name+'_smoothed.tiff', image)
 

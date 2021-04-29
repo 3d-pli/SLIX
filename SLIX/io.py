@@ -56,6 +56,7 @@ def read_folder(filepath):
 
     return image
 
+
 def hdf5_read(filepath, dataset):
     """
     Reads image file and returns it.

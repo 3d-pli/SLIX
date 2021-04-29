@@ -1,11 +1,15 @@
 try:
     try:
         import cupy
-        cupy.empty(0)
+        from numba import cuda
+
+        cupy.empty((0), dtype=cupy.float)
         from SLIX.SLIX_GPU import toolbox as gpu_toolbox
 
         gpu_available = True
-    except cupy.cuda.runtime.CUDARuntimeError:
+    except (cupy.cuda.runtime.CUDARuntimeError,
+            cuda.cudadrv.driver.CudaAPIError,
+            cuda.cudadrv.driver.LinkerError) as e:
         print('[WARNING] CuPy is installed but an error was thrown by the '
               'runtime. SLIX will fall back to the CPU variant.')
         gpu_available = False
