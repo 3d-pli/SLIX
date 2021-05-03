@@ -44,11 +44,9 @@ def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     Returns: Complete SLI measurement image with applied Savitzky-Golay filter
     and the same shape as the original image.
     """
-    print(image.shape)
     conc_image = numpy.concatenate((image[:, :, -window_length:],
                                     image,
                                     image[:, :, :window_length]), axis=-1)
-    print(conc_image.shape)
     conc_image = scipy.signal.savgol_filter(conc_image, window_length,
                                             polyorder, axis=2)
     return conc_image[:, :, window_length:-window_length]

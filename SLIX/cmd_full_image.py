@@ -51,8 +51,9 @@ def create_argument_parser():
                           help='Average every NxN pixels in the SLI image '
                                'stack and run the evaluation on the resulting '
                                '(downsampled) images.')
-    optional.add_argument('--with_smoothing',
-                          action='store_true',
+    optional.add_argument('--smoothing',
+                          type=str,
+                          nargs="*",
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
                                ' with less than 5 degree between each image.')
@@ -154,7 +155,7 @@ def main():
                                                 PEAKWIDTH,
                                                 PEAKDISTANCE,
                                                 OPTIONAL,
-                                                args['with_smoothing'],
+                                                args['smoothing'] is not None,
                                                 args['with_mask'],
                                                 not args['no_centroids']]) + 1
     tqdm_paths = tqdm.tqdm(paths)
@@ -173,11 +174,37 @@ def main():
             io.imwrite(output_path_name + '_image.tiff', image)
         tqdm_step.update(1)
 
-        if args['with_smoothing']:
+        if args['smoothing']:
             tqdm_step.set_description('Applying smoothing')
-            image = preparation.low_pass_fourier_smoothing(image)
+
+            algorithm = args['smoothing'][0]
+            if algorithm == "fourier":
+                low_percentage = 10
+                if len(args['smoothing']) > 1:
+                    low_percentage = int(args['smoothing'][1])
+
+                high_percentage = 25
+                if len(args['smoothing']) > 2:
+                    high_percentage = int(args['smoothing'][2])
+
+                image = preparation.low_pass_fourier_smoothing(image,
+                                                               low_percentage,
+                                                               high_percentage)
+            elif algorithm == "savgol":
+                window_length = 45
+                if len(args['smoothing']) > 1:
+                    window_length = int(args['smoothing'][1])
+
+                poly_order = 2
+                if len(args['smoothing']) > 2:
+                    poly_order = int(args['smoothing'][2])
+
+                image = preparation.savitzky_golay_smoothing(image,
+                                                             window_length,
+                                                             poly_order)
+
             tqdm_step.update(1)
-            io.imwrite(output_path_name+'_smoothed.tiff', image)
+            io.imwrite(output_path_name+'_'+algorithm+'_smoothed.tiff', image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
