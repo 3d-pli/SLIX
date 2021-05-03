@@ -56,7 +56,12 @@ def create_argument_parser():
                           nargs="*",
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
-                               ' with less than 5 degree between each image.')
+                               ' with less than 5 degree between each image.'
+                               'Available options: "fourier" or "savgol"'
+                               '. The parameters of those algorithms can be '
+                               'set with additional parameters. For example'
+                               ' --smoothing fourier 10 20 or '
+                               ' --savgol 45 3')
     optional.add_argument('--disable_gpu',
                           action='store_false',
                           help='Use the CPU in combination with Numba instead '
@@ -207,6 +212,10 @@ def main():
                 image = preparation.savitzky_golay_smoothing(image,
                                                              window_length,
                                                              poly_order)
+
+            else:
+                print("Unknown option. Please use either "
+                      "'fourier' or 'savgol'!")
 
             tqdm_step.update(1)
             io.imwrite(output_path_name+'_'+algorithm+'_smoothed.tiff', image)
