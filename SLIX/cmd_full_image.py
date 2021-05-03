@@ -161,8 +161,13 @@ def main():
     tqdm_paths = tqdm.tqdm(paths)
     tqdm_step = tqdm.tqdm(total=number_of_param_maps)
     for path in tqdm_paths:
-        filename_without_extension = \
-            os.path.splitext(os.path.basename(path))[0]
+        if os.path.isdir(path):
+            while path[-1] == "/":
+                path = path[:-1]
+            filename_without_extension = path.split("/")[-1]
+        else:
+            filename_without_extension = \
+                os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
         tqdm_paths.set_description(filename_without_extension)
 
@@ -230,20 +235,29 @@ def main():
 
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
-            if args['detailed']:
-                io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
-                io.imwrite(
-                    output_path_name+'_high_prominence_peaks_detailed.tiff',
-                    significant_peaks_cpu)
+
             io.imwrite(output_path_name+'_high_prominence_peaks.tiff',
                        numpy.sum(significant_peaks_cpu, axis=-1))
             io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
                        numpy.sum(peaks, axis=-1) -
                        numpy.sum(significant_peaks_cpu, axis=-1))
+
+            if args['detailed']:
+                io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
+                io.imwrite(
+                    output_path_name+'_high_prominence_peaks_detailed.tiff',
+                    significant_peaks_cpu)
+
         tqdm_step.update(1)
 
         if PEAKPROMINENCE:
             tqdm_step.set_description('Generating peak prominence')
+
+            io.imwrite(output_path_name+'_peakprominence.tiff',
+                       toolbox.
+                       mean_peak_prominence(image, significant_peaks,
+                                            use_gpu=toolbox.gpu_available))
+
             if args['detailed']:
                 peak_prominence_full = \
                     toolbox.peak_prominence(image,
@@ -253,14 +267,16 @@ def main():
                 io.imwrite(output_path_name+'_peakprominence_detailed.tiff',
                            peak_prominence_full)
                 del peak_prominence_full
-            io.imwrite(output_path_name+'_peakprominence.tiff',
-                       toolbox.
-                       mean_peak_prominence(image, significant_peaks,
-                                            use_gpu=toolbox.gpu_available))
+
             tqdm_step.update(1)
 
         if PEAKWIDTH:
             tqdm_step.set_description('Generating peak width')
+
+            io.imwrite(output_path_name+'_peakwidth.tiff',
+                       toolbox.mean_peak_width(image, significant_peaks,
+                                               use_gpu=toolbox.gpu_available))
+
             if args['detailed']:
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
@@ -268,17 +284,17 @@ def main():
                 io.imwrite(output_path_name+'_peakwidth_detailed.tiff',
                            peak_width_full)
                 del peak_width_full
-            io.imwrite(output_path_name+'_peakwidth.tiff',
-                       toolbox.mean_peak_width(image, significant_peaks,
-                                               use_gpu=toolbox.gpu_available))
+
             tqdm_step.update(1)
 
         if args['no_centroids']:
             tqdm_step.set_description('Generating centroids')
+
             centroids = toolbox.\
                 centroid_correction(image, significant_peaks,
                                     use_gpu=toolbox.gpu_available,
                                     return_numpy=not toolbox.gpu_available)
+
             if args['detailed']:
                 if toolbox.gpu_available:
                     centroids_cpu = centroids.get()
@@ -288,6 +304,7 @@ def main():
                            centroids_cpu)
             tqdm_step.update(1)
         else:
+            # If no centroids are used, use zeros for all values instead.
             if toolbox.gpu_available:
                 centroids = cupy.zeros(image.shape)
             else:
@@ -295,6 +312,12 @@ def main():
 
         if PEAKDISTANCE:
             tqdm_step.set_description('Generating peak distance')
+
+            io.imwrite(output_path_name + '_peakdistance.tiff',
+                       toolbox.
+                       mean_peak_distance(significant_peaks, centroids,
+                                          use_gpu=toolbox.gpu_available))
+
             if args['detailed']:
                 peak_distance_full = toolbox.\
                     peak_distance(significant_peaks, centroids,
@@ -302,10 +325,7 @@ def main():
                 io.imwrite(output_path_name + '_peakdistance_detailed.tiff',
                            peak_distance_full)
                 del peak_distance_full
-            io.imwrite(output_path_name + '_peakdistance.tiff',
-                       toolbox.
-                       mean_peak_distance(significant_peaks, centroids,
-                                          use_gpu=toolbox.gpu_available))
+
             tqdm_step.update(1)
 
         if DIRECTION:
