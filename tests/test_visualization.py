@@ -1,6 +1,7 @@
 from matplotlib.testing.decorators import image_comparison
 from SLIX import toolbox, io, visualization
 import matplotlib
+from matplotlib import pyplot as plt
 import pytest
 import shutil
 import os
@@ -13,7 +14,7 @@ class TestVisualization:
     def test_visualize_parameter_map(self):
         example = io.imread('tests/files/demo.nii')
         prominence = toolbox.mean_peak_prominence(example, kind_of_normalization=1, use_gpu=False)
-        visualization.visualize_parameter_map(prominence)
+        visualization.visualize_parameter_map(prominence, colorbar=False)
 
     @image_comparison(baseline_images=['unit_vectors'], remove_text=True, extensions=['png'])
     def test_visualize_unit_vectors(self):
@@ -29,6 +30,9 @@ class TestVisualization:
 def run_around_tests(request):
     # A test function will be run at this point
     yield
+
+    # Clear pyplot for next test
+    plt.clf()
 
     # Code that will run after your test, for example:
     def remove_test_dir():
