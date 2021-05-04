@@ -1,4 +1,6 @@
+import numba
 import numpy
+from matplotlib.colors import hsv_to_rgb
 from matplotlib import pyplot as plt
 from PIL import Image
 import copy
@@ -188,3 +190,82 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
                   alpha=alpha, headwidth=0, headlength=0, headaxislength=0,
                   minlength=0, pivot='mid', clim=(0, numpy.pi))
     return ax
+
+
+def visualize_direction(direction):
+    direction = numpy.array(direction)
+    direction_shape = direction.shape
+
+    h = direction
+    s = numpy.ones(direction.shape)
+    v = numpy.ones(direction.shape)
+
+    hsv_stack = numpy.stack((1 - h / 180.0, s, v))
+    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
+    rgb_stack = hsv_to_rgb(hsv_stack)
+
+    if len(direction_shape) > 2:
+        return _visualize_multiple_direction(direction, rgb_stack)
+    else:
+        return _visualize_one_direction(direction, rgb_stack)
+
+
+def _visualize_one_direction(direction, rgb_stack):
+    output_image = rgb_stack
+    output_image[direction == -1] = 0
+
+    return output_image.astype('float32')
+
+
+def _visualize_multiple_direction(direction, rgb_stack):
+    output_image = numpy.empty((direction.shape[0] * 2,
+                                direction.shape[1] * 2,
+                                3))
+    # count valid directions
+    valid_directions = numpy.count_nonzero(direction > -1, axis=-1)
+
+    r = rgb_stack[..., 0]
+    g = rgb_stack[..., 1]
+    b = rgb_stack[..., 2]
+
+    # Now we need to place them in the right pixel on our output image
+    for x in range(direction.shape[0]):
+        for y in range(direction.shape[1]):
+            if valid_directions[x, y] == 0:
+                output_image[x * 2:x * 2 + 1, y * 2:y * 2 + 1] = 0
+            elif valid_directions[x, y] == 1:
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 0] = r[x, y, 0]
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 1] = g[x, y, 0]
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 2] = b[x, y, 0]
+            else:
+                output_image[x * 2, y * 2, 0] = r[x, y, 0]
+                output_image[x * 2, y * 2, 1] = g[x, y, 0]
+                output_image[x * 2, y * 2, 2] = b[x, y, 0]
+
+                output_image[x * 2 + 1, y * 2, 0] = r[x, y, 1]
+                output_image[x * 2 + 1, y * 2, 1] = g[x, y, 1]
+                output_image[x * 2 + 1, y * 2, 2] = b[x, y, 1]
+
+                if valid_directions[x, y] == 2:
+                    output_image[x * 2, y * 2 + 1, 0] = r[x, y, 1]
+                    output_image[x * 2, y * 2 + 1, 1] = g[x, y, 1]
+                    output_image[x * 2, y * 2 + 1, 2] = b[x, y, 1]
+
+                    output_image[x * 2 + 1, y * 2 + 1, 0] = r[x, y, 0]
+                    output_image[x * 2 + 1, y * 2 + 1, 1] = g[x, y, 0]
+                    output_image[x * 2 + 1, y * 2 + 1, 2] = b[x, y, 0]
+                else:
+                    output_image[x * 2, y * 2 + 1, 0] = r[x, y, 2]
+                    output_image[x * 2, y * 2 + 1, 1] = g[x, y, 2]
+                    output_image[x * 2, y * 2 + 1, 2] = b[x, y, 2]
+
+                    if valid_directions[x, y] == 3:
+                        output_image[x * 2 + 1, y * 2 + 1, 0] = 0
+                        output_image[x * 2 + 1, y * 2 + 1, 1] = 0
+                        output_image[x * 2 + 1, y * 2 + 1, 2] = 0
+                    if valid_directions[x, y] == 4:
+                        output_image[x * 2 + 1, y * 2 + 1, 0] = r[x, y, 3]
+                        output_image[x * 2 + 1, y * 2 + 1, 1] = g[x, y, 3]
+                        output_image[x * 2 + 1, y * 2 + 1, 2] = b[x, y, 3]
+
+    return output_image.astype('float32')
