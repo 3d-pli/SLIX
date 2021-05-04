@@ -2,12 +2,12 @@ import pytest
 import os
 import shutil
 import shlex
-from SLIX import cmd_full_image
+from SLIX import cmd
 from unittest import mock
 
 class TestCommandFullImage:
     def test_argparse(self):
-        argparse = cmd_full_image.create_argument_parser()
+        argparse = cmd.create_argument_parser_full_image()
 
         minimal_string = "--input input --output output"
         args = vars(argparse.parse_args(shlex.split(minimal_string)))
@@ -151,7 +151,7 @@ class TestCommandFullImage:
                                      'tests/files/output/gpu',
                                      '--optional',
                                      '--with_mask']):
-            cmd_full_image.main()
+            cmd.main_full_image()
             assert os.path.isdir('tests/files/output/gpu')
             assert os.path.isfile('tests/files/output/gpu/demo_high_prominence_peaks.tiff')
             assert os.path.isfile('tests/files/output/gpu/demo_low_prominence_peaks.tiff')
@@ -176,7 +176,7 @@ class TestCommandFullImage:
                                      '--with_mask',
                                      '--disable_gpu',
                                      '--no_centroids']):
-            cmd_full_image.main()
+            cmd.main_full_image()
             assert os.path.isdir('tests/files/output/cpu')
             assert os.path.isfile('tests/files/output/cpu/demo_high_prominence_peaks.tiff')
             assert os.path.isfile('tests/files/output/cpu/demo_low_prominence_peaks.tiff')
@@ -199,7 +199,7 @@ class TestCommandFullImage:
                                      'tests/files/output/single/cpu',
                                      '--direction',
                                      '--no_centroids']):
-            cmd_full_image.main()
+            cmd.main_full_image()
             assert os.path.isdir('tests/files/output/cpu')
             assert not os.path.isfile('tests/files/output/single/cpu/demo_high_prominence_peaks.tiff')
             assert not os.path.isfile('tests/files/output/single/cpu/demo_low_prominence_peaks.tiff')
@@ -221,7 +221,7 @@ class TestCommandFullImage:
                                      '--output',
                                      'tests/files/output/detailed/gpu',
                                      '--detailed']):
-            cmd_full_image.main()
+            cmd.main_full_image()
             assert os.path.isdir('tests/files/output/detailed/gpu')
             assert os.path.isfile('tests/files/output/detailed/gpu/demo_all_peaks_detailed.tiff')
             assert os.path.isfile('tests/files/output/detailed/gpu/demo_high_prominence_peaks.tiff')
@@ -245,7 +245,7 @@ class TestCommandFullImage:
                                      'tests/files/output/detailed/cpu',
                                      '--disable_gpu',
                                      '--detailed']):
-            cmd_full_image.main()
+            cmd.main_full_image()
             assert os.path.isdir('tests/files/output/detailed/cpu')
             assert os.path.isfile('tests/files/output/detailed/cpu/demo_all_peaks_detailed.tiff')
             assert os.path.isfile('tests/files/output/detailed/cpu/demo_high_prominence_peaks.tiff')
