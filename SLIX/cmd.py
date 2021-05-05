@@ -106,6 +106,9 @@ def create_argument_parser_full_image():
                        action='store_true',
                        help='Add distance between two peaks if two peaks are '
                             'detected')
+    image.add_argument('--unit_vectors',
+                       action='store_true',
+                       help='Write unit vector images from direction')
     image.add_argument('--optional',
                        action='store_true',
                        help='Adds Max/Min/Non Crossing Direction to the output'
