@@ -471,10 +471,16 @@ def main_full_image():
                                                     use_gpu=
                                                     toolbox.gpu_available)
                 UnitZ = numpy.zeros(UnitX.shape)
-
-                io.imwrite(output_path_name + '_UnitX.nii', UnitX)
-                io.imwrite(output_path_name + '_UnitY.nii', UnitY)
-                io.imwrite(output_path_name + '_UnitZ.nii', UnitZ)
+                for dim in range(UnitX.shape[-1]):
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitX.nii',
+                               UnitX[:, :, dim])
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitY.nii',
+                               UnitY[:, :, dim])
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitZ.nii',
+                               UnitZ[:, :, dim])
 
                 tqdm_step.update(1)
 
