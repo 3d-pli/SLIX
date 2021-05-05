@@ -61,7 +61,7 @@ def create_argument_parser():
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'
                                ' --smoothing fourier 10 20 or '
-                               ' --savgol 45 3')
+                               ' --smoothing savgol 45 3')
     optional.add_argument('--disable_gpu',
                           action='store_false',
                           help='Use the CPU in combination with Numba instead '
