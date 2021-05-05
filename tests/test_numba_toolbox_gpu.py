@@ -93,6 +93,17 @@ if SLIX.toolbox.gpu_available:
                  toolbox_direction)
             assert cupy.all(expected_direction == toolbox_direction)
 
+            # Test for two direction with 180°+-35° distance
+            four_peak_arr = cupy.array([0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]) \
+                .reshape((1, 1, 24)).astype('int8')
+            expected_direction = cupy.array([135, ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR])
+            ntoolbox._direction[blocks_per_grid, threads_per_block] \
+                (four_peak_arr,
+                 cupy.zeros(four_peak_arr.shape, dtype='float32'),
+                 cupy.array([[4]], dtype='int8'),
+                 toolbox_direction)
+            assert cupy.all(expected_direction == toolbox_direction)
+
         def test_centroid_correction_bases(self):
             # simple test case: one distinct peak
             test_array = cupy.array([0] * 9 + [1] + [0] * 14).reshape((1, 1, 24))

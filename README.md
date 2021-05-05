@@ -24,6 +24,7 @@
   - [Optional Arguments](#optional-arguments-1)
   - [Example](#example-1)
   - [Resulting Parameter Maps](#resulting-parameter-maps)
+- [Visualization of Parameter Maps](#visualization-of-parameter-maps)
 - [Tutorial](#tutorial)
 - [Performance Metrics](#performance-metrics)
 - [Authors](#authors)
@@ -296,6 +297,24 @@ In case of three or five prominent peaks, the peak pairs cannot be safely assign
 
 `_min.tiff` shows the minimum of the SLI profile for each image pixel. 
 To obtain a measure for the signal-to-noise, the difference between maximum and minimum can be divided by the average.
+
+## Visualization of parameter maps
+With `SLIXVisualizeParameter` the direction can be visualized easily. Just put the direction files as an input argument and generate either fiber orientation maps
+or a visualization of the unit vectors easily.
+
+```
+SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] [[parameters]]
+```
+
+### Required Arguments
+
+| Argument         | Function                                                |
+| ---------------- | ------------------------------------------------------- |
+| `-i, --input`     | Input file: SLI direction stack (as .tif(f) or .nii).      |
+| `-o, --output`    | Output folder where resulting parameter maps (.tiff) will be stored. |
+| `--fom`           | Generate a fiber orientation map with the direction images. |
+| `--vector`        | Generate a scaled down unit vector image. The original image stack for the measurement is required as an additional argument. |
+
 
 ## Tutorial
 The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), `thinout = 30` (i.e. 30 x 30 pixels were evaluated together), and `background_threshold = 0.7` (i.e. if more than 70% of the evaluated pixels are `-1`, no vector will be computed). 
