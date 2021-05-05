@@ -208,7 +208,6 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions):
                             if abs(180 - (right - left)) < 35:
                                 result_image[idx, current_direction] = \
                                     (270.0 - ((left + right) / 2.0)) % 180
-                                print(result_image[idx, current_direction])
                                 current_direction += 1
 
                     if current_direction == number_of_peaks[idx]//2:
