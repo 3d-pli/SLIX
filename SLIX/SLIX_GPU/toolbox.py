@@ -578,8 +578,8 @@ def unit_vectors(direction, return_numpy=True):
     """
     direction_gpu = cupy.array(direction)
     direction_gpu_rad = cupy.deg2rad(direction_gpu)
-    UnitX = -cupy.sin(0.5 * cupy.pi) * numpy.cos(direction_gpu_rad)
-    UnitY = cupy.sin(0.5 * cupy.pi) * numpy.sin(direction_gpu_rad)
+    UnitX = -cupy.sin(0.5 * cupy.pi) * cupy.cos(direction_gpu_rad)
+    UnitY = cupy.sin(0.5 * cupy.pi) * cupy.sin(direction_gpu_rad)
     del direction_gpu_rad
 
     UnitX[cupy.isclose(direction_gpu, -1)] = 0

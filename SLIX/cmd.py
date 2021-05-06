@@ -106,6 +106,9 @@ def create_argument_parser_full_image():
                        action='store_true',
                        help='Add distance between two peaks if two peaks are '
                             'detected')
+    image.add_argument('--unit_vectors',
+                       action='store_true',
+                       help='Write unit vector images from direction')
     image.add_argument('--optional',
                        action='store_true',
                        help='Adds Max/Min/Non Crossing Direction to the output'
@@ -234,14 +237,17 @@ def main_full_image():
     PEAKWIDTH = True
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
+    UNIT_VECTORS = False
 
     if args['direction'] or args['peaks'] or args['peakprominence'] or\
-            args['peakwidth'] or args['peakdistance']:
+            args['peakwidth'] or args['peakdistance'] or\
+            args['unit_vectors']:
         DIRECTION = args['direction']
         PEAKS = args['peaks']
         PEAKPROMINENCE = args['peakprominence']
         PEAKWIDTH = args['peakwidth']
         PEAKDISTANCE = args['peakdistance']
+        UNIT_VECTORS = args['unit_vectors']
     OPTIONAL = args['optional']
     if toolbox.gpu_available:
         toolbox.gpu_available = args['disable_gpu']
@@ -254,6 +260,7 @@ def main_full_image():
         'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
         'Peak width map: ' + str(PEAKWIDTH) + '\n' +
         'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
+        'Unit vector maps: ' + str(UNIT_VECTORS) + '\n' +
         'Optional maps: ' + str(OPTIONAL) + '\n'
     )
 
@@ -270,6 +277,7 @@ def main_full_image():
                                                 PEAKWIDTH,
                                                 PEAKDISTANCE,
                                                 OPTIONAL,
+                                                UNIT_VECTORS,
                                                 args['smoothing'] is not None,
                                                 args['with_mask'],
                                                 not args['no_centroids']]) + 1
@@ -367,7 +375,7 @@ def main_full_image():
                     output_path_name+'_high_prominence_peaks_detailed.tiff',
                     significant_peaks_cpu)
 
-        tqdm_step.update(1)
+            tqdm_step.update(1)
 
         if PEAKPROMINENCE:
             tqdm_step.set_description('Generating peak prominence')
@@ -421,7 +429,7 @@ def main_full_image():
                     centroids_cpu = centroids
                 io.imwrite(output_path_name+'_centroid_correction.tiff',
                            centroids_cpu)
-            tqdm_step.update(1)
+                tqdm_step.update(1)
         else:
             # If no centroids are used, use zeros for all values instead.
             if toolbox.gpu_available:
@@ -447,14 +455,34 @@ def main_full_image():
 
             tqdm_step.update(1)
 
-        if DIRECTION:
+        if DIRECTION or UNIT_VECTORS:
             tqdm_step.set_description('Generating direction')
             direction = toolbox.direction(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available)
-            for dim in range(direction.shape[-1]):
-                io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
-                           direction[:, :, dim])
-            tqdm_step.update(1)
+            if DIRECTION:
+                for dim in range(direction.shape[-1]):
+                    io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
+                               direction[:, :, dim])
+                tqdm_step.update(1)
+
+            if UNIT_VECTORS:
+                tqdm_step.set_description('Generating unit vectors')
+                UnitX, UnitY = toolbox.unit_vectors(direction,
+                                                    use_gpu=
+                                                    toolbox.gpu_available)
+                UnitZ = numpy.zeros(UnitX.shape)
+                for dim in range(UnitX.shape[-1]):
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitX.nii',
+                               UnitX[:, :, dim])
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitY.nii',
+                               UnitY[:, :, dim])
+                    io.imwrite(output_path_name +
+                               '_dir_'+str(dim+1)+'_UnitZ.nii',
+                               UnitZ[:, :, dim])
+
+                tqdm_step.update(1)
 
         if OPTIONAL:
             tqdm_step.set_description('Generating optional maps')

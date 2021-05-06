@@ -20,6 +20,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --prominence_threshold 0.56"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -32,6 +33,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --direction"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -44,6 +46,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --peaks"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -56,6 +59,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --peakprominence"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -68,6 +72,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --peakwidth"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -80,6 +85,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == True
         assert args['peakdistance'] == False
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --peakdistance"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -92,6 +98,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == True
         assert args['optional'] == False
+        assert args['unit_vectors'] == False
 
         test_string = minimal_string + " --optional"
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -104,10 +111,25 @@ class TestCommandFullImage:
         assert args['peakwidth'] == False
         assert args['peakdistance'] == False
         assert args['optional'] == True
+        assert args['unit_vectors'] == False
+
+        test_string = minimal_string + " --unit_vectors"
+        args = vars(argparse.parse_args(shlex.split(test_string)))
+        assert args['input'] == ['input']
+        assert args['output'] == 'output'
+        assert args['prominence_threshold'] == 0.08
+        assert args['direction'] == False
+        assert args['peaks'] == False
+        assert args['peakprominence'] == False
+        assert args['peakwidth'] == False
+        assert args['peakdistance'] == False
+        assert args['optional'] == False
+        assert args['unit_vectors'] == True
 
         test_string = minimal_string + " --direction --peaks " \
                                        "--peakprominence --peakwidth " \
-                                       "--peakdistance --optional"
+                                       "--peakdistance --optional " \
+                                       "--unit_vectors"
         args = vars(argparse.parse_args(shlex.split(test_string)))
         assert args['input'] == ['input']
         assert args['output'] == 'output'
@@ -118,6 +140,7 @@ class TestCommandFullImage:
         assert args['peakwidth'] == True
         assert args['peakdistance'] == True
         assert args['optional'] == True
+        assert args['unit_vectors'] == True
 
         test_string = minimal_string + ' --detailed'
         args = vars(argparse.parse_args(shlex.split(test_string)))
@@ -210,10 +233,44 @@ class TestCommandFullImage:
             assert not os.path.isfile('tests/files/output/single/cpu/demo_min.tiff')
             assert not os.path.isfile('tests/files/output/single/cpu/demo_avg.tiff')
             assert not os.path.isfile('tests/files/output/single/cpu/demo_dir.tiff')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitX.nii')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitY.nii')
+            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitZ.nii')
             assert os.path.isfile('tests/files/output/single/cpu/demo_dir_1.tiff')
             assert os.path.isfile('tests/files/output/single/cpu/demo_dir_2.tiff')
             assert os.path.isfile('tests/files/output/single/cpu/demo_dir_3.tiff')
             assert not os.path.isfile('tests/files/output/single/cpu/demo_background_mask.tiff')
+
+        with mock.patch('sys.argv', ['SLIXParameterGenerator',
+                                     '--input',
+                                     'tests/files/demo.nii',
+                                     '--output',
+                                     'tests/files/output/unit/cpu',
+                                     '--unit_vectors']):
+            cmd.main_full_image()
+            assert os.path.isdir('tests/files/output/unit/cpu')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_high_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_low_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakwidth.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakprominence.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakdistance.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_max.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_min.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_avg.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_1.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_2.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_3.tiff')
+            assert not os.path.isfile('tests/files/output/unit/cpu/demo_background_mask.tiff')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitZ.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitZ.nii')
+            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitZ.nii')
 
         with mock.patch('sys.argv', ['SLIXParameterGenerator',
                                      '--input',
@@ -277,4 +334,5 @@ def run_around_tests(request):
     def remove_test_dir():
         if os.path.isdir('tests/files/output/'):
             shutil.rmtree('tests/files/output/')
+            # pass
     request.addfinalizer(remove_test_dir)

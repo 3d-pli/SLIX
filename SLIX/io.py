@@ -152,10 +152,7 @@ def imwrite(filepath, data):
         save_data = save_data.astype('float32')
 
     if filepath.endswith('.nii'):
-        if swap_axes:
-            save_data = numpy.swapaxes(save_data, 0, 1)
-        else:
-            save_data = save_data
+        save_data = numpy.swapaxes(save_data, 0, 1)
         nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if swap_axes:
