@@ -208,7 +208,7 @@ The following example demonstrates the generation of the parameter maps, for two
 ##### 1. Download the needed files:
 
 Command line:
-```
+```bash
 wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Human_Brain/optic_tracts_crossing_sections/SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii
 wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
 ```
@@ -219,7 +219,7 @@ Links:
 [Vervet1818_s0512_60um_SLI_090_Stack_1day.nii](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)
 
 ##### 2. Run SLIX:
-```
+```bash
 SLIXParameterGenerator -i ./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii -o . --thinout 5
 
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o . --thinout 10 --direction
@@ -232,7 +232,7 @@ To display the resulting parameter maps, you can use e.g. [ImageJ](https://image
 ### Resulting Parameter Maps
 
 All 12 parameter maps that can be generated with *SLIX* are shown below, exemplary for the coronal vervet brain section used in the above demo (available [here](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii)). In contrast to the above demo, the parameter maps were generated with full resolution. For testing purposes, we suggest to run the evaluation on downsampled images, e.g. with `--thinout 3`, which greatly speeds up the generation of the parameter maps.
-```
+```bash
 SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
 
@@ -302,7 +302,7 @@ To obtain a measure for the signal-to-noise, the difference between maximum and 
 With `SLIXVisualizeParameter` the direction can be visualized easily. Just put the direction files as an input argument and generate either fiber orientation maps
 or a visualization of the unit vectors easily.
 
-```
+```bash
 SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 
@@ -314,6 +314,25 @@ SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] [[parameters]]
 | `-o, --output`    | Output folder where resulting parameter maps (.tiff) will be stored. |
 | `--fom`           | Generate a fiber orientation map with the direction images. |
 | `--vector`        | Generate a scaled down unit vector image. The original image stack for the measurement is required as an additional argument. |
+
+
+### Example
+```bash
+# Download the image
+wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
+
+# Generate direction and unit vector map
+SLIXParameterGenerator -i Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o Output/ --direction
+
+# Use direction to create a FOM
+SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output --fom
+
+# Visualize the unit vectors from the direction
+SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output --vector Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
+```
+
+### Resulting images
+TODO
 
 
 ## Tutorial
