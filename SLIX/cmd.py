@@ -58,7 +58,9 @@ def create_argument_parser_full_image():
                           nargs=1,
                           default=0,
                           type=float,
-                          help='')
+                          help='Correct the resulting direction angle by a'
+                               ' floating point value. This is useful when the'
+                               ' stack or camera was rotated.')
     optional.add_argument('--smoothing',
                           type=str,
                           nargs="*",
