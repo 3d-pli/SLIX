@@ -54,6 +54,13 @@ def create_argument_parser_full_image():
                           help='Average every NxN pixels in the SLI image '
                                'stack and run the evaluation on the resulting '
                                '(downsampled) images.')
+    optional.add_argument('--correctdir',
+                          nargs=1,
+                          default=0,
+                          type=float,
+                          help='Correct the resulting direction angle by a'
+                               ' floating point value. This is useful when the'
+                               ' stack or camera was rotated.')
     optional.add_argument('--smoothing',
                           type=str,
                           nargs="*",
@@ -458,6 +465,7 @@ def main_full_image():
         if DIRECTION or UNIT_VECTORS:
             tqdm_step.set_description('Generating direction')
             direction = toolbox.direction(significant_peaks, centroids,
+                                          correction_angle=args['correctdir'],
                                           use_gpu=toolbox.gpu_available)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):
@@ -692,6 +700,11 @@ def main_visualize():
     if args['vector'] is not None:
         image = SLIX.io.imread(args['vector'])
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image)
+
+        if image.shape[:2] != UnitX.shape[:2]:
+            image = numpy.swapaxes(image, 0, 1)
+
+        print(image.shape, UnitX.shape)
 
         thinout = 20
         alpha = 0.8
