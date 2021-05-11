@@ -63,10 +63,10 @@ class TestNumbaToolboxCPU:
         toolbox_direction = ntoolbox._direction(two_peak_arr, numpy.zeros(two_peak_arr.shape), numpy.array([2]), 3)
         assert numpy.all(expected_direction == toolbox_direction)
 
-        # Test for two direction with 180°+-35° distance
+        # Test for (invalid) two directions with 180°+-35° distance
         four_peak_arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])\
                             .reshape((1, 24))
-        expected_direction = numpy.array([135, ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR])
+        expected_direction = numpy.array([ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR])
         toolbox_direction = ntoolbox._direction(four_peak_arr, numpy.zeros(four_peak_arr.shape), numpy.array([4]), 3)
         assert numpy.all(expected_direction == toolbox_direction)
 
