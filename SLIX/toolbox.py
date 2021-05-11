@@ -162,7 +162,8 @@ def direction(peak_image, centroids, correction_angle=0,
 
     Parameters
     ----------
-    correction_angle
+    correction_angle: Correct the resulting direction angle by the value.
+    This is useful when the stack or camera was rotated.
     peak_image: Boolean NumPy array specifying the peak positions in the full
     SLI stack
     centroids: Centroids resulting from `centroid_correction` for more accurate
