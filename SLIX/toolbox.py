@@ -147,7 +147,8 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
         return cpu_toolbox.num_peaks(peak_image=peaks)
 
 
-def direction(peak_image, centroids, number_of_directions=3,
+def direction(peak_image, centroids, correction_angle=0,
+              number_of_directions=3,
               use_gpu=gpu_available, return_numpy=True):
     """
     Calculate up to `number_of_directions` direction angles based on the given
@@ -161,6 +162,7 @@ def direction(peak_image, centroids, number_of_directions=3,
 
     Parameters
     ----------
+    correction_angle
     peak_image: Boolean NumPy array specifying the peak positions in the full
     SLI stack
     centroids: Centroids resulting from `centroid_correction` for more accurate
@@ -178,10 +180,10 @@ def direction(peak_image, centroids, number_of_directions=3,
     array entry will be BACKGROUND_COLOR instead.
     """
     if use_gpu:
-        return gpu_toolbox.direction(peak_image, centroids,
+        return gpu_toolbox.direction(peak_image, centroids, correction_angle,
                                      number_of_directions, return_numpy)
     else:
-        return cpu_toolbox.direction(peak_image, centroids,
+        return cpu_toolbox.direction(peak_image, centroids, correction_angle,
                                      number_of_directions)
 
 

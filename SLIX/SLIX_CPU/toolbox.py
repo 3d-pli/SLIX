@@ -311,7 +311,8 @@ def mean_peak_distance(peak_image, centroids):
     return result_image
 
 
-def direction(peak_image, centroids, number_of_directions=3):
+def direction(peak_image, centroids, correction_angle=0,
+              number_of_directions=3):
     """
     Calculate up to `number_of_directions` direction angles based on the given
     peak positions.
@@ -325,6 +326,7 @@ def direction(peak_image, centroids, number_of_directions=3):
 
     Parameters
     ----------
+    correction_angle
     peak_image: Boolean NumPy array specifying the peak positions in the full
     SLI stack.
     centroids: Centroids resulting from `centroid_correction` for
@@ -348,6 +350,8 @@ def direction(peak_image, centroids, number_of_directions=3):
     result_img = _direction(peak_image, centroids, number_of_peaks,
                             number_of_directions)
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
+    result_img[result_img > 0] = (result_img[result_img > 0] +
+                                  correction_angle) % 180
 
     return result_img
 
