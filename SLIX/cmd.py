@@ -511,6 +511,7 @@ def main_full_image():
             non_crossing_direction = toolbox.\
                 direction(significant_peaks, centroids,
                           number_of_directions=1,
+                          correction_angle=args['correctdir'],
                           use_gpu=toolbox.gpu_available)
             io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
             tqdm_step.update(1)

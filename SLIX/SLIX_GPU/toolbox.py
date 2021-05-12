@@ -466,12 +466,10 @@ def direction(peak_image, centroids, correction_angle=0,
     _direction[blocks_per_grid, threads_per_block](gpu_peak_image,
                                                    gpu_centroids,
                                                    number_of_peaks,
-                                                   result_img_gpu)
+                                                   result_img_gpu,
+                                                   correction_angle)
     cuda.synchronize()
     del number_of_peaks
-
-    result_img_gpu[result_img_gpu > 0] = (result_img_gpu[result_img_gpu > 0] +
-                                          correction_angle) % 180
 
     if peak_image is None:
         del gpu_peak_image

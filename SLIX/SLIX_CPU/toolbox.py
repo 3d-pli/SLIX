@@ -349,10 +349,8 @@ def direction(peak_image, centroids, correction_angle=0,
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
 
     result_img = _direction(peak_image, centroids, number_of_peaks,
-                            number_of_directions)
+                            number_of_directions, correction_angle)
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
-    result_img[result_img > 0] = (result_img[result_img > 0] +
-                                  correction_angle) % 180
 
     return result_img
 
