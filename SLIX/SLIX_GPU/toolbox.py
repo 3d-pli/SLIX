@@ -420,8 +420,8 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
         return peak_distance_gpu
 
 
-def direction(peak_image, centroids, number_of_directions=3,
-              return_numpy=True):
+def direction(peak_image, centroids, correction_angle=0,
+              number_of_directions=3, return_numpy=True):
     """
     Calculate up to `number_of_directions` direction angles based on the given
     peak positions.
@@ -436,6 +436,8 @@ def direction(peak_image, centroids, number_of_directions=3,
 
     Parameters
     ----------
+    correction_angle: Correct the resulting direction angle by the value.
+    This is useful when the stack or camera was rotated.
     peak_image: Boolean NumPy array specifying the peak positions in the full
     SLI stack.
     centroids: Centroids resulting from `centroid_correction` for more accurate
@@ -467,6 +469,9 @@ def direction(peak_image, centroids, number_of_directions=3,
                                                    result_img_gpu)
     cuda.synchronize()
     del number_of_peaks
+
+    result_img_gpu[result_img_gpu > 0] = (result_img_gpu[result_img_gpu > 0] +
+                                          correction_angle) % 180
 
     if peak_image is None:
         del gpu_peak_image
@@ -578,8 +583,8 @@ def unit_vectors(direction, return_numpy=True):
     """
     direction_gpu = cupy.array(direction)
     direction_gpu_rad = cupy.deg2rad(direction_gpu)
-    UnitX = -cupy.sin(0.5 * cupy.pi) * numpy.cos(direction_gpu_rad)
-    UnitY = cupy.sin(0.5 * cupy.pi) * numpy.sin(direction_gpu_rad)
+    UnitX = -cupy.sin(0.5 * cupy.pi) * cupy.cos(direction_gpu_rad)
+    UnitY = cupy.sin(0.5 * cupy.pi) * cupy.sin(direction_gpu_rad)
     del direction_gpu_rad
 
     UnitX[cupy.isclose(direction_gpu, -1)] = 0

@@ -162,35 +162,54 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image):
     current_direction = 0
     current_number_of_peaks = number_of_peaks[idx, idy]
 
+    # Set the whole pixel in the direction to background.
+    # That just in case if not all directions are calculated
+    # when only two or four peaks are present.
     result_image[idx, idy, :] = BACKGROUND_COLOR
+    # Check if the line profile has less peaks than the number
+    # of directions which shall be calculated.
     if current_number_of_peaks // 2 <= num_directions:
         for i in range(len(sub_peak_array)):
+            # If one of our line profile pixels is a peak
             if sub_peak_array[i] == 1:
+                # Mark the position as the left position of our peak
                 left = (i + sub_centroid_array[i]) * \
                        360.0 / len(sub_peak_array)
+                # If there is only one peak present, convert the left
+                # position to our direction
                 if current_number_of_peaks == 1:
                     result_image[idx, idy, current_direction] = \
                         (270.0 - left) % 180
                     break
+                # If we got an even number of peaks, we can calculate
+                # each direction without any problems.
                 elif current_number_of_peaks % 2 == 0:
+                    # We search for a peak which is around 180° away.
+                    # We will search for it using the following distance
+                    # as the number of peaks we need to pass.
                     right_side_peak = current_number_of_peaks//2
                     current_position = i
+                    # Check for peaks until we find the corresponding peak
                     while right_side_peak > 0 and \
                             current_position < len(sub_peak_array):
                         current_position = current_position + 1
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
+
                     if right_side_peak == 0:
                         right = (current_position +
                                  sub_centroid_array[current_position]) * \
                                 360.0 / len(sub_peak_array)
-                        if abs(180 - (right - left)) < 35:
-                            result_image[idx, idy, current_direction] = \
-                                (270.0 - ((left + right) / 2.0)) % 180
-                        else:
+
+                        # If our peaks are around 180° ± 35° apart,
+                        # we can calculate the direction.
+                        if abs(180 - (right - left)) >= 35:
                             result_image[idx, idy] = BACKGROUND_COLOR
                             break
-                    current_direction += 1
+
+                        result_image[idx, idy, current_direction] = \
+                            (270.0 - ((left + right) / 2.0)) % 180
+                        current_direction += 1
 
                     if current_direction == current_number_of_peaks // 2:
                         break
