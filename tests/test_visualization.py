@@ -37,5 +37,6 @@ def run_around_tests(request):
     # Code that will run after your test, for example:
     def remove_test_dir():
         if os.path.isdir('result_images'):
-            shutil.rmtree('result_images')
+            #shutil.rmtree('result_images')
+            pass
     request.addfinalizer(remove_test_dir)
