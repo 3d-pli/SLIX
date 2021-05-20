@@ -343,7 +343,7 @@ def main_full_image():
                       "'fourier' or 'savgol'!")
 
             tqdm_step.update(1)
-            io.imwrite(output_path_name+'_'+algorithm+'_smoothed.tiff', image)
+            io.imwrite(output_path_name+'_'+algorithm+'_smoothed.h5', image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
@@ -353,7 +353,7 @@ def main_full_image():
             mask = toolbox.background_mask(image, args['mask_threshold'],
                                            use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
-            io.imwrite(output_path_name + '_background_mask.tiff', mask)
+            io.imwrite(output_path_name + '_background_mask.h5', mask)
             tqdm_step.update(1)
 
         tqdm_step.set_description('Generating peaks')
@@ -370,16 +370,16 @@ def main_full_image():
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
 
-            io.imwrite(output_path_name+'_high_prominence_peaks.tiff',
+            io.imwrite(output_path_name+'_high_prominence_peaks.h5',
                        numpy.sum(significant_peaks_cpu, axis=-1))
-            io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
+            io.imwrite(output_path_name+'_low_prominence_peaks.h5',
                        numpy.sum(peaks, axis=-1) -
                        numpy.sum(significant_peaks_cpu, axis=-1))
 
             if args['detailed']:
-                io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
+                io.imwrite(output_path_name+'_all_peaks_detailed.h5', peaks)
                 io.imwrite(
-                    output_path_name+'_high_prominence_peaks_detailed.tiff',
+                    output_path_name+'_high_prominence_peaks_detailed.h5',
                     significant_peaks_cpu)
 
             tqdm_step.update(1)
@@ -387,7 +387,7 @@ def main_full_image():
         if PEAKPROMINENCE:
             tqdm_step.set_description('Generating peak prominence')
 
-            io.imwrite(output_path_name+'_peakprominence.tiff',
+            io.imwrite(output_path_name+'_peakprominence.h5',
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
                                             use_gpu=toolbox.gpu_available))
@@ -398,7 +398,7 @@ def main_full_image():
                                             peak_image=significant_peaks,
                                             kind_of_normalization=1,
                                             use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name+'_peakprominence_detailed.tiff',
+                io.imwrite(output_path_name+'_peakprominence_detailed.h5',
                            peak_prominence_full)
                 del peak_prominence_full
 
@@ -407,7 +407,7 @@ def main_full_image():
         if PEAKWIDTH:
             tqdm_step.set_description('Generating peak width')
 
-            io.imwrite(output_path_name+'_peakwidth.tiff',
+            io.imwrite(output_path_name+'_peakwidth.h5',
                        toolbox.mean_peak_width(image, significant_peaks,
                                                use_gpu=toolbox.gpu_available))
 
@@ -415,7 +415,7 @@ def main_full_image():
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
                                        use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name+'_peakwidth_detailed.tiff',
+                io.imwrite(output_path_name+'_peakwidth_detailed.h5',
                            peak_width_full)
                 del peak_width_full
 
@@ -434,7 +434,7 @@ def main_full_image():
                     centroids_cpu = centroids.get()
                 else:
                     centroids_cpu = centroids
-                io.imwrite(output_path_name+'_centroid_correction.tiff',
+                io.imwrite(output_path_name+'_centroid_correction.h5',
                            centroids_cpu)
                 tqdm_step.update(1)
         else:
@@ -447,7 +447,7 @@ def main_full_image():
         if PEAKDISTANCE:
             tqdm_step.set_description('Generating peak distance')
 
-            io.imwrite(output_path_name + '_peakdistance.tiff',
+            io.imwrite(output_path_name + '_peakdistance.h5',
                        toolbox.
                        mean_peak_distance(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available))
@@ -456,7 +456,7 @@ def main_full_image():
                 peak_distance_full = toolbox.\
                     peak_distance(significant_peaks, centroids,
                                   use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_peakdistance_detailed.tiff',
+                io.imwrite(output_path_name + '_peakdistance_detailed.h5',
                            peak_distance_full)
                 del peak_distance_full
 
@@ -469,7 +469,7 @@ def main_full_image():
                                           use_gpu=toolbox.gpu_available)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):
-                    io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
+                    io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.h5',
                                direction[:, :, dim])
                 tqdm_step.update(1)
 
@@ -497,15 +497,15 @@ def main_full_image():
             if toolbox.gpu_available:
                 image = image.get()
             min_img = numpy.min(image, axis=-1)
-            io.imwrite(output_path_name + '_min.tiff', min_img)
+            io.imwrite(output_path_name + '_min.h5', min_img)
             del min_img
 
             max_img = numpy.max(image, axis=-1)
-            io.imwrite(output_path_name + '_max.tiff', max_img)
+            io.imwrite(output_path_name + '_max.h5', max_img)
             del max_img
 
             avg_img = numpy.average(image, axis=-1)
-            io.imwrite(output_path_name + '_avg.tiff', avg_img)
+            io.imwrite(output_path_name + '_avg.h5', avg_img)
             del avg_img
 
             non_crossing_direction = toolbox.\
@@ -513,7 +513,7 @@ def main_full_image():
                           number_of_directions=1,
                           correction_angle=args['correctdir'],
                           use_gpu=toolbox.gpu_available)
-            io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
+            io.imwrite(output_path_name + '_dir.h5', non_crossing_direction)
             tqdm_step.update(1)
 
         tqdm_step.reset()
