@@ -12,7 +12,7 @@ class TestIO:
         image = reader.read('/Image')
         reader.close()
 
-        assert image.shape == (170, 163, 24)
+        assert image.shape == (163, 170, 24)
 
     def test_write_hdf5(self):
         test_arr = numpy.random.rand(100, 110, 24)
@@ -36,7 +36,7 @@ class TestIO:
 
     def test_read_tiff(self):
         image = io.imread('tests/files/demo.tiff')
-        assert image.shape == (170, 163, 24)
+        assert image.shape == (163, 170, 24)
 
     def test_write_tiff(self):
         test_arr = numpy.random.rand(100, 110, 24)
