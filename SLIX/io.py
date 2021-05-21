@@ -40,8 +40,9 @@ class H5FileReader:
         if dataset not in self.content.keys():
             self.content[dataset] = self.file[dataset][:]
             if len(self.content[dataset].shape) == 3:
-                self.content[dataset] = numpy.moveaxis(self.content[dataset],
-                                                       0, -1)
+                shape = numpy.array(self.content[dataset].shape)
+                self.content[dataset] = numpy.swapaxes(self.content[dataset],
+                                                       shape.argmin(), -1)
         return self.content[dataset]
 
 
@@ -75,7 +76,6 @@ class H5FileWriter:
         output_handler.set_attribute('software', sys.argv[0])
         output_handler.set_attribute('software_revision',
                                      SLIX.__version__)
-        print(datetime.datetime.now())
         output_handler.set_attribute('creation_time',
                                      datetime.datetime.now()
                                      .strftime('%Y-%m-%d %H:%M:%S'))
@@ -102,7 +102,8 @@ class H5FileWriter:
 
         if dataset not in self.file:
             if len(content.shape) == 3:
-                content = numpy.moveaxis(content, -1, 0)
+                shape = numpy.array(content.shape)
+                content = numpy.swapaxes(content, shape.argmin(), -1)
             self.file.create_dataset(dataset, content.shape,
                                      dtype=content.dtype, data=content)
         self.file.flush()
@@ -175,7 +176,7 @@ def read_folder(filepath):
 def imread(filepath, dataset="/Image"):
     """
     Reads image file and returns it.
-    Supported file formats: NIfTI, Tiff.
+    Supported file formats: HDF5, NIfTI, Tiff.
 
     Arguments:
         filepath: Path to image
@@ -196,7 +197,7 @@ def imread(filepath, dataset="/Image"):
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         data = tifffile.imread(filepath)
         if len(data.shape) > 2:
-            data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
+            data = numpy.squeeze(numpy.swapaxes(data, 0, -1))
     elif filepath.endswith('.h5'):
         reader = H5FileReader()
         reader.open(filepath)
@@ -211,14 +212,14 @@ def imread(filepath, dataset="/Image"):
 def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     """
     Write generated image to given filepath.
-    Supported file formats: NIfTI, Tiff.
+    Supported file formats: HDF5, NIfTI, Tiff.
     Other file formats are only indirectly supported and might result in
     errors.
 
     Arguments:
         filepath: Path to image
         data: Data which will be written to the disk
-        dataset: When reading a HDF5 file, a dataset is required.
+        dataset: When writing a HDF5 file, a dataset is required.
                  Default: '/Image'
         original_stack_path: Path to the original image stack used to create
                              this content. Only required when a HDF5 file
@@ -234,6 +235,8 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     save_data = data.copy()
     if isinstance(save_data.dtype, (int, numpy.int32, numpy.int64)):
         save_data = save_data.astype('int32')
+    elif isinstance(save_data.dtype, numpy.uint8):
+        pass
     else:
         save_data = save_data.astype('float32')
 
@@ -241,17 +244,54 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
         save_data = numpy.swapaxes(save_data, 0, 1)
         nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
-        if swap_axes:
-            save_data = numpy.moveaxis(save_data, -1, 0)
-        else:
-            save_data = save_data
+        save_data = numpy.swapaxes(save_data, -1, 0)
         tifffile.imwrite(filepath, save_data)
     elif filepath.endswith('.h5'):
         writer = H5FileWriter()
         writer.open(filepath)
-        writer.write_dataset(dataset, data)
+        writer.write_dataset(dataset, save_data)
         writer.add_plim_attributes(original_stack_path, dataset)
         writer.add_symlink(dataset, '/pyramid/00')
         writer.close()
     else:
         Image.fromarray(save_data).save(filepath)
+
+
+def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
+    """
+        Write generated RGB image to given filepath.
+        Supported file formats: HDF5, Tiff.
+        Other file formats are only indirectly supported and might result in
+        errors.
+
+        Arguments:
+            filepath: Path to image
+            data: Data which will be written to the disk
+            dataset: When reading a HDF5 file, a dataset is required.
+                     Default: '/Image'
+            original_stack_path: Path to the original image stack used to create
+                                 this content. Only required when a HDF5 file
+                                 is written.
+        Returns:
+            None
+        """
+    save_data = data.copy()
+    axis = numpy.argwhere(numpy.array(save_data.shape) == 3).flatten()
+    if len(axis) == 0:
+        print('Cannot create RGB image as no dimension has a depth of 3.')
+        return
+
+    if filepath.endswith('.tiff') or filepath.endswith('.tif'):
+        save_data = numpy.moveaxis(save_data, axis[0], 0)
+        tifffile.imwrite(filepath, save_data, photometric='rgb')
+    elif filepath.endswith('.h5'):
+        writer = H5FileWriter()
+        writer.open(filepath)
+        save_data = numpy.moveaxis(save_data, axis[0], 0)
+        writer.write_dataset(dataset, save_data)
+        writer.add_plim_attributes(original_stack_path, dataset)
+        writer.add_symlink(dataset, '/pyramid/00')
+        writer.close()
+    else:
+        print("File type is not supported. "
+              "Supported file types are .h5, .tif(f)")
