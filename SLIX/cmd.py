@@ -216,13 +216,6 @@ def create_argument_parser_visualization():
                           '--output',
                           help='Output folder where images will be saved to.',
                           required=True)
-    parser.add_argument('--fom', action="store_true",
-                        help="Write approximate fiber orientation map from"
-                             " direction images.")
-    parser.add_argument('--vector', type=str,
-                        help="Write vector orientation map from direction"
-                             " images. Please add the corresponding measure"
-                             "ment image for the background.")
     parser.add_argument(
         '-h',
         '--help',
@@ -231,8 +224,43 @@ def create_argument_parser_visualization():
         help='show this help message and exit'
     )
 
+    subparser = parser.add_subparsers(dest='command')
+    fom_parser = subparser.add_parser('fom', help="Write approximate "
+                                                  "fiber orientation map from"
+                                                  " direction images.")
+    vector_parser = subparser.add_parser('vector', help="Write vector "
+                                                        "orientation "
+                                                        "map from direction"
+                                                        " images. Please add "
+                                                        "the corresponding "
+                                                        "measurement image for"
+                                                        " the background.")
+    vector_parser.add_argument('--slimeasurement', type=str, required=True,
+                               help='Add measurement to the background'
+                                    'of the visualized image.')
+    vector_parser.add_argument('--thinout', default=20, type=int,
+                               help='Thin out vectors by an integer value. '
+                                    'A thinout of 20 means that both the '
+                                    'x-axis and y-axis are thinned by '
+                                    'a value of 20.')
+    vector_parser.add_argument('--alpha', default=0.8, type=float,
+                               help='Factor for the vectors which will be used'
+                                    ' during visualization. A higher value'
+                                    ' means that the vectors will be more'
+                                    ' visible.')
+    vector_parser.add_argument('--threshold', default=0.5, type=float,
+                               help='When using the thinout option, you might'
+                                    ' not want to get a vector for a lonely'
+                                    ' vector in the base image. This parameter'
+                                    ' defines a percentage which will be used '
+                                    ' to reduce the number of shown vectors.'
+                                    ' The percentage defines the number of '
+                                    ' vectors present in the area which are '
+                                    'not zero.')
+
     # Return generated parser
     return parser
+
 
 def main_full_image():
     parser = create_argument_parser_full_image()
@@ -671,6 +699,9 @@ def main_visualize():
     arguments = parser.parse_args()
     args = vars(arguments)
 
+    if not os.path.exists(args['output']):
+        os.makedirs(args['output'], exist_ok=True)
+
     filename_without_extension = \
         os.path.splitext(os.path.basename(args['input'][0]))[0]
     output_path_name = args['output'] + '/' + filename_without_extension
@@ -691,15 +722,15 @@ def main_visualize():
                                                      [:, :, numpy.newaxis]),
                                                     axis=-1)
 
-    if args['fom']:
+    if args['command'] == "fom":
         rgb_fom = SLIX.visualization.visualize_direction(direction_image)
         rgb_fom = (255 * numpy.moveaxis(rgb_fom, -1, 0)).astype(numpy.uint8)
         print(rgb_fom.dtype)
         tifffile.imwrite(output_path_name+'_fom.tiff', rgb_fom,
                          photometric='rgb')
 
-    if args['vector'] is not None:
-        image = SLIX.io.imread(args['vector'])
+    if args['command'] == "vector":
+        image = SLIX.io.imread(args['slimeasurement'])
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image)
 
         if image.shape[:2] != UnitX.shape[:2]:
@@ -707,9 +738,9 @@ def main_visualize():
 
         print(image.shape, UnitX.shape)
 
-        thinout = 20
-        alpha = 0.8
-        background_threshold = 0.65
+        thinout = args['thinout']
+        alpha = args['alpha']
+        background_threshold = args['threshold']
 
         plt.imshow(numpy.max(image, axis=-1), cmap='gray')
         SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,

@@ -304,17 +304,31 @@ With `SLIXVisualizeParameter` the direction can be visualized easily. Just put t
 or a visualization of the unit vectors easily.
 
 ```bash
-SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] [[parameters]]
+SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] {fom, vector}
 ```
 
 ### Required Arguments
 
-| Argument         | Function                                                |
-| ---------------- | ------------------------------------------------------- |
+| Argument          | Function                                                |
+| ----------------- | ------------------------------------------------------- |
 | `-i, --input`     | Input file: SLI direction stack (as .tif(f) or .nii).      |
 | `-o, --output`    | Output folder where resulting parameter maps (.tiff) will be stored. |
-| `--fom`           | Generate a fiber orientation map with the direction images. |
-| `--vector`        | Generate a scaled down unit vector image. The original image stack for the measurement is required as an additional argument. |
+
+### Subarguments
+`SLIXVisualizeParameter` supports both the creation of FOMs of direction images, and the visualization
+of unit vectors. Depending on what you want to do, there is an argument which follows the input and output options.
+The arguments are either `fom` for the creation of a FOM, or `vector` for the creation of a vector visualization
+
+#### Argument `fom`
+No additional arguments.
+
+#### Argument `vector`
+| Argument               | Function                                                      |
+| ---------------------- | ------------------------------------------------------------- |
+| `--slimeasurement`     | SLI measurement used for the generation of the direction. Required.      |
+| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
+| `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. |
+| `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a percentage which will be used to reduce the number of shown vectors. The percentage defines the number of vectors present in the area which are not zero. |
 
 
 ### Example
