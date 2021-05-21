@@ -39,6 +39,8 @@ class H5FileReader:
             self.content = {}
         if dataset not in self.content.keys():
             self.content[dataset] = self.file[dataset][:]
+            self.content[dataset] = numpy.moveaxis(self.content[dataset],
+                                                   0, -1)
         return self.content[dataset]
 
 
@@ -98,6 +100,7 @@ class H5FileWriter:
             return
 
         if dataset not in self.file:
+            content = numpy.moveaxis(content, -1, 0)
             self.file.create_dataset(dataset, content.shape,
                                      dtype=content.dtype, data=content)
         self.file.flush()

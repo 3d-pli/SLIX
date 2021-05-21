@@ -7,15 +7,30 @@ import numpy
 
 class TestIO:
     def test_read_hdf5(self):
-        image = io.hdf5_read('tests/files/demo.h5', '/Image')
+        reader = io.H5FileReader()
+        reader.open('tests/files/demo.h5')
+        image = reader.read('/Image')
+        reader.close()
+
         assert image.shape == (170, 163, 24)
 
     def test_write_hdf5(self):
         test_arr = numpy.random.rand(100, 110, 24)
-        io.hdf5_write('tests/output/test_write_hdf5.h5', '/Image', test_arr)
+
+        writer = io.H5FileWriter()
+        writer.open('tests/output/test_write_hdf5.h5')
+        writer.write_dataset('/Image', test_arr)
+        writer.close()
+
         assert os.path.isfile('tests/output/test_write_hdf5.h5')
 
-        image = io.hdf5_read('tests/output/test_write_hdf5.h5', '/Image')
+        ############
+
+        reader = io.H5FileReader()
+        reader.open('tests/output/test_write_hdf5.h5')
+        image = reader.read('/Image')
+        reader.close()
+
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
