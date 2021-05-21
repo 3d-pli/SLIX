@@ -154,7 +154,7 @@ class AttributeHandler:
             hashstr: str = hashstr + attribute
 
         hash_obj: hashlib.sha256 = hashlib.sha256()
-        hash_obj.update(hashstr)
+        hash_obj.update(hashstr.encode('ascii'))
         self.set_attribute('id', hash_obj.hexdigest())
 
     def copy_all_attributes_to(self, dest: "AttributeHandler",

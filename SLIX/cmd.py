@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import SLIX.io
 from SLIX import toolbox, io, preparation
+
 if toolbox.gpu_available:
     import cupy
 
@@ -35,7 +36,7 @@ def create_argument_parser_full_image():
                           action='store_true',
                           help='Save 3D images in addition to 2D mean images '
                                'which include more detailed information'
-                          ' but will need a lot more disk space.')
+                               ' but will need a lot more disk space.')
     optional.add_argument('--with_mask',
                           action='store_true',
                           help='Use mask to try to remove some of the '
@@ -72,12 +73,6 @@ def create_argument_parser_full_image():
                                'set with additional parameters. For example'
                                ' --smoothing fourier 10 20 or '
                                ' --smoothing savgol 45 3')
-    optional.add_argument('--disable_gpu',
-                          action='store_false',
-                          help='Use the CPU in combination with Numba instead '
-                               'of the GPU variant. This is only recommended '
-                               'if your GPU is significantly slower than your '
-                               'CPU.')
     optional.add_argument('--prominence_threshold',
                           type=float,
                           default=0.08,
@@ -85,6 +80,18 @@ def create_argument_parser_full_image():
                                ' with lower prominences will not be used'
                                ' for further evaluation. Only recommended for'
                                ' experienced users!')
+    optional.add_argument('--output_type',
+                          required=False,
+                          default='tiff',
+                          help='Define the output data type of the parameter'
+                               ' images. Default = tiff. Supported types:'
+                               ' nii, h5, tiff.')
+    optional.add_argument('--disable_gpu',
+                          action='store_false',
+                          help='Use the CPU in combination with Numba instead '
+                               'of the GPU variant. This is only recommended '
+                               'if your GPU is significantly slower than your '
+                               'CPU.')
     optional.add_argument(
         '-h',
         '--help',
@@ -207,15 +214,15 @@ def create_argument_parser_visualization():
                             )
     # Required parameters
     parser.add_argument('-i',
-                          '--input',
-                          nargs='*',
-                          help='Input direction (.tiff) images. '
-                               'Please put all directions in the right order.',
-                          required=True)
+                        '--input',
+                        nargs='*',
+                        help='Input direction (.tiff) images. '
+                             'Please put all directions in the right order.',
+                        required=True)
     parser.add_argument('-o',
-                          '--output',
-                          help='Output folder where images will be saved to.',
-                          required=True)
+                        '--output',
+                        help='Output folder where images will be saved to.',
+                        required=True)
     parser.add_argument(
         '-h',
         '--help',
@@ -228,6 +235,12 @@ def create_argument_parser_visualization():
     fom_parser = subparser.add_parser('fom', help="Write approximate "
                                                   "fiber orientation map from"
                                                   " direction images.")
+    fom_parser.add_argument('--output_type',
+                            required=False,
+                            default='tiff',
+                            help='Define the output data type of the parameter'
+                                 ' images. Default = tiff. Supported types:'
+                                 ' h5, tiff.')
     vector_parser = subparser.add_parser('vector', help="Write vector "
                                                         "orientation "
                                                         "map from direction"
@@ -273,9 +286,15 @@ def main_full_image():
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
     UNIT_VECTORS = False
+    output_data_type = '.' + args['output_type']
 
-    if args['direction'] or args['peaks'] or args['peakprominence'] or\
-            args['peakwidth'] or args['peakdistance'] or\
+    if output_data_type not in ['.nii', '.h5', '.tiff', '.tif']:
+        print('Output data type is not supported. Please choose a valid '
+              'datatype!')
+        exit(1)
+
+    if args['direction'] or args['peaks'] or args['peakprominence'] or \
+            args['peakwidth'] or args['peakdistance'] or \
             args['unit_vectors']:
         DIRECTION = args['direction']
         PEAKS = args['peaks']
@@ -334,7 +353,7 @@ def main_full_image():
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
-            io.imwrite(output_path_name + '_image.tiff', image)
+            io.imwrite(output_path_name + '_image' + output_data_type, image)
         tqdm_step.update(1)
 
         if args['smoothing']:
@@ -371,7 +390,8 @@ def main_full_image():
                       "'fourier' or 'savgol'!")
 
             tqdm_step.update(1)
-            io.imwrite(output_path_name+'_'+algorithm+'_smoothed.tiff', image)
+            io.imwrite(output_path_name + '_' + algorithm + '_smoothed'
+                       + output_data_type, image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
@@ -381,11 +401,12 @@ def main_full_image():
             mask = toolbox.background_mask(image, args['mask_threshold'],
                                            use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
-            io.imwrite(output_path_name + '_background_mask.tiff', mask)
+            io.imwrite(output_path_name + '_background_mask'
+                       + output_data_type, mask)
             tqdm_step.update(1)
 
         tqdm_step.set_description('Generating peaks')
-        significant_peaks = toolbox.\
+        significant_peaks = toolbox. \
             significant_peaks(image,
                               low_prominence=args['prominence_threshold'],
                               use_gpu=toolbox.gpu_available,
@@ -398,16 +419,20 @@ def main_full_image():
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
 
-            io.imwrite(output_path_name+'_high_prominence_peaks.tiff',
+            io.imwrite(output_path_name + '_high_prominence_peaks'
+                       + output_data_type,
                        numpy.sum(significant_peaks_cpu, axis=-1))
-            io.imwrite(output_path_name+'_low_prominence_peaks.tiff',
+            io.imwrite(output_path_name + '_low_prominence_peaks'
+                       + output_data_type,
                        numpy.sum(peaks, axis=-1) -
                        numpy.sum(significant_peaks_cpu, axis=-1))
 
             if args['detailed']:
-                io.imwrite(output_path_name+'_all_peaks_detailed.tiff', peaks)
+                io.imwrite(output_path_name + '_all_peaks_detailed'
+                           + output_data_type, peaks)
                 io.imwrite(
-                    output_path_name+'_high_prominence_peaks_detailed.tiff',
+                    output_path_name + '_high_prominence_peaks_detailed'
+                    + output_data_type,
                     significant_peaks_cpu)
 
             tqdm_step.update(1)
@@ -415,7 +440,8 @@ def main_full_image():
         if PEAKPROMINENCE:
             tqdm_step.set_description('Generating peak prominence')
 
-            io.imwrite(output_path_name+'_peakprominence.tiff',
+            io.imwrite(output_path_name + '_peakprominence'
+                       + output_data_type,
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
                                             use_gpu=toolbox.gpu_available))
@@ -426,7 +452,8 @@ def main_full_image():
                                             peak_image=significant_peaks,
                                             kind_of_normalization=1,
                                             use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name+'_peakprominence_detailed.tiff',
+                io.imwrite(output_path_name + '_peakprominence_detailed'
+                           + output_data_type,
                            peak_prominence_full)
                 del peak_prominence_full
 
@@ -435,7 +462,8 @@ def main_full_image():
         if PEAKWIDTH:
             tqdm_step.set_description('Generating peak width')
 
-            io.imwrite(output_path_name+'_peakwidth.tiff',
+            io.imwrite(output_path_name + '_peakwidth'
+                       + output_data_type,
                        toolbox.mean_peak_width(image, significant_peaks,
                                                use_gpu=toolbox.gpu_available))
 
@@ -443,7 +471,8 @@ def main_full_image():
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
                                        use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name+'_peakwidth_detailed.tiff',
+                io.imwrite(output_path_name + '_peakwidth_detailed'
+                           + output_data_type,
                            peak_width_full)
                 del peak_width_full
 
@@ -452,7 +481,7 @@ def main_full_image():
         if args['no_centroids']:
             tqdm_step.set_description('Generating centroids')
 
-            centroids = toolbox.\
+            centroids = toolbox. \
                 centroid_correction(image, significant_peaks,
                                     use_gpu=toolbox.gpu_available,
                                     return_numpy=not toolbox.gpu_available)
@@ -462,7 +491,8 @@ def main_full_image():
                     centroids_cpu = centroids.get()
                 else:
                     centroids_cpu = centroids
-                io.imwrite(output_path_name+'_centroid_correction.tiff',
+                io.imwrite(output_path_name + '_centroid_correction'
+                           + output_data_type,
                            centroids_cpu)
                 tqdm_step.update(1)
         else:
@@ -475,17 +505,17 @@ def main_full_image():
         if PEAKDISTANCE:
             tqdm_step.set_description('Generating peak distance')
 
-            io.imwrite(output_path_name + '_peakdistance.tiff',
-                       toolbox.
+            io.imwrite(output_path_name + '_peakdistance'
+                       + output_data_type, toolbox.
                        mean_peak_distance(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available))
 
             if args['detailed']:
-                peak_distance_full = toolbox.\
+                peak_distance_full = toolbox. \
                     peak_distance(significant_peaks, centroids,
                                   use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_peakdistance_detailed.tiff',
-                           peak_distance_full)
+                io.imwrite(output_path_name + '_peakdistance_detailed'
+                           + output_data_type, peak_distance_full)
                 del peak_distance_full
 
             tqdm_step.update(1)
@@ -497,8 +527,8 @@ def main_full_image():
                                           use_gpu=toolbox.gpu_available)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):
-                    io.imwrite(output_path_name+'_dir_'+str(dim+1)+'.tiff',
-                               direction[:, :, dim])
+                    io.imwrite(output_path_name + '_dir_' + str(dim + 1) +
+                               output_data_type, direction[:, :, dim])
                 tqdm_step.update(1)
 
             if UNIT_VECTORS:
@@ -509,13 +539,13 @@ def main_full_image():
                 UnitZ = numpy.zeros(UnitX.shape)
                 for dim in range(UnitX.shape[-1]):
                     io.imwrite(output_path_name +
-                               '_dir_'+str(dim+1)+'_UnitX.nii',
+                               '_dir_' + str(dim + 1) + '_UnitX.nii',
                                UnitX[:, :, dim])
                     io.imwrite(output_path_name +
-                               '_dir_'+str(dim+1)+'_UnitY.nii',
+                               '_dir_' + str(dim + 1) + '_UnitY.nii',
                                UnitY[:, :, dim])
                     io.imwrite(output_path_name +
-                               '_dir_'+str(dim+1)+'_UnitZ.nii',
+                               '_dir_' + str(dim + 1) + '_UnitZ.nii',
                                UnitZ[:, :, dim])
 
                 tqdm_step.update(1)
@@ -525,23 +555,24 @@ def main_full_image():
             if toolbox.gpu_available:
                 image = image.get()
             min_img = numpy.min(image, axis=-1)
-            io.imwrite(output_path_name + '_min.tiff', min_img)
+            io.imwrite(output_path_name + '_min' + output_data_type, min_img)
             del min_img
 
             max_img = numpy.max(image, axis=-1)
-            io.imwrite(output_path_name + '_max.tiff', max_img)
+            io.imwrite(output_path_name + '_max' + output_data_type, max_img)
             del max_img
 
             avg_img = numpy.average(image, axis=-1)
-            io.imwrite(output_path_name + '_avg.tiff', avg_img)
+            io.imwrite(output_path_name + '_avg' + output_data_type, avg_img)
             del avg_img
 
-            non_crossing_direction = toolbox.\
+            non_crossing_direction = toolbox. \
                 direction(significant_peaks, centroids,
                           number_of_directions=1,
                           correction_angle=args['correctdir'],
                           use_gpu=toolbox.gpu_available)
-            io.imwrite(output_path_name + '_dir.tiff', non_crossing_direction)
+            io.imwrite(output_path_name + '_dir' + output_data_type,
+                       non_crossing_direction)
             tqdm_step.update(1)
 
         tqdm_step.reset()
@@ -663,7 +694,7 @@ def main_line_profile():
         if args['with_plots']:
             image = image.flatten()
             plt.plot(image)
-            significant_peaks = numpy.argwhere(significant_peaks.flatten())\
+            significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
                 .flatten()
             centroids = centroids.flatten()[significant_peaks]
             plt.plot(significant_peaks,
@@ -723,11 +754,16 @@ def main_visualize():
                                                     axis=-1)
 
     if args['command'] == "fom":
+        output_data_type = '.' + args['output_type']
+
+        if output_data_type not in ['.h5', '.tiff', '.tif']:
+            print('Output data type is not supported. Please choose a valid '
+                  'datatype!')
+            exit(1)
+
         rgb_fom = SLIX.visualization.visualize_direction(direction_image)
-        rgb_fom = (255 * numpy.moveaxis(rgb_fom, -1, 0)).astype(numpy.uint8)
-        print(rgb_fom.dtype)
-        tifffile.imwrite(output_path_name+'_fom.tiff', rgb_fom,
-                         photometric='rgb')
+        rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
+        io.imwrite_rgb(output_path_name + '_fom'+output_data_type, rgb_fom)
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
@@ -748,5 +784,5 @@ def main_visualize():
                                                   background_threshold=
                                                   background_threshold)
         plt.axis('off')
-        plt.savefig(output_path_name+'_vector.tiff', dpi=1000)
+        plt.savefig(output_path_name + '_vector.tiff', dpi=1000)
         plt.clf()
