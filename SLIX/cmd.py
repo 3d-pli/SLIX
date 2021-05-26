@@ -785,5 +785,6 @@ def main_visualize():
                                                   background_threshold=
                                                   background_threshold)
         plt.axis('off')
-        plt.savefig(output_path_name + 'vector.tiff', dpi=1000)
+        plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
+                    bbox_inches='tight')
         plt.clf()

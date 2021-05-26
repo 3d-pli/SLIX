@@ -332,8 +332,8 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 | ---------------------- | ------------------------------------------------------------- |
 | `--slimeasurement`     | SLI measurement used for the generation of the direction. Required.      |
 | `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
-| `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. |
-| `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a percentage which will be used to reduce the number of shown vectors. The percentage defines the number of vectors present in the area which are not zero. |
+| `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1) |
+| `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1) |
 
 
 ### Example
@@ -372,7 +372,7 @@ When three directions are present, the first three pixel will have the HSV color
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1_vector.jpg" width="327">
 
 ## Tutorial
-The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), `thinout = 30` (i.e. 30 x 30 pixels were evaluated together), and `background_threshold = 0.7` (i.e. if more than 70% of the evaluated pixels are `-1`, no vector will be computed). 
+The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), `thinout = 30` (i.e. 30 x 30 pixels were evaluated together), and `background_threshold = 0.3` (i.e. if more than 30% of the evaluated pixels are `-1`, no vector will be computed). 
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/assets/output_unit_vectors.png" height="327">
 
