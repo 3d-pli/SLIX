@@ -9,7 +9,7 @@ from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, SUPPRESS
 import numpy
 from matplotlib import pyplot as plt
 import os
-import tifffile
+import re
 import tqdm
 
 
@@ -734,6 +734,8 @@ def main_visualize():
 
     filename_without_extension = \
         os.path.splitext(os.path.basename(args['input'][0]))[0]
+    filename_without_extension = re.sub(r"dir_[0-9]+", "",
+                                        filename_without_extension)
     output_path_name = args['output'] + '/' + filename_without_extension
 
     direction_image = None
@@ -783,5 +785,5 @@ def main_visualize():
                                                   background_threshold=
                                                   background_threshold)
         plt.axis('off')
-        plt.savefig(output_path_name + '_vector.tiff', dpi=1000)
+        plt.savefig(output_path_name + 'vector.tiff', dpi=1000)
         plt.clf()
