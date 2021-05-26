@@ -176,7 +176,8 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                 if sub_peak_array[i] == 1:
                     # Mark the position as the left position of our peak
                     left = (i + sub_centroid_array[i]) * \
-                           360.0 / len(sub_peak_array) + correctdir
+                           360.0 / len(sub_peak_array) + \
+                           numpy.float32(correctdir)
                     # If there is only one peak present, convert the left
                     # position to our direction
                     if number_of_peaks[idx] == 1:
@@ -201,7 +202,8 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                         if right_side_peak == 0:
                             right = (current_position +
                                      sub_centroid_array[current_position]) * \
-                                    360.0 / len(sub_peak_array) + correctdir
+                                     360.0 / len(sub_peak_array) + \
+                                     numpy.float32(correctdir)
                             # If our peaks are around 180° ± 35° apart,
                             # we can calculate the direction.
                             if number_of_peaks[idx] > 2 and \

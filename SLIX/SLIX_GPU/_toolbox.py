@@ -203,7 +203,7 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
 
                         # If our peaks are around 180° ± 35° apart,
                         # we can calculate the direction.
-                        if number_of_peaks[idx] > 2 and \
+                        if current_number_of_peaks > 2 and \
                                 abs(180 - (right - left)) >= 35:
                             result_image[idx, idy] = BACKGROUND_COLOR
                             break

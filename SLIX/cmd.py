@@ -56,7 +56,6 @@ def create_argument_parser_full_image():
                                'stack and run the evaluation on the resulting '
                                '(downsampled) images.')
     optional.add_argument('--correctdir',
-                          nargs=1,
                           default=0,
                           type=float,
                           help='Correct the resulting direction angle by a'

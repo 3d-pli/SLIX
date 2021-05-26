@@ -43,7 +43,7 @@ def peaks(image):
     2D/3D boolean image containing masking the peaks with `True`
     """
     image = numpy.array(image, dtype=numpy.float32)
-
+    
     reshape = False
     if len(image.shape) == 3:
         reshape = True
