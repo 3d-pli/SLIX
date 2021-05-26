@@ -187,6 +187,7 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 | `--detailed` | Save 3D images in addition to 2D mean images which include more detailed information but will need a lot more disk space. |
 | `--disable_gpu` | Use the CPU in combination with Numba instead of the GPU variant. This is only recommended if your GPU is significantly slower than your CPU. |
 | `--no_centroids` | Disable centroid calculation for the parameter maps. This is absolutely not recommended and will result in worse parameter maps but can lower the computing time significantly. |
+| `--output_type` | Define the output data type of the parameter images. Default = tiff. Supported types: nii, h5, tiff. (default: tiff) |
 
 The arguments listed below determine which parameter maps will be generated from the SLI image stack.  If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated. If none of these arguments is used, all parameter maps except the optional ones will be generated: peakprominence, number of (prominent) peaks, peakwidth, peakdistance, direction angles in crossing regions.
 
@@ -197,6 +198,7 @@ The arguments listed below determine which parameter maps will be generated from
 | `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width (in degrees) of all prominent peaks in an SLI profile. |
 | `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two prominent peaks (in degrees) in an SLI profile. Pixels for which the SLI profile shows more/less than two prominent peaks are set to `-1`. |
 | `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers (in degrees). If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map.|
+| `--unit_vectors`  | Generate unit vectors maps (`.nii`) from direction images. |
 | `--optional`      | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), and in-plane direction angles (in degrees) in regions without crossings (`_dir.tiff`). Image pixels for which the SLI profile shows more than two prominent peaks are set to `-1` in the direction map. |
 
 ### Example
@@ -320,7 +322,10 @@ of unit vectors. Depending on what you want to do, there is an argument which fo
 The arguments are either `fom` for the creation of a FOM, or `vector` for the creation of a vector visualization
 
 #### Argument `fom`
-No additional arguments.
+| Argument               | Function                                                      |
+| ---------------------- | ------------------------------------------------------------- |
+| `--output_type`     | Define the output data type of the parameter images. Default = tiff. Supported types: h5, tiff.      |
+
 
 #### Argument `vector`
 | Argument               | Function                                                      |
