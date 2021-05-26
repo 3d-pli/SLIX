@@ -140,7 +140,7 @@ def read_folder(filepath):
         of a single image and z specifies the number of measurements
     """
     measurement_regex_left = r'.*_+p0*'
-    measurement_regex_right = r'_+.*\.(tif{1,2}|jpe*g|nii|h5|png)'
+    measurement_regex_right = r'_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
 
     files_in_folder = glob.glob(filepath+'/*')
     image = None
@@ -169,7 +169,6 @@ def read_folder(filepath):
                 break
 
         index = index + 1
-
     return image
 
 
