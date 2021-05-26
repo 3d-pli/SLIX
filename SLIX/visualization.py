@@ -24,7 +24,7 @@ def downsample(image, kernel_size, background_value=-1,
     -1 but can differ for unit vector maps.
     background_threshold: Fraction of background pixels in the considered
     (N x N) area for which the image pixels are set to background_value.
-    If the fraction of background pixels lies below this defined threshold,
+    If the fraction of background pixels lies above this defined threshold,
     background pixels will not be considered for computing the median.
 
     Returns
@@ -49,7 +49,7 @@ def downsample(image, kernel_size, background_value=-1,
                 roi = image[kernel_size * i:kernel_size * i + kernel_size,
                             kernel_size * j:kernel_size * j + kernel_size,
                             sub_image]
-                if numpy.count_nonzero(roi == background_value) < \
+                if numpy.count_nonzero(roi != background_value) >= \
                         background_threshold * roi.size:
                     small_img[i, j, sub_image] = numpy.median(
                         roi[roi != background_value])
@@ -131,7 +131,7 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
     alpha: Apply alpha to Matplotlib plots to overlay them with some other
     other image like the averaged transmitted light intensity.
     background_threshold: If the fraction of background pixels (number of
-    pixels without vector within N x N pixels) exceeds this threshold,
+    pixels without vector within N x N pixels) is below this threshold,
     the downsampled pixel will not show a vector.
 
     Returns
