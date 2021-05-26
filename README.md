@@ -345,10 +345,10 @@ wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048
 SLIXParameterGenerator -i Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o Output/ --direction
 
 # Use direction to create a FOM
-SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output --fom
+SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output fom
 
 # Visualize the unit vectors from the direction
-SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output --vector Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
+SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output vector --slimeasurement Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
 ```
 
 ### Resulting images
