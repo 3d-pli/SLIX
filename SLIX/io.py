@@ -190,7 +190,8 @@ def imread(filepath, dataset="/Image"):
         data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         data = tifffile.imread(filepath)
-        data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
+        if len(data.shape) == 3:
+            data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
     elif filepath.endswith('.h5'):
         reader = H5FileReader()
         reader.open(filepath)
