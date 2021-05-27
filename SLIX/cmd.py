@@ -350,11 +350,12 @@ def main_full_image():
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
         if os.path.isdir(path):
-            io.imwrite(output_path_name + "_Stack.tiff", image)
+            io.imwrite(output_path_name + "_Stack" + output_data_type, image)
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
-            io.imwrite(output_path_name + '_image' + output_data_type, image)
+            io.imwrite(output_path_name + '_thinout_' + str(args['thinout'])
+                       + output_data_type, image)
         tqdm_step.update(1)
 
         if args['smoothing']:
