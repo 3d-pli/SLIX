@@ -423,11 +423,13 @@ def main_full_image():
 
             io.imwrite(output_path_name + '_high_prominence_peaks'
                        + output_data_type,
-                       numpy.sum(significant_peaks_cpu, axis=-1))
+                       numpy.sum(significant_peaks_cpu, axis=-1,
+                                 dtype=numpy.uint16))
             io.imwrite(output_path_name + '_low_prominence_peaks'
                        + output_data_type,
-                       numpy.sum(peaks, axis=-1) -
-                       numpy.sum(significant_peaks_cpu, axis=-1))
+                       numpy.sum(peaks, axis=-1, dtype=numpy.uint16) -
+                       numpy.sum(significant_peaks_cpu, axis=-1,
+                                 dtype=numpy.uint16))
 
             if args['detailed']:
                 io.imwrite(output_path_name + '_all_peaks_detailed'
@@ -775,8 +777,6 @@ def main_visualize():
 
         if image.shape[:2] != UnitX.shape[:2]:
             image = numpy.swapaxes(image, 0, 1)
-
-        print(image.shape, UnitX.shape)
 
         thinout = args['thinout']
         alpha = args['alpha']
