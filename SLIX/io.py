@@ -101,11 +101,11 @@ class H5FileWriter:
             return
 
         if dataset not in self.file:
-            if len(content.shape) == 3:
-                shape = numpy.array(content.shape)
-                content = numpy.swapaxes(content, shape.argmin(), -1)
             self.file.create_dataset(dataset, content.shape,
                                      dtype=content.dtype, data=content)
+        else:
+            self.file[dataset] = content
+
         self.file.flush()
 
     def close(self):
@@ -187,12 +187,10 @@ def imread(filepath, dataset="/Image"):
     # Load NIfTI dataset
     elif filepath.endswith('.nii'):
         data = nibabel.load(filepath).get_fdata()
-        if len(data.shape) > 2:
-            data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
+        data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         data = tifffile.imread(filepath)
-        if len(data.shape) > 2:
-            data = numpy.squeeze(numpy.swapaxes(data, 0, -1))
+        data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
     elif filepath.endswith('.h5'):
         reader = H5FileReader()
         reader.open(filepath)
@@ -222,32 +220,37 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     Returns:
         None
     """
-    if len(data.shape) == 3:
-        swap_axes = True
-    else:
-        swap_axes = False
-
     save_data = data.copy()
-    if isinstance(save_data.dtype, (int, numpy.int32, numpy.int64)):
-        save_data = save_data.astype('int32')
-    elif isinstance(save_data.dtype, numpy.uint8):
-        pass
-    else:
-        save_data = save_data.astype('float32')
+    if save_data.dtype == numpy.bool:
+        save_data = save_data.astype(numpy.uint8)
 
     if filepath.endswith('.nii'):
+        if len(save_data.shape) == 3:
+            save_data = numpy.swapaxes(save_data,
+                                       numpy.array(save_data.shape).argmin(),
+                                       -1)
         save_data = numpy.swapaxes(save_data, 0, 1)
         nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
+
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
-        save_data = numpy.swapaxes(save_data, -1, 0)
+        if len(save_data.shape) == 3:
+            save_data = numpy.moveaxis(save_data,
+                                       numpy.array(save_data.shape).argmin(),
+                                       0)
         tifffile.imwrite(filepath, save_data)
+
     elif filepath.endswith('.h5'):
+        if len(save_data.shape) == 3:
+            save_data = numpy.moveaxis(save_data,
+                                       numpy.array(save_data.shape).argmin(),
+                                       0)
         writer = H5FileWriter()
         writer.open(filepath)
         writer.write_dataset(dataset, save_data)
         writer.add_plim_attributes(original_stack_path, dataset)
         writer.add_symlink(dataset, '/pyramid/00')
         writer.close()
+
     else:
         Image.fromarray(save_data).save(filepath)
 
@@ -282,7 +285,6 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
     elif filepath.endswith('.h5'):
         writer = H5FileWriter()
         writer.open(filepath)
-        save_data = numpy.moveaxis(save_data, axis[0], 0)
         writer.write_dataset(dataset, save_data)
         writer.add_plim_attributes(original_stack_path, dataset)
         writer.add_symlink(dataset, '/pyramid/00')
