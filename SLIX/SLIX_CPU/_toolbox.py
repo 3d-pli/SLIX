@@ -12,7 +12,7 @@ TARGET_PEAK_HEIGHT = 0.06
 @jit(nopython=True)
 def _peaks(image):
     peaks = image.copy()
-    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.int8)
+    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
     for idx in range(peaks.shape[0]):
         sub_image = image[idx]
 
