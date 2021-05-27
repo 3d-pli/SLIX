@@ -151,7 +151,6 @@ def read_folder(filepath):
 
     # Check if files contain the needed regex for our measurements
     for file in matching_files:
-        print(file)
         measurement_image = imread(file)
         if image is None:
             image = measurement_image
