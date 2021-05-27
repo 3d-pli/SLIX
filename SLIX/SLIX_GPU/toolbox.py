@@ -100,7 +100,8 @@ def num_peaks(image=None, peak_image=None, return_numpy=True):
     else:
         raise ValueError('Either image or peak_image has to be defined.')
 
-    resulting_image = cupy.count_nonzero(peak_image, axis=-1)
+    resulting_image = cupy.count_nonzero(peak_image, axis=-1)\
+                          .astype(cupy.uint16)
     if return_numpy:
         resulting_image_cpu = cupy.asnumpy(resulting_image)
         del resulting_image

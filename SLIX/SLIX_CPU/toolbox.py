@@ -82,7 +82,7 @@ def num_peaks(image=None, peak_image=None):
     else:
         raise ValueError('Either image or peak_image has to be defined.')
 
-    return numpy.count_nonzero(peak_image, axis=-1)
+    return numpy.count_nonzero(peak_image, axis=-1).astype(numpy.uint16)
 
 
 def normalize(image, kind_of_normalization=0):
