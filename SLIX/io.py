@@ -139,37 +139,34 @@ def read_folder(filepath):
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
-    measurement_regex_left = r'.*_+p0*'
-    measurement_regex_right = r'_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
+    file_regex = r'.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
 
     files_in_folder = glob.glob(filepath+'/*')
+    matching_files = []
+    for file in files_in_folder:
+        if re.match(file_regex, file) is not None:
+            matching_files.append(file)
+    matching_files.sort(key=__natural_sort_filenames_key)
     image = None
 
-    # Measurement index
-    index = 1
-    file_found = True
+    # Check if files contain the needed regex for our measurements
+    for file in matching_files:
+        print(file)
+        measurement_image = imread(file)
+        if image is None:
+            image = measurement_image
+        elif len(image.shape) == 2:
+            image = numpy.stack((image, measurement_image), axis=-1)
+        else:
+            image = numpy.concatenate((image,
+                    measurement_image[:, :, numpy.newaxis]), axis=-1)
 
-    while file_found:
-        file_found = False
-
-        # Check if files contain the needed regex for our measurements
-        for file in files_in_folder:
-            match = re.fullmatch(measurement_regex_left + str(index) +
-                                 measurement_regex_right, file)
-            if match is not None:
-                measurement_image = imread(file)
-                file_found = True
-                if image is None:
-                    image = measurement_image
-                elif len(image.shape) == 2:
-                    image = numpy.stack((image, measurement_image), axis=-1)
-                else:
-                    image = numpy.concatenate((image,
-                            measurement_image[:, :, numpy.newaxis]), axis=-1)
-                break
-
-        index = index + 1
     return image
+
+
+def __natural_sort_filenames_key(string, regex=re.compile('([0-9]+)')):
+    return [int(text) if text.isdigit() else text.lower()
+            for text in regex.split(string)]
 
 
 def imread(filepath, dataset="/Image"):

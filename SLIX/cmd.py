@@ -349,6 +349,8 @@ def main_full_image():
 
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        if os.path.isdir(path):
+            io.imwrite(output_path_name + "_Stack.tiff", image)
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
@@ -764,7 +766,7 @@ def main_visualize():
 
         rgb_fom = SLIX.visualization.visualize_direction(direction_image)
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        io.imwrite_rgb(output_path_name + '_fom'+output_data_type, rgb_fom)
+        io.imwrite_rgb(output_path_name + 'fom'+output_data_type, rgb_fom)
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
