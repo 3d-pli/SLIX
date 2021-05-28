@@ -12,7 +12,9 @@ class AttributeHandler:
         """
         Initialize the AttributeHandler with a already opened HDF5 dataset.
         This dataset will be used for all operations of this class.
+
         Args:
+
             dataset: h5py dataset
         """
         self.dataset: h5py.Dataset = dataset
@@ -24,11 +26,14 @@ class AttributeHandler:
         This has to be done before doing any operations because
         writing to an HDF5 attribute without properly deleting it first
         can result in errors.
-        Args:
-            attribute_name: Name of the attribute you want to check in the
-                            dataset.
 
-        Returns: None
+        Args:
+
+            attribute_name: Name of the attribute you want to check in the dataset.
+
+        Returns:
+
+            None
 
         """
         attribute_names: AbstractSet[str] = self.attrs.keys()
@@ -37,11 +42,15 @@ class AttributeHandler:
     def delete_attribute(self, attribute_name: str) -> None:
         """
         Delete an attribute from a HDF5 dataset.
+
         Args:
+
             attribute_name: Name of the attribute you want to delete in the
                             dataset.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         if self.does_attribute_exist(attribute_name):
@@ -54,13 +63,17 @@ class AttributeHandler:
             Union[str, float, int, bool, numpy.array]:
         """
         Get an attribute from the HDF5 dataset.
+
         Args:
+
             attribute_name: Name of the attribute you want to get from the
                             dataset.
 
-        Returns: Value from the dataset (string, float, int, bool
-                 or numpy.array) if the attribute es present. Otherwise None
-                 will be returned.
+        Returns:
+
+            Value from the dataset (string, float, int, bool
+            or numpy.array) if the attribute es present. Otherwise None
+            will be returned.
         """
         if not self.does_attribute_exist(attribute_name):
             print('Attribute %s does not exist!' % {attribute_name})
@@ -72,13 +85,18 @@ class AttributeHandler:
             -> None:
         """
         Set an attribute in the HDF5 dataset.
+
         Args:
+
             attribute_name: Name of the attribute you want to get from the
                             dataset.
+
             value: String, Float, Integer, Boolean or numpy array you
                    want to set in the HDF5 attribute.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         if self.does_attribute_exist(attribute_name):
@@ -92,11 +110,15 @@ class AttributeHandler:
         HDF5 file can be saves as a reference for the future.
         This method adds the reference file and dataset to the output.
         However, the input HDF5 and dataset must contain an id attribute.
+
         Args:
+
             reference: Reference AttributeHandler containing the dataset of
                        the input file.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         self.set_reference_modality_to([reference])
@@ -108,11 +130,15 @@ class AttributeHandler:
         HDF5 file can be saves as a reference for the future.
         This method adds the reference file and dataset to the output.
         However, the input HDF5 and dataset must contain an id attribute.
+
         Args:
+
             references: Reference list of AttributeHandlers
                         containing the dataset of the input file.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         ref_id: List[str] = []
@@ -165,14 +191,19 @@ class AttributeHandler:
         will not be copied: "created_by", "creation_time", "id",
         "image_modality", "reference_images", "software", "software_revision",
         "software_parameters", "filename", "path", "scale"
+
         Args:
+
             dest: Destination where the attributes of this handler should be
                   copied to.
+
             exceptions: Exceptions in form of a list with strings.
                         Those attributes will not be copied when calling the
                         method.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         if exceptions is None:
@@ -197,12 +228,17 @@ class AttributeHandler:
                            attributes: List[str] = None) -> None:
         """
         Copies given attributes from one AttributeHandler to another.
+
         Args:
+
             dest: Destination where the attributes of this handler should be
                   copied to.
+
             attributes: Attributes as a list of strings which will be copied.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         if attributes is None:
@@ -215,12 +251,17 @@ class AttributeHandler:
                           attribute_name: str) -> None:
         """
         Copy a single attribute from one AttributeHandler to another.
+
         Args:
+
             dest: Destination where the attributes of this handler should be
                   copied to.
+
             attribute_name: Attribute name which will be copied.
 
-        Returns: None
+        Returns:
+
+            None
 
         """
         dest.set_attribute(attribute_name, self.get_attribute(attribute_name))

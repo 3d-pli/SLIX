@@ -1,5 +1,3 @@
-from typing import Union
-
 from PIL import Image
 
 import SLIX
@@ -16,18 +14,39 @@ import datetime
 
 
 class H5FileReader:
+    """
+    This class allows to read HDF5 files from your file system.
+    It supports reading datasets but not reading attributes.
+    """
     def __init__(self):
         self.path = None
         self.file = None
         self.content = None
 
     def open(self, path):
+        """
+
+        Args:
+
+            path: Path on the filesystem to the HDF5 file which shall be read
+
+        Returns:
+
+            None
+        """
         if not path == self.path:
             self.close()
             self.path = path
             self.file = h5py.File(path, 'r')
 
     def close(self):
+        """
+        Close the currently opened file, if any is open.
+
+        Returns:
+
+            None
+        """
         if self.file is not None:
             self.file.close()
             self.file = None
@@ -35,6 +54,19 @@ class H5FileReader:
             self.content = None
 
     def read(self, dataset):
+        """
+        Read a dataset from the currently opened file, if any is open.
+        The content of the dataset will be stored for future use.
+
+        Args:
+
+            dataset: Path to the dataset within the HDF5
+
+        Returns:
+
+            The opened dataset.
+
+        """
         if self.content is None:
             self.content = {}
         if dataset not in self.content.keys():
@@ -47,17 +79,55 @@ class H5FileReader:
 
 
 class H5FileWriter:
+    """
+    This class allows to write HDF5 files to your file system.
+    It supports writing datasets and writing attributes.
+    """
     def __init__(self):
         self.path = None
         self.file = None
 
     def add_symlink(self, dataset, symlink_path):
+        """
+        Adds a symbolic link from one dataset to another path.
+
+        Args:
+
+            dataset: Dataset path within the HDF5
+
+            symlink_path: Path to the symlink.
+
+        Returns:
+
+            None
+
+        """
         if self.file is None:
             return
         self.file[symlink_path] = self.file[dataset]
         self.file.flush()
 
     def add_plim_attributes(self, stack_path, dataset='/Image'):
+        """
+        PLIM is a package used in the 3D-PLI group to read and write multiple
+        attributes from/to a HDF5 file. The basic functionality is added in
+        attributemanager.py. Calling this method will write many attributes to
+        the HDF5 file at the given dataset.
+
+        This includes: A unique ID, the creator, software parameters,
+                       creation time, software_revision, image_modality and
+                       all attributes from the original stack, if it was a
+                       HDF5
+
+        Args:
+            stack_path: Path of the stack that was used to calculate the content
+                        which will be written to the HDF5 file.
+            dataset: Dataset where the attributes shall be written to.
+
+        Returns:
+
+            None
+        """
         if self.path is None or self.file is None:
             return
 
@@ -87,6 +157,21 @@ class H5FileWriter:
         self.file.flush()
 
     def write_attribute(self, dataset, attr_name, value):
+        """
+        Write a single attribute to a dataset.
+
+        Args:
+
+            dataset: Path to the dataset within the HDF5
+
+            attr_name: Name of the attribute which shall be written.
+
+            value: Value of the attribute that shall be written.
+
+        Returns:
+
+            None
+        """
         if self.file is None:
             return
 
@@ -97,6 +182,20 @@ class H5FileWriter:
         self.file.flush()
 
     def write_dataset(self, dataset, content):
+        """
+        Write a dataset to the currently opened HDF5 file, if any is open.
+        If no HDF5 file is open, this method will return without writing.
+
+        Args:
+
+            dataset: Path to the dataset within the HDF5 file.
+
+            content: Content which shall be written.
+
+        Returns:
+
+            None
+        """
         if self.file is None:
             return
 
@@ -109,6 +208,13 @@ class H5FileWriter:
         self.file.flush()
 
     def close(self):
+        """
+        Close the currently opened file.
+
+        Returns:
+
+            None
+        """
         if self.file is None:
             return
 
@@ -119,6 +225,18 @@ class H5FileWriter:
         self.file = None
 
     def open(self, path):
+        """
+        Open a new HDF5 file with the given path. If another file was opened,
+        it will be closed first.
+
+        Args:
+
+            path: Path to the HDF5 file.
+
+        Returns:
+
+            None
+        """
         if self.path != path:
             self.close()
             self.path = path
@@ -130,12 +248,18 @@ def read_folder(filepath):
     Reads multiple image files from a folder and returns the resulting stack.
     The images are checked with the MEASUREMENT_REGEX_LEFT and
     MEASUREMENT_REGEX_RIGHT.
+
+    The follwing regex is used to find the measurements:
+    `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`
+
     Supported file formats: NIfTI, Tiff.
 
-    Arguments:
+    Args:
+
         filepath: Path to folder
 
     Returns:
+
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
@@ -173,12 +297,15 @@ def imread(filepath, dataset="/Image"):
     Reads image file and returns it.
     Supported file formats: HDF5, NIfTI, Tiff.
 
-    Arguments:
+    Args:
+
         filepath: Path to image
+
         dataset: When reading a HDF5 file, a dataset is required.
                  Default: '/Image'
 
     Returns:
+
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
@@ -210,15 +337,20 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     Other file formats are only indirectly supported and might result in
     errors.
 
-    Arguments:
+    Args:
+
         filepath: Path to image
+
         data: Data which will be written to the disk
+
         dataset: When writing a HDF5 file, a dataset is required.
                  Default: '/Image'
+
         original_stack_path: Path to the original image stack used to create
                              this content. Only required when a HDF5 file
                              is written.
     Returns:
+
         None
     """
     save_data = data.copy()
@@ -263,15 +395,20 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
         Other file formats are only indirectly supported and might result in
         errors.
 
-        Arguments:
+        Args:
+
             filepath: Path to image
+
             data: Data which will be written to the disk
+
             dataset: When reading a HDF5 file, a dataset is required.
                      Default: '/Image'
+
             original_stack_path: Path to the original image stack used to create
                                  this content. Only required when a HDF5 file
                                  is written.
         Returns:
+
             None
         """
     save_data = data.copy()

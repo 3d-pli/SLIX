@@ -182,7 +182,7 @@ def direction(peak_image, centroids, correction_angle=0,
         SLI stack
 
         centroids: Centroids resulting from `centroid_correction` for more accurate
-        results
+                   results
 
         number_of_directions: Number of directions which shall be generated.
 

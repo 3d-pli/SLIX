@@ -37,12 +37,17 @@ def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     smoothened measurement.
 
     Args:
+
         image: Complete SLI measurement image stack as a 2D/3D Numpy array
+
         window_length: Used window length for the Savitzky-Golay filter
+
         polyorder: Used polynomial order for the Savitzky-Golay filter
 
-    Returns: Complete SLI measurement image with applied Savitzky-Golay filter
-    and the same shape as the original image.
+    Returns:
+
+        Complete SLI measurement image with applied Savitzky-Golay filter
+        and the same shape as the original image.
     """
     conc_image = numpy.concatenate((image[:, :, -window_length:],
                                     image,
@@ -53,6 +58,29 @@ def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
 
 
 def thin_out(image, factor=2, strategy='plain'):
+    """
+    Thin out the image stack used for SLIX. This can be useful when the image
+    stack is quite large and should be processed quickly. This can also prove
+    useful if there is a lot of noise that could be filtered by using a lower
+    resolution image.
+
+    Args:
+
+        image: Image that should be thinned out.
+
+        factor: Factor which will be used for thinning the image. A factor
+                of N means that every N-th pixel will be kept.
+
+        strategy: Strategy used for thinning out the image. Available methods:
+                  'plain' (keep the pixel),
+                  'average' (calculate average of area),
+                  'median' (calculate the median of area)
+
+    Returns:
+
+        numpy.ndarray with the thinned out image
+
+    """
     strategy = strategy.lower()
     if strategy == 'plain':
         return _thin_out_plain(image, factor)
