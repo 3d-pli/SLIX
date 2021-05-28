@@ -356,6 +356,12 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     save_data = data.copy()
     if save_data.dtype == numpy.bool:
         save_data = save_data.astype(numpy.uint8)
+    elif save_data.dtype == numpy.float64:
+        save_data = save_data.astype(numpy.float32)
+    elif save_data.dtype == numpy.int64:
+        save_data = save_data.astype(numpy.int32)
+    elif save_data.dtype == numpy.uint64:
+        save_data = save_data.astype(numpy.uint32)
 
     if filepath.endswith('.nii'):
         if len(save_data.shape) == 3:
