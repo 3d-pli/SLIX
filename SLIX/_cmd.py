@@ -782,7 +782,11 @@ def main_visualize():
         alpha = args['alpha']
         background_threshold = args['threshold']
 
-        plt.imshow(numpy.max(image, axis=-1), cmap='gray')
+        if len(image.shape) == 2:
+            plt.imshow(image, cmap='gray')
+        else:
+            plt.imshow(numpy.max(image, axis=-1), cmap='gray')
+
         SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,
                                                   thinout=thinout, alpha=alpha,
                                                   background_threshold=

@@ -17,8 +17,6 @@ try:
               "Please check if there are problems with your CUDA / Numba "
               "version. SLIX will fall back to the CPU variant.")
         gpu_available = False
-
-
 except (ModuleNotFoundError, NameError):
     gpu_available = False
     print('[WARNING] CuPy is not installed. The toolbox will use the CPU '
