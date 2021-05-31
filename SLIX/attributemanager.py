@@ -28,7 +28,8 @@ class AttributeHandler:
 
         Args:
 
-            attribute_name: Name of the attribute you want to check in the dataset.
+            attribute_name: Name of the attribute you want to check
+                            in the dataset.
 
         Returns:
 
@@ -80,7 +81,8 @@ class AttributeHandler:
         return self.attrs[attribute_name]
 
     def set_attribute(self, attribute_name: str,
-                      value: _typing.Union[str, float, int, bool, _numpy.array]) \
+                      value: _typing.Union[str, float, int,
+                                           bool, _numpy.array]) \
             -> None:
         """
         Set an attribute in the HDF5 dataset.
@@ -123,7 +125,8 @@ class AttributeHandler:
         self.set_reference_modality_to([reference])
 
     def set_reference_modality_to(self,
-                                  references: _typing.List["AttributeHandler"]) -> None:
+                                  references: _typing.List["AttributeHandler"])\
+            -> None:
         """
         When SLIX generates an image based on a SLI measurement, the original
         HDF5 file can be saves as a reference for the future.

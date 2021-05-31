@@ -19,7 +19,8 @@ def low_pass_fourier_smoothing(image, threshold_low=10, threshold_high=25):
         [:, :, threshold_start_position][..., _numpy.newaxis]
 
     interval = _numpy.maximum(1e-15,
-                             magnitude_threshold_high - magnitude_threshold_low)
+                              magnitude_threshold_high -
+                              magnitude_threshold_low)
     middle_point = magnitude_threshold_low + 0.5 * magnitude_threshold_high
 
     # Calculate low pass filter and apply it to our original signal
@@ -53,7 +54,7 @@ def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
                                     image,
                                     image[:, :, :window_length]), axis=-1)
     conc_image = _signal.savgol_filter(conc_image, window_length,
-                                            polyorder, axis=2)
+                                       polyorder, axis=2)
     return conc_image[:, :, window_length:-window_length]
 
 
