@@ -93,17 +93,16 @@
                 
                         <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">hashlib</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">AbstractSet</span>
-
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">secrets</span>
-<span class="kn">import</span> <span class="nn">getpass</span>
+            <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">hashlib</span> <span class="k">as</span> <span class="nn">_hashlib</span>
+<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">_typing</span>
+<span class="kn">import</span> <span class="nn">h5py</span> <span class="k">as</span> <span class="nn">_h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_numpy</span>
+<span class="kn">import</span> <span class="nn">secrets</span> <span class="k">as</span> <span class="nn">_secrets</span>
+<span class="kn">import</span> <span class="nn">getpass</span> <span class="k">as</span> <span class="nn">_getpass</span>
 
 
 <span class="k">class</span> <span class="nc">AttributeHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the AttributeHandler with a already opened HDF5 dataset.</span>
 <span class="sd">        This dataset will be used for all operations of this class.</span>
@@ -112,8 +111,8 @@
 
 <span class="sd">            dataset: h5py dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
 
     <span class="k">def</span> <span class="nf">does_attribute_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -131,7 +130,7 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span>
 
     <span class="k">def</span> <span class="nf">delete_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -155,7 +154,7 @@
                   <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
 
     <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> \
-            <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+            <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get an attribute from the HDF5 dataset.</span>
 
@@ -176,7 +175,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -219,7 +218,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
@@ -236,7 +235,7 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ref_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ref_id</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
@@ -254,7 +253,7 @@
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
+        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;created_by&#39;</span><span class="p">,</span> <span class="n">creator</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -265,7 +264,7 @@
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
         <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;brain_id&#39;</span><span class="p">,</span> <span class="s1">&#39;brain_part_id&#39;</span><span class="p">,</span> <span class="s1">&#39;section_id&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;image_modality&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">,</span>
@@ -274,12 +273,12 @@
         <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
             <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hashstr</span> <span class="o">+</span> <span class="n">attribute</span>
 
-        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
         <span class="n">hash_obj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hashstr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">hash_obj</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">copy_all_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies all attributes from one AttributeHandler to another.</span>
 <span class="sd">        Exceptions can be given in a list. In general, the following attributes</span>
@@ -304,7 +303,7 @@
         <span class="k">if</span> <span class="n">exceptions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c1"># Attributes that MUST be manually set</span>
             <span class="s2">&quot;created_by&quot;</span><span class="p">,</span> <span class="s2">&quot;creation_time&quot;</span><span class="p">,</span> <span class="s2">&quot;dashboard_id&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
             <span class="s2">&quot;image_modality&quot;</span><span class="p">,</span> <span class="s2">&quot;reference_images&quot;</span><span class="p">,</span>
@@ -313,14 +312,14 @@
             <span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="s2">&quot;scale&quot;</span>
         <span class="p">]</span>
 
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fixed_exceptions</span> \
                     <span class="ow">and</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exceptions</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">copy_attribute_to</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">copy_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                           <span class="n">attributes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                           <span class="n">attributes</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies given attributes from one AttributeHandler to another.</span>
 
@@ -377,7 +376,7 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">AttributeHandler</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the AttributeHandler with a already opened HDF5 dataset.</span>
 <span class="sd">        This dataset will be used for all operations of this class.</span>
@@ -386,8 +385,8 @@
 
 <span class="sd">            dataset: h5py dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
 
     <span class="k">def</span> <span class="nf">does_attribute_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -405,7 +404,7 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span>
 
     <span class="k">def</span> <span class="nf">delete_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -429,7 +428,7 @@
                   <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
 
     <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> \
-            <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+            <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get an attribute from the HDF5 dataset.</span>
 
@@ -450,7 +449,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -493,7 +492,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
@@ -510,7 +509,7 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ref_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ref_id</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
@@ -528,7 +527,7 @@
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
+        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;created_by&#39;</span><span class="p">,</span> <span class="n">creator</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">add_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -539,7 +538,7 @@
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
         <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;brain_id&#39;</span><span class="p">,</span> <span class="s1">&#39;brain_part_id&#39;</span><span class="p">,</span> <span class="s1">&#39;section_id&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;image_modality&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">,</span>
@@ -548,12 +547,12 @@
         <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
             <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hashstr</span> <span class="o">+</span> <span class="n">attribute</span>
 
-        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
         <span class="n">hash_obj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hashstr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">hash_obj</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">copy_all_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies all attributes from one AttributeHandler to another.</span>
 <span class="sd">        Exceptions can be given in a list. In general, the following attributes</span>
@@ -578,7 +577,7 @@
         <span class="k">if</span> <span class="n">exceptions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c1"># Attributes that MUST be manually set</span>
             <span class="s2">&quot;created_by&quot;</span><span class="p">,</span> <span class="s2">&quot;creation_time&quot;</span><span class="p">,</span> <span class="s2">&quot;dashboard_id&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
             <span class="s2">&quot;image_modality&quot;</span><span class="p">,</span> <span class="s2">&quot;reference_images&quot;</span><span class="p">,</span>
@@ -587,14 +586,14 @@
             <span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="s2">&quot;scale&quot;</span>
         <span class="p">]</span>
 
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fixed_exceptions</span> \
                     <span class="ow">and</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exceptions</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">copy_attribute_to</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">copy_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                           <span class="n">attributes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                           <span class="n">attributes</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies given attributes from one AttributeHandler to another.</span>
 
@@ -649,7 +648,7 @@
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the AttributeHandler with a already opened HDF5 dataset.</span>
 <span class="sd">        This dataset will be used for all operations of this class.</span>
@@ -658,8 +657,8 @@
 
 <span class="sd">            dataset: h5py dataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">_h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
 </pre></div>
 
         </details>
@@ -719,7 +718,7 @@ This dataset will be used for all operations of this class.</p>
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span>
 </pre></div>
 
@@ -806,7 +805,7 @@ can result in errors.</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> \
-            <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
+            <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get an attribute from the HDF5 dataset.</span>
 
@@ -862,7 +861,7 @@ will be returned.
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -921,7 +920,7 @@ value: String, Float, Integer, Boolean or numpy array you
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
@@ -938,7 +937,7 @@ value: String, Float, Integer, Boolean or numpy array you
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ref_id</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ref_id</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
@@ -988,7 +987,7 @@ However, the input HDF5 and dataset must contain an id attribute.</p>
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
+        <span class="n">creator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;created_by&#39;</span><span class="p">,</span> <span class="n">creator</span><span class="p">)</span>
 </pre></div>
 
@@ -1018,7 +1017,7 @@ Returns: None</p>
 <span class="sd">        Returns: None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_secrets</span><span class="o">.</span><span class="n">token_hex</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
         <span class="n">attributes</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;brain_id&#39;</span><span class="p">,</span> <span class="s1">&#39;brain_part_id&#39;</span><span class="p">,</span> <span class="s1">&#39;section_id&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;image_modality&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">,</span>
@@ -1027,7 +1026,7 @@ Returns: None</p>
         <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
             <span class="n">hashstr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">hashstr</span> <span class="o">+</span> <span class="n">attribute</span>
 
-        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+        <span class="n">hash_obj</span><span class="p">:</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span> <span class="o">=</span> <span class="n">_hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
         <span class="n">hash_obj</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hashstr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">hash_obj</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
 </pre></div>
@@ -1057,7 +1056,7 @@ Returns: None</p>
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">copy_all_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                               <span class="n">exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies all attributes from one AttributeHandler to another.</span>
 <span class="sd">        Exceptions can be given in a list. In general, the following attributes</span>
@@ -1082,7 +1081,7 @@ Returns: None</p>
         <span class="k">if</span> <span class="n">exceptions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">fixed_exceptions</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c1"># Attributes that MUST be manually set</span>
             <span class="s2">&quot;created_by&quot;</span><span class="p">,</span> <span class="s2">&quot;creation_time&quot;</span><span class="p">,</span> <span class="s2">&quot;dashboard_id&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
             <span class="s2">&quot;image_modality&quot;</span><span class="p">,</span> <span class="s2">&quot;reference_images&quot;</span><span class="p">,</span>
@@ -1091,7 +1090,7 @@ Returns: None</p>
             <span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="s2">&quot;scale&quot;</span>
         <span class="p">]</span>
 
-        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">attribute_names</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">AbstractSet</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="n">attribute_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fixed_exceptions</span> \
                     <span class="ow">and</span> <span class="n">attribute_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exceptions</span><span class="p">:</span>
@@ -1139,7 +1138,7 @@ exceptions: Exceptions in form of a list with strings.
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">copy_attributes_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">,</span>
-                           <span class="n">attributes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                           <span class="n">attributes</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Copies given attributes from one AttributeHandler to another.</span>
 

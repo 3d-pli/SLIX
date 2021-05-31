@@ -89,16 +89,16 @@
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">cupy</span>
-        <span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">cuda</span>
+        <span class="kn">import</span> <span class="nn">cupy</span> <span class="k">as</span> <span class="nn">_cupy</span>
+        <span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">cuda</span> <span class="k">as</span> <span class="n">_cuda</span>
 
-        <span class="n">cupy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-        <span class="kn">from</span> <span class="nn">SLIX.SLIX_GPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">gpu_toolbox</span>
+        <span class="n">_cupy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">SLIX._GPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">_gpu_toolbox</span>
 
         <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">cupy</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">CUDARuntimeError</span><span class="p">,</span>
-            <span class="n">cuda</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">CudaAPIError</span><span class="p">,</span>
-            <span class="n">cuda</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">LinkerError</span><span class="p">):</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">_cupy</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">runtime</span><span class="o">.</span><span class="n">CUDARuntimeError</span><span class="p">,</span>
+            <span class="n">_cupy</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">CudaAPIError</span><span class="p">,</span>
+            <span class="n">_cupy</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">LinkerError</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] CuPy is installed but an error was thrown by the &#39;</span>
               <span class="s1">&#39;runtime. SLIX will fall back to the CPU variant.&#39;</span><span class="p">)</span>
         <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">False</span>
@@ -107,8 +107,9 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] CuPy is not installed. The toolbox will use the CPU &#39;</span>
           <span class="s1">&#39;variant instead. If you want to use the GPU variant, please run &#39;</span>
           <span class="s1">&#39;`pip install cupy`.&#39;</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">SLIX.SLIX_CPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">cpu_toolbox</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
+    
+<span class="kn">from</span> <span class="nn">SLIX._CPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">_cpu_toolbox</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_numpy</span>
 
 
 <span class="k">def</span> <span class="nf">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span>
@@ -122,25 +123,25 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D _numpy array</span>
 
 <span class="sd">        threshold: Threshhold for mask creation (default: 10)</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      _numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        numpy.array: 1D/2D-image which masks the background as True and</span>
+<span class="sd">        _numpy.array: 1D/2D-image which masks the background as True and</span>
 <span class="sd">                     foreground as False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -151,12 +152,12 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D numpy array</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
@@ -164,13 +165,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-                      <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+                      <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
                       <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Detect all peaks from a full SLI measurement and filter them by passing</span>
@@ -178,7 +179,7 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D numpy array</span>
 
 <span class="sd">        low_prominence: Minimum prominence needed by peak to count as a peak.</span>
 <span class="sd">                        Peaks below this threshold will not be considered as a</span>
@@ -191,7 +192,7 @@
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
@@ -199,21 +200,21 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="n">peaks</span> <span class="o">=</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
-        <span class="n">prominences</span> <span class="o">=</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="n">prominences</span> <span class="o">=</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span>
                                                   <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&lt;</span> <span class="n">low_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&gt;</span> <span class="n">high_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">peaks</span> <span class="o">=</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-        <span class="n">prominences</span> <span class="o">=</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">prominences</span> <span class="o">=</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&lt;</span> <span class="n">low_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&gt;</span> <span class="n">high_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">peaks</span>
 
 
-<span class="k">def</span> <span class="nf">num_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-              <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">num_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+              <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
               <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the number of peaks from each line profile in an SLI image series</span>
@@ -230,7 +231,7 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">                      array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -241,12 +242,12 @@
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
         <span class="n">peaks</span> <span class="o">=</span> <span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                   <span class="n">return_numpy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
                                      <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">peaks</span> <span class="o">=</span> <span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                   <span class="n">use_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -267,7 +268,7 @@
 <span class="sd">        correction_angle: Correct the resulting direction angle by the value.</span>
 <span class="sd">        This is useful when the stack or camera was rotated.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Centroids resulting from `centroid_correction` for more accurate</span>
@@ -277,21 +278,21 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array with the shape (x, y, `number_of_directions`) containing up to</span>
+<span class="sd">        numpy array with the shape (x, y, `number_of_directions`) containing up to</span>
 <span class="sd">        `number_of_directions` direction angles. x equals the number of pixels of</span>
 <span class="sd">        the SLI image series. If a direction angle is invalid or missing, the</span>
 <span class="sd">        array entry will be BACKGROUND_COLOR instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
                                      <span class="n">number_of_directions</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
                                      <span class="n">number_of_directions</span><span class="p">)</span>
 
 
@@ -303,7 +304,7 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Use centroid calculation to better determine the peak position</span>
@@ -312,20 +313,20 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array of floating point values containing the peak distance of the</span>
+<span class="sd">        numpy array of floating point values containing the peak distance of the</span>
 <span class="sd">        line profiles in degrees in their respective peak position. The first peak</span>
 <span class="sd">        of each peak pair will show the distance between peak_1 and peak_2 while</span>
 <span class="sd">        the second peak will show 360 - (peak_2 - peak_1).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span>
@@ -336,7 +337,7 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Use centroid calculation to better determine the peak position</span>
@@ -345,20 +346,20 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array of floating point values containing the mean peak distance of</span>
+<span class="sd">        numpy array of floating point values containing the mean peak distance of</span>
 <span class="sd">        the line profiles in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span>
                                               <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind_of_normalization</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -373,7 +374,7 @@
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean _numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        kind_of_normalization: Normalize given line profile by using a</span>
@@ -383,7 +384,7 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -392,10 +393,10 @@
 <span class="sd">        profile in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                            <span class="n">kind_of_normalization</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                            <span class="n">kind_of_normalization</span><span class="p">)</span>
 
 
@@ -411,7 +412,7 @@
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">            further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        kind_of_normalization: Normalize given line profile by using a</span>
@@ -421,7 +422,7 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -430,11 +431,11 @@
 <span class="sd">        profile in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                 <span class="n">kind_of_normalization</span><span class="p">,</span>
                                                 <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                 <span class="n">kind_of_normalization</span><span class="p">)</span>
 
 
@@ -448,7 +449,7 @@
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        target_height: Relative peak height in relation to the prominence of the</span>
@@ -456,19 +457,19 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array where each entry corresponds to the peak width of the line</span>
+<span class="sd">        numpy array where each entry corresponds to the peak width of the line</span>
 <span class="sd">        profile. The values are in degree.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
                                       <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
@@ -482,7 +483,7 @@
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        target_height: Relative peak height in relation to the prominence of the</span>
@@ -490,24 +491,24 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array where each entry corresponds to the mean peak width of the</span>
+<span class="sd">        numpy array where each entry corresponds to the mean peak width of the</span>
 <span class="sd">        line profile. The values are in degree.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
                                            <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
-                        <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-                        <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                        <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+                        <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
                         <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Correct peak positions from a line profile by looking at only the peak</span>
@@ -521,7 +522,7 @@
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        low_prominence: Lower prominence bound for detecting a peak.</span>
@@ -530,20 +531,20 @@
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array with the positions of all detected peak positions corrected</span>
+<span class="sd">        _numpy array with the positions of all detected peak positions corrected</span>
 <span class="sd">        with the centroid calculation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                                <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">)</span>
 
 
@@ -553,22 +554,22 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        direction: 3D NumPy array - direction angles in degrees</span>
+<span class="sd">        direction: 3D numpy array - direction angles in degrees</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        UnitX, UnitY: 3D NumPy array, 3D NumPy array</span>
+<span class="sd">        UnitX, UnitY: 3D _numpy array, 3D _numpy array</span>
 <span class="sd">            x- and y-vector component in arrays</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -595,25 +596,25 @@
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D _numpy array</span>
 
 <span class="sd">        threshold: Threshhold for mask creation (default: 10)</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      _numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        numpy.array: 1D/2D-image which masks the background as True and</span>
+<span class="sd">        _numpy.array: 1D/2D-image which masks the background as True and</span>
 <span class="sd">                     foreground as False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">background_mask</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -626,19 +627,19 @@ It is advised to use this function.</p>
 
 <p>Args:</p>
 
-<pre><code>image: Complete SLI measurement image stack as a 2D/3D Numpy array
+<pre><code>image: Complete SLI measurement image stack as a 2D/3D _numpy array
 
 threshold: Threshhold for mask creation (default: 10)
 
 use_gpu: If available use the GPU for calculation
 
 return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
-              Numpy array will be returned.
+              _numpy array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>numpy.array: 1D/2D-image which masks the background as True and
+<pre><code>_numpy.array: 1D/2D-image which masks the background as True and
              foreground as False
 </code></pre>
 </div>
@@ -663,12 +664,12 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D numpy array</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
@@ -676,9 +677,9 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -689,12 +690,12 @@ the prominence as a threshold.</p>
 
 <p>Args:</p>
 
-<pre><code>image: Complete SLI measurement image stack as a 2D/3D Numpy array
+<pre><code>image: Complete SLI measurement image stack as a 2D/3D numpy array
 
 use_gpu: If available use the GPU for calculation
 
 return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
-              Numpy array will be returned.
+              numpy array will be returned.
 </code></pre>
 
 <p>Returns:</p>
@@ -720,8 +721,8 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-                      <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+                      <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
                       <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Detect all peaks from a full SLI measurement and filter them by passing</span>
@@ -729,7 +730,7 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D Numpy array</span>
+<span class="sd">        image: Complete SLI measurement image stack as a 2D/3D numpy array</span>
 
 <span class="sd">        low_prominence: Minimum prominence needed by peak to count as a peak.</span>
 <span class="sd">                        Peaks below this threshold will not be considered as a</span>
@@ -742,7 +743,7 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
 <span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
-<span class="sd">                      Numpy array will be returned.</span>
+<span class="sd">                      numpy array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
@@ -750,14 +751,14 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="n">peaks</span> <span class="o">=</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
-        <span class="n">prominences</span> <span class="o">=</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="n">prominences</span> <span class="o">=</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">,</span>
                                                   <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&lt;</span> <span class="n">low_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&gt;</span> <span class="n">high_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">peaks</span> <span class="o">=</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-        <span class="n">prominences</span> <span class="o">=</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peaks</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">prominences</span> <span class="o">=</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peaks</span><span class="p">)</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&lt;</span> <span class="n">low_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">peaks</span><span class="p">[</span><span class="n">prominences</span> <span class="o">&gt;</span> <span class="n">high_prominence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">peaks</span>
@@ -770,7 +771,7 @@ thresholds.</p>
 
 <p>Args:</p>
 
-<pre><code>image: Complete SLI measurement image stack as a 2D/3D Numpy array
+<pre><code>image: Complete SLI measurement image stack as a 2D/3D numpy array
 
 low_prominence: Minimum prominence needed by peak to count as a peak.
                 Peaks below this threshold will not be considered as a
@@ -783,7 +784,7 @@ high_prominence: Maximum prominence needed by peak to count as a peak.
 use_gpu: If available use the GPU for calculation
 
 return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
-              Numpy array will be returned.
+              numpy array will be returned.
 </code></pre>
 
 <p>Returns:</p>
@@ -810,8 +811,8 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">num_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-              <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">num_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+              <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
               <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the number of peaks from each line profile in an SLI image series</span>
@@ -828,7 +829,7 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">                      array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -839,12 +840,12 @@ return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
         <span class="n">peaks</span> <span class="o">=</span> <span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                   <span class="n">return_numpy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">,</span>
                                      <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">peaks</span> <span class="o">=</span> <span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                   <span class="n">use_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">num_peaks</span><span class="p">(</span><span class="n">peak_image</span><span class="o">=</span><span class="n">peaks</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -863,7 +864,7 @@ high_prominence: Higher prominence bound for detecting a peak.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
               array will be returned.
 </code></pre>
 
@@ -911,7 +912,7 @@ the first dimension of the SLI image series.
 <span class="sd">        correction_angle: Correct the resulting direction angle by the value.</span>
 <span class="sd">        This is useful when the stack or camera was rotated.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Centroids resulting from `centroid_correction` for more accurate</span>
@@ -921,21 +922,21 @@ the first dimension of the SLI image series.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array with the shape (x, y, `number_of_directions`) containing up to</span>
+<span class="sd">        numpy array with the shape (x, y, `number_of_directions`) containing up to</span>
 <span class="sd">        `number_of_directions` direction angles. x equals the number of pixels of</span>
 <span class="sd">        the SLI image series. If a direction angle is invalid or missing, the</span>
 <span class="sd">        array entry will be BACKGROUND_COLOR instead.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
                                      <span class="n">number_of_directions</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">direction</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span>
                                      <span class="n">number_of_directions</span><span class="p">)</span>
 </pre></div>
 
@@ -955,7 +956,7 @@ angle of BACKGROUND_COLOR.</p>
 <pre><code>correction_angle: Correct the resulting direction angle by the value.
 This is useful when the stack or camera was rotated.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 centroids: Centroids resulting from `centroid_correction` for more accurate
@@ -965,13 +966,13 @@ number_of_directions: Number of directions which shall be generated.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array with the shape (x, y, `number_of_directions`) containing up to
+<pre><code>numpy array with the shape (x, y, `number_of_directions`) containing up to
 `number_of_directions` direction angles. x equals the number of pixels of
 the SLI image series. If a direction angle is invalid or missing, the
 array entry will be BACKGROUND_COLOR instead.
@@ -998,7 +999,7 @@ array entry will be BACKGROUND_COLOR instead.
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Use centroid calculation to better determine the peak position</span>
@@ -1007,20 +1008,20 @@ array entry will be BACKGROUND_COLOR instead.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array of floating point values containing the peak distance of the</span>
+<span class="sd">        numpy array of floating point values containing the peak distance of the</span>
 <span class="sd">        line profiles in degrees in their respective peak position. The first peak</span>
 <span class="sd">        of each peak pair will show the distance between peak_1 and peak_2 while</span>
 <span class="sd">        the second peak will show 360 - (peak_2 - peak_1).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1030,7 +1031,7 @@ for each line profile in an SLI image series.</p>
 
 <p>Args:</p>
 
-<pre><code>peak_image: Boolean NumPy array specifying the peak positions in the full
+<pre><code>peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 centroids: Use centroid calculation to better determine the peak position
@@ -1039,13 +1040,13 @@ measurements / illumination angles used.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array of floating point values containing the peak distance of the
+<pre><code>numpy array of floating point values containing the peak distance of the
 line profiles in degrees in their respective peak position. The first peak
 of each peak pair will show the distance between peak_1 and peak_2 while
 the second peak will show 360 - (peak_2 - peak_1).
@@ -1072,7 +1073,7 @@ the second peak will show 360 - (peak_2 - peak_1).
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        centroids: Use centroid calculation to better determine the peak position</span>
@@ -1081,20 +1082,20 @@ the second peak will show 360 - (peak_2 - peak_1).
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array of floating point values containing the mean peak distance of</span>
+<span class="sd">        numpy array of floating point values containing the mean peak distance of</span>
 <span class="sd">        the line profiles in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span>
                                               <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_distance</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1104,7 +1105,7 @@ for each line profile in an SLI image series.</p>
 
 <p>Args:</p>
 
-<pre><code>peak_image: Boolean NumPy array specifying the peak positions in the full
+<pre><code>peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 centroids: Use centroid calculation to better determine the peak position
@@ -1113,13 +1114,13 @@ measurements / illumination angles used.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array of floating point values containing the mean peak distance of
+<pre><code>numpy array of floating point values containing the mean peak distance of
 the line profiles in degrees.
 </code></pre>
 </div>
@@ -1154,7 +1155,7 @@ the line profiles in degrees.
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean _numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        kind_of_normalization: Normalize given line profile by using a</span>
@@ -1164,7 +1165,7 @@ the line profiles in degrees.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -1173,10 +1174,10 @@ the line profiles in degrees.
 <span class="sd">        profile in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                            <span class="n">kind_of_normalization</span><span class="p">,</span> <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                            <span class="n">kind_of_normalization</span><span class="p">)</span>
 </pre></div>
 
@@ -1191,7 +1192,7 @@ through its mean value. Therefore, values above 1 are possible.</p>
 <pre><code>image: Original line profile used to detect all peaks. This array will be
 further analyzed to better determine the peak positions.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean _numpy array specifying the peak positions in the full
 SLI stack
 
 kind_of_normalization: Normalize given line profile by using a
@@ -1201,7 +1202,7 @@ normalization technique based on the kind_of_normalization parameter.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
@@ -1242,7 +1243,7 @@ profile in degrees.
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">            further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        kind_of_normalization: Normalize given line profile by using a</span>
@@ -1252,7 +1253,7 @@ profile in degrees.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
@@ -1261,11 +1262,11 @@ profile in degrees.
 <span class="sd">        profile in degrees.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                 <span class="n">kind_of_normalization</span><span class="p">,</span>
                                                 <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_prominence</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                 <span class="n">kind_of_normalization</span><span class="p">)</span>
 </pre></div>
 
@@ -1280,7 +1281,7 @@ profile through its mean value. Therefore, values above 1 are possible.</p>
 <pre><code>image: Original line profile used to detect all peaks. This array will be
     further analyzed to better determine the peak positions.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 kind_of_normalization: Normalize given line profile by using a
@@ -1290,7 +1291,7 @@ normalization technique based on the kind_of_normalization parameter.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
@@ -1329,7 +1330,7 @@ profile in degrees.
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        target_height: Relative peak height in relation to the prominence of the</span>
@@ -1337,19 +1338,19 @@ profile in degrees.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array where each entry corresponds to the peak width of the line</span>
+<span class="sd">        numpy array where each entry corresponds to the peak width of the line</span>
 <span class="sd">        profile. The values are in degree.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
                                       <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1361,7 +1362,7 @@ profile in degrees.
 <pre><code>image: Original line profile used to detect all peaks. This array will be
 further analyzed to better determine the peak positions.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 target_height: Relative peak height in relation to the prominence of the
@@ -1369,13 +1370,13 @@ given peak.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array where each entry corresponds to the peak width of the line
+<pre><code>numpy array where each entry corresponds to the peak width of the line
 profile. The values are in degree.
 </code></pre>
 </div>
@@ -1409,7 +1410,7 @@ profile. The values are in degree.
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        target_height: Relative peak height in relation to the prominence of the</span>
@@ -1417,19 +1418,19 @@ profile. The values are in degree.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array where each entry corresponds to the mean peak width of the</span>
+<span class="sd">        numpy array where each entry corresponds to the mean peak width of the</span>
 <span class="sd">        line profile. The values are in degree.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">,</span>
                                            <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">mean_peak_width</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span> <span class="n">target_height</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1442,7 +1443,7 @@ profile.</p>
 <pre><code>image: Original line profile used to detect all peaks. This array will be
 further analyzed to better determine the peak positions.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 target_height: Relative peak height in relation to the prominence of the
@@ -1450,13 +1451,13 @@ given peak.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array where each entry corresponds to the mean peak width of the
+<pre><code>numpy array where each entry corresponds to the mean peak width of the
 line profile. The values are in degree.
 </code></pre>
 </div>
@@ -1481,8 +1482,8 @@ line profile. The values are in degree.
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
-                        <span class="n">low_prominence</span><span class="o">=</span><span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
-                        <span class="n">high_prominence</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                        <span class="n">low_prominence</span><span class="o">=</span><span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">TARGET_PROMINENCE</span><span class="p">,</span>
+                        <span class="n">high_prominence</span><span class="o">=</span><span class="n">_numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
                         <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Correct peak positions from a line profile by looking at only the peak</span>
@@ -1496,7 +1497,7 @@ line profile. The values are in degree.
 <span class="sd">        image: Original line profile used to detect all peaks. This array will be</span>
 <span class="sd">        further analyzed to better determine the peak positions.</span>
 
-<span class="sd">        peak_image: Boolean NumPy array specifying the peak positions in the full</span>
+<span class="sd">        peak_image: Boolean numpy array specifying the peak positions in the full</span>
 <span class="sd">        SLI stack</span>
 
 <span class="sd">        low_prominence: Lower prominence bound for detecting a peak.</span>
@@ -1505,20 +1506,20 @@ line profile. The values are in degree.
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        NumPy array with the positions of all detected peak positions corrected</span>
+<span class="sd">        _numpy array with the positions of all detected peak positions corrected</span>
 <span class="sd">        with the centroid calculation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">,</span>
                                                <span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">centroid_correction</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">peak_image</span><span class="p">,</span>
                                                <span class="n">low_prominence</span><span class="p">,</span> <span class="n">high_prominence</span><span class="p">)</span>
 </pre></div>
 
@@ -1535,7 +1536,7 @@ MAX_DISTANCE_FOR_CENTROID_ESTIMATION.</p>
 <pre><code>image: Original line profile used to detect all peaks. This array will be
 further analyzed to better determine the peak positions.
 
-peak_image: Boolean NumPy array specifying the peak positions in the full
+peak_image: Boolean numpy array specifying the peak positions in the full
 SLI stack
 
 low_prominence: Lower prominence bound for detecting a peak.
@@ -1544,13 +1545,13 @@ high_prominence: Higher prominence bound for detecting a peak.
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>NumPy array with the positions of all detected peak positions corrected
+<pre><code>_numpy array with the positions of all detected peak positions corrected
 with the centroid calculation.
 </code></pre>
 </div>
@@ -1573,22 +1574,22 @@ with the centroid calculation.
 
 <span class="sd">    Args:</span>
 
-<span class="sd">        direction: 3D NumPy array - direction angles in degrees</span>
+<span class="sd">        direction: 3D numpy array - direction angles in degrees</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
-<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy</span>
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy</span>
 <span class="sd">        array will be returned.</span>
 
 <span class="sd">    Returns:</span>
 
-<span class="sd">        UnitX, UnitY: 3D NumPy array, 3D NumPy array</span>
+<span class="sd">        UnitX, UnitY: 3D _numpy array, 3D _numpy array</span>
 <span class="sd">            x- and y-vector component in arrays</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1597,17 +1598,17 @@ with the centroid calculation.
 
 <p>Args:</p>
 
-<pre><code>direction: 3D NumPy array - direction angles in degrees
+<pre><code>direction: 3D numpy array - direction angles in degrees
 
 use_gpu: If available use the GPU for calculation
 
-return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or numpy
 array will be returned.
 </code></pre>
 
 <p>Returns:</p>
 
-<pre><code>UnitX, UnitY: 3D NumPy array, 3D NumPy array
+<pre><code>UnitX, UnitY: 3D _numpy array, 3D _numpy array
     x- and y-vector component in arrays
 </code></pre>
 </div>
