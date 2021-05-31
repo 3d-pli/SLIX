@@ -17,6 +17,7 @@ class H5FileReader:
     This class allows to read HDF5 files from your file system.
     It supports reading datasets but not reading attributes.
     """
+
     def __init__(self):
         self.path = None
         self.file = None
@@ -27,7 +28,7 @@ class H5FileReader:
 
         Args:
 
-            path: Path on the filesystem to the HDF5 file which shall be read
+            path: Path on the filesystem to the HDF5 file which will be read
 
         Returns:
 
@@ -73,7 +74,7 @@ class H5FileReader:
             if len(self.content[dataset].shape) == 3:
                 shape = _numpy.array(self.content[dataset].shape)
                 self.content[dataset] = _numpy.swapaxes(self.content[dataset],
-                                                       shape.argmin(), -1)
+                                                        shape.argmin(), -1)
         return self.content[dataset]
 
 
@@ -82,6 +83,7 @@ class H5FileWriter:
     This class allows to write HDF5 files to your file system.
     It supports writing datasets and writing attributes.
     """
+
     def __init__(self):
         self.path = None
         self.file = None
@@ -119,8 +121,8 @@ class H5FileWriter:
                        HDF5
 
         Args:
-            stack_path: Path of the stack that was used to calculate the content
-                        which will be written to the HDF5 file.
+            stack_path: Path of the stack that was used to calculate the
+                        content which will be written to the HDF5 file.
             dataset: Dataset where the attributes shall be written to.
 
         Returns:
@@ -245,13 +247,17 @@ class H5FileWriter:
 def read_folder(filepath):
     """
     Reads multiple image files from a folder and returns the resulting stack.
-    The images are checked with the MEASUREMENT_REGEX_LEFT and
-    MEASUREMENT_REGEX_RIGHT.
+    To find the images in the right order, a regex is used which will search
+    for files with the following pattern:
+    [prefix]_p[Nr][suffix]. The start number doesn't need to be 0.
+    The files are sorted with a natural sort, meaning that files like
+    0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.
 
     The follwing regex is used to find the measurements:
     `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`
 
-    Supported file formats: NIfTI, Tiff.
+    Supported file formats for the image file equal the supported formats of
+    SLIX.imread.
 
     Args:
 
@@ -264,7 +270,7 @@ def read_folder(filepath):
     """
     file_regex = r'.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
 
-    files_in_folder = _glob.glob(filepath+'/*')
+    files_in_folder = _glob.glob(filepath + '/*')
     matching_files = []
     for file in files_in_folder:
         if _re.match(file_regex, file) is not None:
@@ -281,7 +287,8 @@ def read_folder(filepath):
             image = _numpy.stack((image, measurement_image), axis=-1)
         else:
             image = _numpy.concatenate((image,
-                    measurement_image[:, :, _numpy.newaxis]), axis=-1)
+                                        measurement_image
+                                        [:, :, _numpy.newaxis]), axis=-1)
 
     return image
 
@@ -365,23 +372,23 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     if filepath.endswith('.nii'):
         if len(save_data.shape) == 3:
             save_data = _numpy.swapaxes(save_data,
-                                       _numpy.array(save_data.shape).argmin(),
-                                       -1)
+                                        _numpy.array(save_data.shape).argmin(),
+                                        -1)
         save_data = _numpy.swapaxes(save_data, 0, 1)
         _nibabel.save(_nibabel.Nifti1Image(save_data, _numpy.eye(4)), filepath)
 
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if len(save_data.shape) == 3:
             save_data = _numpy.moveaxis(save_data,
-                                       _numpy.array(save_data.shape).argmin(),
-                                       0)
+                                        _numpy.array(save_data.shape).argmin(),
+                                        0)
         _tifffile.imwrite(filepath, save_data)
 
     elif filepath.endswith('.h5'):
         if len(save_data.shape) == 3:
             save_data = _numpy.moveaxis(save_data,
-                                       _numpy.array(save_data.shape).argmin(),
-                                       0)
+                                        _numpy.array(save_data.shape).argmin(),
+                                        0)
         writer = H5FileWriter()
         writer.open(filepath)
         writer.write_dataset(dataset, save_data)
@@ -409,9 +416,9 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
             dataset: When reading a HDF5 file, a dataset is required.
                      Default: '/Image'
 
-            original_stack_path: Path to the original image stack used to create
-                                 this content. Only required when a HDF5 file
-                                 is written.
+            original_stack_path: Path to the original image stack used to
+                                 create this content. Only required when a
+                                 HDF5 file is written.
         Returns:
 
             None
