@@ -78,7 +78,8 @@
         <span class="p">[:,</span> <span class="p">:,</span> <span class="n">threshold_start_position</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
 
     <span class="n">interval</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">,</span>
-                             <span class="n">magnitude_threshold_high</span> <span class="o">-</span> <span class="n">magnitude_threshold_low</span><span class="p">)</span>
+                              <span class="n">magnitude_threshold_high</span> <span class="o">-</span>
+                              <span class="n">magnitude_threshold_low</span><span class="p">)</span>
     <span class="n">middle_point</span> <span class="o">=</span> <span class="n">magnitude_threshold_low</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">magnitude_threshold_high</span>
 
     <span class="c1"># Calculate low pass filter and apply it to our original signal</span>
@@ -112,7 +113,7 @@
                                     <span class="n">image</span><span class="p">,</span>
                                     <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">window_length</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">conc_image</span> <span class="o">=</span> <span class="n">_signal</span><span class="o">.</span><span class="n">savgol_filter</span><span class="p">(</span><span class="n">conc_image</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span>
-                                            <span class="n">polyorder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                                       <span class="n">polyorder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">conc_image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">window_length</span><span class="p">:</span><span class="o">-</span><span class="n">window_length</span><span class="p">]</span>
 
 
@@ -180,7 +181,8 @@
         <span class="p">[:,</span> <span class="p">:,</span> <span class="n">threshold_start_position</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
 
     <span class="n">interval</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">,</span>
-                             <span class="n">magnitude_threshold_high</span> <span class="o">-</span> <span class="n">magnitude_threshold_low</span><span class="p">)</span>
+                              <span class="n">magnitude_threshold_high</span> <span class="o">-</span>
+                              <span class="n">magnitude_threshold_low</span><span class="p">)</span>
     <span class="n">middle_point</span> <span class="o">=</span> <span class="n">magnitude_threshold_low</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">magnitude_threshold_high</span>
 
     <span class="c1"># Calculate low pass filter and apply it to our original signal</span>
@@ -229,7 +231,7 @@
                                     <span class="n">image</span><span class="p">,</span>
                                     <span class="n">image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">window_length</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">conc_image</span> <span class="o">=</span> <span class="n">_signal</span><span class="o">.</span><span class="n">savgol_filter</span><span class="p">(</span><span class="n">conc_image</span><span class="p">,</span> <span class="n">window_length</span><span class="p">,</span>
-                                            <span class="n">polyorder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                                       <span class="n">polyorder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">conc_image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">window_length</span><span class="p">:</span><span class="o">-</span><span class="n">window_length</span><span class="p">]</span>
 </pre></div>
 

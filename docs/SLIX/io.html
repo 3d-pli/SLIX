@@ -124,6 +124,7 @@
 <span class="sd">    This class allows to read HDF5 files from your file system.</span>
 <span class="sd">    It supports reading datasets but not reading attributes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="kc">None</span>
@@ -134,7 +135,7 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            path: Path on the filesystem to the HDF5 file which shall be read</span>
+<span class="sd">            path: Path on the filesystem to the HDF5 file which will be read</span>
 
 <span class="sd">        Returns:</span>
 
@@ -180,7 +181,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">shape</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">],</span>
-                                                       <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                                        <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span>
 
 
@@ -189,6 +190,7 @@
 <span class="sd">    This class allows to write HDF5 files to your file system.</span>
 <span class="sd">    It supports writing datasets and writing attributes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="kc">None</span>
@@ -226,8 +228,8 @@
 <span class="sd">                       HDF5</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            stack_path: Path of the stack that was used to calculate the content</span>
-<span class="sd">                        which will be written to the HDF5 file.</span>
+<span class="sd">            stack_path: Path of the stack that was used to calculate the</span>
+<span class="sd">                        content which will be written to the HDF5 file.</span>
 <span class="sd">            dataset: Dataset where the attributes shall be written to.</span>
 
 <span class="sd">        Returns:</span>
@@ -352,13 +354,17 @@
 <span class="k">def</span> <span class="nf">read_folder</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads multiple image files from a folder and returns the resulting stack.</span>
-<span class="sd">    The images are checked with the MEASUREMENT_REGEX_LEFT and</span>
-<span class="sd">    MEASUREMENT_REGEX_RIGHT.</span>
+<span class="sd">    To find the images in the right order, a regex is used which will search</span>
+<span class="sd">    for files with the following pattern:</span>
+<span class="sd">    [prefix]_p[Nr][suffix]. The start number doesn&#39;t need to be 0.</span>
+<span class="sd">    The files are sorted with a natural sort, meaning that files like</span>
+<span class="sd">    0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.</span>
 
 <span class="sd">    The follwing regex is used to find the measurements:</span>
 <span class="sd">    `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`</span>
 
-<span class="sd">    Supported file formats: NIfTI, Tiff.</span>
+<span class="sd">    Supported file formats for the image file equal the supported formats of</span>
+<span class="sd">    SLIX.imread.</span>
 
 <span class="sd">    Args:</span>
 
@@ -371,7 +377,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">file_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)&#39;</span>
 
-    <span class="n">files_in_folder</span> <span class="o">=</span> <span class="n">_glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span><span class="o">+</span><span class="s1">&#39;/*&#39;</span><span class="p">)</span>
+    <span class="n">files_in_folder</span> <span class="o">=</span> <span class="n">_glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;/*&#39;</span><span class="p">)</span>
     <span class="n">matching_files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_in_folder</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">file_regex</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -388,7 +394,8 @@
             <span class="n">image</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">image</span><span class="p">,</span> <span class="n">measurement_image</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">image</span><span class="p">,</span>
-                    <span class="n">measurement_image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                                        <span class="n">measurement_image</span>
+                                        <span class="p">[:,</span> <span class="p">:,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">image</span>
 
@@ -472,23 +479,23 @@
     <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">_nibabel</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">_nibabel</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)),</span> <span class="n">filepath</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tiff&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tif&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="mi">0</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="mi">0</span><span class="p">)</span>
         <span class="n">_tifffile</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">save_data</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.h5&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="mi">0</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="mi">0</span><span class="p">)</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">H5FileWriter</span><span class="p">()</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">save_data</span><span class="p">)</span>
@@ -516,9 +523,9 @@
 <span class="sd">            dataset: When reading a HDF5 file, a dataset is required.</span>
 <span class="sd">                     Default: &#39;/Image&#39;</span>
 
-<span class="sd">            original_stack_path: Path to the original image stack used to create</span>
-<span class="sd">                                 this content. Only required when a HDF5 file</span>
-<span class="sd">                                 is written.</span>
+<span class="sd">            original_stack_path: Path to the original image stack used to</span>
+<span class="sd">                                 create this content. Only required when a</span>
+<span class="sd">                                 HDF5 file is written.</span>
 <span class="sd">        Returns:</span>
 
 <span class="sd">            None</span>
@@ -563,6 +570,7 @@
 <span class="sd">    This class allows to read HDF5 files from your file system.</span>
 <span class="sd">    It supports reading datasets but not reading attributes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="kc">None</span>
@@ -573,7 +581,7 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            path: Path on the filesystem to the HDF5 file which shall be read</span>
+<span class="sd">            path: Path on the filesystem to the HDF5 file which will be read</span>
 
 <span class="sd">        Returns:</span>
 
@@ -619,7 +627,7 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">shape</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">],</span>
-                                                       <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                                        <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span>
 </pre></div>
 
@@ -665,7 +673,7 @@ It supports reading datasets but not reading attributes.</p>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            path: Path on the filesystem to the HDF5 file which shall be read</span>
+<span class="sd">            path: Path on the filesystem to the HDF5 file which will be read</span>
 
 <span class="sd">        Returns:</span>
 
@@ -681,7 +689,7 @@ It supports reading datasets but not reading attributes.</p>
 
             <div class="docstring"><p>Args:</p>
 
-<pre><code>path: Path on the filesystem to the HDF5 file which shall be read
+<pre><code>path: Path on the filesystem to the HDF5 file which will be read
 </code></pre>
 
 <p>Returns:</p>
@@ -760,7 +768,7 @@ It supports reading datasets but not reading attributes.</p>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">shape</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">],</span>
-                                                       <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                                        <span class="n">shape</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="n">dataset</span><span class="p">]</span>
 </pre></div>
 
@@ -799,6 +807,7 @@ The content of the dataset will be stored for future use.</p>
 <span class="sd">    This class allows to write HDF5 files to your file system.</span>
 <span class="sd">    It supports writing datasets and writing attributes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="kc">None</span>
@@ -836,8 +845,8 @@ The content of the dataset will be stored for future use.</p>
 <span class="sd">                       HDF5</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            stack_path: Path of the stack that was used to calculate the content</span>
-<span class="sd">                        which will be written to the HDF5 file.</span>
+<span class="sd">            stack_path: Path of the stack that was used to calculate the</span>
+<span class="sd">                        content which will be written to the HDF5 file.</span>
 <span class="sd">            dataset: Dataset where the attributes shall be written to.</span>
 
 <span class="sd">        Returns:</span>
@@ -1058,8 +1067,8 @@ symlink_path: Path to the symlink.
 <span class="sd">                       HDF5</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            stack_path: Path of the stack that was used to calculate the content</span>
-<span class="sd">                        which will be written to the HDF5 file.</span>
+<span class="sd">            stack_path: Path of the stack that was used to calculate the</span>
+<span class="sd">                        content which will be written to the HDF5 file.</span>
 <span class="sd">            dataset: Dataset where the attributes shall be written to.</span>
 
 <span class="sd">        Returns:</span>
@@ -1108,8 +1117,8 @@ the HDF5 file at the given dataset.</p>
                HDF5</p>
 
 <p>Args:
-    stack_path: Path of the stack that was used to calculate the content
-                which will be written to the HDF5 file.
+    stack_path: Path of the stack that was used to calculate the
+                content which will be written to the HDF5 file.
     dataset: Dataset where the attributes shall be written to.</p>
 
 <p>Returns:</p>
@@ -1335,13 +1344,17 @@ it will be closed first.</p>
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">read_folder</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads multiple image files from a folder and returns the resulting stack.</span>
-<span class="sd">    The images are checked with the MEASUREMENT_REGEX_LEFT and</span>
-<span class="sd">    MEASUREMENT_REGEX_RIGHT.</span>
+<span class="sd">    To find the images in the right order, a regex is used which will search</span>
+<span class="sd">    for files with the following pattern:</span>
+<span class="sd">    [prefix]_p[Nr][suffix]. The start number doesn&#39;t need to be 0.</span>
+<span class="sd">    The files are sorted with a natural sort, meaning that files like</span>
+<span class="sd">    0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.</span>
 
 <span class="sd">    The follwing regex is used to find the measurements:</span>
 <span class="sd">    `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`</span>
 
-<span class="sd">    Supported file formats: NIfTI, Tiff.</span>
+<span class="sd">    Supported file formats for the image file equal the supported formats of</span>
+<span class="sd">    SLIX.imread.</span>
 
 <span class="sd">    Args:</span>
 
@@ -1354,7 +1367,7 @@ it will be closed first.</p>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">file_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)&#39;</span>
 
-    <span class="n">files_in_folder</span> <span class="o">=</span> <span class="n">_glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span><span class="o">+</span><span class="s1">&#39;/*&#39;</span><span class="p">)</span>
+    <span class="n">files_in_folder</span> <span class="o">=</span> <span class="n">_glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;/*&#39;</span><span class="p">)</span>
     <span class="n">matching_files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_in_folder</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">file_regex</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1371,7 +1384,8 @@ it will be closed first.</p>
             <span class="n">image</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">image</span><span class="p">,</span> <span class="n">measurement_image</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">image</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">image</span><span class="p">,</span>
-                    <span class="n">measurement_image</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                                        <span class="n">measurement_image</span>
+                                        <span class="p">[:,</span> <span class="p">:,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">image</span>
 </pre></div>
@@ -1379,13 +1393,17 @@ it will be closed first.</p>
         </details>
 
             <div class="docstring"><p>Reads multiple image files from a folder and returns the resulting stack.
-The images are checked with the MEASUREMENT_REGEX_LEFT and
-MEASUREMENT_REGEX_RIGHT.</p>
+To find the images in the right order, a regex is used which will search
+for files with the following pattern:
+[prefix]_p[Nr][suffix]. The start number doesn't need to be 0.
+The files are sorted with a natural sort, meaning that files like
+0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.</p>
 
 <p>The follwing regex is used to find the measurements:
 <code>.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)</code></p>
 
-<p>Supported file formats: NIfTI, Tiff.</p>
+<p>Supported file formats for the image file equal the supported formats of
+<a href="../SLIX.html#imread">SLIX.imread</a>.</p>
 
 <p>Args:</p>
 
@@ -1517,23 +1535,23 @@ of a single image and z specifies the number of measurements
     <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nii&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">_nibabel</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">_nibabel</span><span class="o">.</span><span class="n">Nifti1Image</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)),</span> <span class="n">filepath</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tiff&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.tif&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="mi">0</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="mi">0</span><span class="p">)</span>
         <span class="n">_tifffile</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">save_data</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.h5&#39;</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">save_data</span> <span class="o">=</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">save_data</span><span class="p">,</span>
-                                       <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
-                                       <span class="mi">0</span><span class="p">)</span>
+                                        <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">save_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(),</span>
+                                        <span class="mi">0</span><span class="p">)</span>
         <span class="n">writer</span> <span class="o">=</span> <span class="n">H5FileWriter</span><span class="p">()</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
         <span class="n">writer</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">save_data</span><span class="p">)</span>
@@ -1600,9 +1618,9 @@ original_stack_path: Path to the original image stack used to create
 <span class="sd">            dataset: When reading a HDF5 file, a dataset is required.</span>
 <span class="sd">                     Default: &#39;/Image&#39;</span>
 
-<span class="sd">            original_stack_path: Path to the original image stack used to create</span>
-<span class="sd">                                 this content. Only required when a HDF5 file</span>
-<span class="sd">                                 is written.</span>
+<span class="sd">            original_stack_path: Path to the original image stack used to</span>
+<span class="sd">                                 create this content. Only required when a</span>
+<span class="sd">                                 HDF5 file is written.</span>
 <span class="sd">        Returns:</span>
 
 <span class="sd">            None</span>
@@ -1644,9 +1662,9 @@ data: Data which will be written to the disk
 dataset: When reading a HDF5 file, a dataset is required.
          Default: '/Image'
 
-original_stack_path: Path to the original image stack used to create
-                     this content. Only required when a HDF5 file
-                     is written.
+original_stack_path: Path to the original image stack used to
+                     create this content. Only required when a
+                     HDF5 file is written.
 </code></pre>
 
 <p>Returns:</p>

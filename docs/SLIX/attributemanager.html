@@ -123,7 +123,8 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            attribute_name: Name of the attribute you want to check in the dataset.</span>
+<span class="sd">            attribute_name: Name of the attribute you want to check</span>
+<span class="sd">                            in the dataset.</span>
 
 <span class="sd">        Returns:</span>
 
@@ -175,7 +176,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
+                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -218,7 +220,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+            <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
@@ -397,7 +400,8 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            attribute_name: Name of the attribute you want to check in the dataset.</span>
+<span class="sd">            attribute_name: Name of the attribute you want to check</span>
+<span class="sd">                            in the dataset.</span>
 
 <span class="sd">        Returns:</span>
 
@@ -449,7 +453,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
+                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -492,7 +497,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+            <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
@@ -711,7 +717,8 @@ This dataset will be used for all operations of this class.</p>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            attribute_name: Name of the attribute you want to check in the dataset.</span>
+<span class="sd">            attribute_name: Name of the attribute you want to check</span>
+<span class="sd">                            in the dataset.</span>
 
 <span class="sd">        Returns:</span>
 
@@ -731,7 +738,8 @@ can result in errors.</p>
 
 <p>Args:</p>
 
-<pre><code>attribute_name: Name of the attribute you want to check in the dataset.
+<pre><code>attribute_name: Name of the attribute you want to check
+                in the dataset.
 </code></pre>
 
 <p>Returns:</p>
@@ -861,7 +869,8 @@ will be returned.
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                      <span class="n">value</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
+                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">_numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -920,7 +929,8 @@ value: String, Float, Integer, Boolean or numpy array you
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                                  <span class="n">references</span><span class="p">:</span> <span class="n">_typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+            <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
 <span class="sd">        HDF5 file can be saves as a reference for the future.</span>
