@@ -21,10 +21,12 @@ and isn't solely in the GitHub wiki anymore.
 - Added documentation to missing methods.
 - Changed how the `background_threshold` parameter works. Now, you define a fraction. If the fraction of background pixels lies above this defined threshold,
 background pixels will not be considered for computing the median for visualizing a downscaled vector image.
+- The CPU and GPU separation of the SLIX toolbox are now protected as users should only use the main methods.
 
 ### Fixed
 - Fixed a bug where the direction of a line profile with two peaks wasn't generated when the distance between the peaks was outside of 180° +- 35°.
 - Fixed a few bugs regarding image orientations when reading / writing different data types
+- When importing a module from SLIX, the underlying modules were visible. This is now resolved.
 
 ## v2.0
 
