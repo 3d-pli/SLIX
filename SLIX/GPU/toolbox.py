@@ -2,11 +2,18 @@ import cupy
 import numpy
 from numba import cuda
 
-from SLIX._GPU._toolbox import _direction, _prominence, _peakwidth, \
+from SLIX.GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks
 
-TARGET_PROMINENCE=0.08
+__all__ = ['TARGET_PROMINENCE', 'peaks',
+           'peak_width', 'peak_prominence',
+           'peak_distance', 'mean_peak_distance',
+           'background_mask', 'mean_peak_width',
+           'direction', 'num_peaks', 'mean_peak_prominence',
+           'unit_vectors', 'centroid_correction', 'normalize']
+
+TARGET_PROMINENCE = 0.08
 
 
 def background_mask(image, threshold=10, return_numpy=True):

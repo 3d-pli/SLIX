@@ -1,6 +1,13 @@
 import numpy
-from SLIX._CPU._toolbox import _direction, _prominence, _peakwidth, \
+from SLIX.CPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid, _centroid_correction_bases, _peaks
+
+__all__ = ['TARGET_PROMINENCE', 'peaks',
+           'peak_width', 'peak_prominence',
+           'peak_distance', 'mean_peak_distance',
+           'background_mask', 'mean_peak_width',
+           'direction', 'num_peaks', 'mean_peak_prominence',
+           'unit_vectors', 'centroid_correction', 'normalize']
 
 TARGET_PROMINENCE = 0.08
 

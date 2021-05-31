@@ -2,7 +2,7 @@ import SLIX
 
 if SLIX.toolbox.gpu_available:
     print(SLIX.toolbox.gpu_available)
-    from SLIX._GPU import _toolbox as ntoolbox
+    from SLIX.GPU import _toolbox as ntoolbox
     import cupy
     from numba import cuda
 
