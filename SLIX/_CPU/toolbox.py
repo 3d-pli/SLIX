@@ -1,5 +1,5 @@
 import numpy
-from SLIX.SLIX_CPU._toolbox import _direction, _prominence, _peakwidth, \
+from SLIX._CPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid, _centroid_correction_bases, _peaks
 
 TARGET_PROMINENCE = 0.08

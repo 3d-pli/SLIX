@@ -1,5 +1,5 @@
 import SLIX
-from SLIX.SLIX_CPU import _toolbox as ntoolbox
+from SLIX._CPU import _toolbox as ntoolbox
 import numpy
 
 

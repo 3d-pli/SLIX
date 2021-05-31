@@ -1,14 +1,13 @@
-import hashlib
-from typing import List, Union, AbstractSet
-
-import h5py
-import numpy
-import secrets
-import getpass
+import hashlib as _hashlib
+import typing as _typing
+import h5py as _h5py
+import numpy as _numpy
+import secrets as _secrets
+import getpass as _getpass
 
 
 class AttributeHandler:
-    def __init__(self, dataset: h5py.Dataset):
+    def __init__(self, dataset: _h5py.Dataset):
         """
         Initialize the AttributeHandler with a already opened HDF5 dataset.
         This dataset will be used for all operations of this class.
@@ -17,8 +16,8 @@ class AttributeHandler:
 
             dataset: h5py dataset
         """
-        self.dataset: h5py.Dataset = dataset
-        self.attrs: h5py.AttributeManager = dataset.attrs
+        self.dataset: _h5py.Dataset = dataset
+        self.attrs: _h5py.AttributeManager = dataset.attrs
 
     def does_attribute_exist(self, attribute_name: str) -> bool:
         """
@@ -36,7 +35,7 @@ class AttributeHandler:
             None
 
         """
-        attribute_names: AbstractSet[str] = self.attrs.keys()
+        attribute_names: _typing.AbstractSet[str] = self.attrs.keys()
         return attribute_name in attribute_names
 
     def delete_attribute(self, attribute_name: str) -> None:
@@ -60,7 +59,7 @@ class AttributeHandler:
                   "exist" % {attribute_name})
 
     def get_attribute(self, attribute_name: str) -> \
-            Union[str, float, int, bool, numpy.array]:
+            _typing.Union[str, float, int, bool, _numpy.array]:
         """
         Get an attribute from the HDF5 dataset.
 
@@ -81,7 +80,7 @@ class AttributeHandler:
         return self.attrs[attribute_name]
 
     def set_attribute(self, attribute_name: str,
-                      value: Union[str, float, int, bool, numpy.array]) \
+                      value: _typing.Union[str, float, int, bool, _numpy.array]) \
             -> None:
         """
         Set an attribute in the HDF5 dataset.
@@ -124,7 +123,7 @@ class AttributeHandler:
         self.set_reference_modality_to([reference])
 
     def set_reference_modality_to(self,
-                                  references: List["AttributeHandler"]) -> None:
+                                  references: _typing.List["AttributeHandler"]) -> None:
         """
         When SLIX generates an image based on a SLI measurement, the original
         HDF5 file can be saves as a reference for the future.
@@ -141,7 +140,7 @@ class AttributeHandler:
             None
 
         """
-        ref_id: List[str] = []
+        ref_id: _typing.List[str] = []
 
         for reference in references:
             if reference.does_attribute_exist('id'):
@@ -159,7 +158,7 @@ class AttributeHandler:
         Returns: None
 
         """
-        creator: str = getpass.getuser()
+        creator: str = _getpass.getuser()
         self.set_attribute('created_by', creator)
 
     def add_id(self) -> None:
@@ -170,7 +169,7 @@ class AttributeHandler:
         Returns: None
 
         """
-        hashstr: str = secrets.token_hex(50)
+        hashstr: str = _secrets.token_hex(50)
 
         attributes: list = ['brain_id', 'brain_part_id', 'section_id',
                             'image_modality', 'creation_time',
@@ -179,12 +178,12 @@ class AttributeHandler:
         for attribute in attributes:
             hashstr: str = hashstr + attribute
 
-        hash_obj: hashlib.sha256 = hashlib.sha256()
+        hash_obj: _hashlib.sha256 = _hashlib.sha256()
         hash_obj.update(hashstr.encode('ascii'))
         self.set_attribute('id', hash_obj.hexdigest())
 
     def copy_all_attributes_to(self, dest: "AttributeHandler",
-                               exceptions: List[str] = None) -> None:
+                               exceptions: _typing.List[str] = None) -> None:
         """
         Copies all attributes from one AttributeHandler to another.
         Exceptions can be given in a list. In general, the following attributes
@@ -209,7 +208,7 @@ class AttributeHandler:
         if exceptions is None:
             exceptions = []
 
-        fixed_exceptions: List[str] = [
+        fixed_exceptions: _typing.List[str] = [
             # Attributes that MUST be manually set
             "created_by", "creation_time", "dashboard_id", "id",
             "image_modality", "reference_images",
@@ -218,14 +217,14 @@ class AttributeHandler:
             "filename", "path", "scale"
         ]
 
-        attribute_names: AbstractSet[str] = self.attrs.keys()
+        attribute_names: _typing.AbstractSet[str] = self.attrs.keys()
         for attribute_name in attribute_names:
             if attribute_name not in fixed_exceptions \
                     and attribute_name not in exceptions:
                 self.copy_attribute_to(dest, attribute_name)
 
     def copy_attributes_to(self, dest: "AttributeHandler",
-                           attributes: List[str] = None) -> None:
+                           attributes: _typing.List[str] = None) -> None:
         """
         Copies given attributes from one AttributeHandler to another.
 

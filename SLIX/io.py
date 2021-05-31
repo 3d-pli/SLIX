@@ -1,16 +1,15 @@
-from PIL import Image
-
-import SLIX
+from PIL import Image as _Image
+import SLIX as _SLIX
 from .attributemanager import AttributeHandler
-import numpy
-import tifffile
-import nibabel
-import h5py
-import sys
-import re
-import os
-import glob
-import datetime
+import numpy as _numpy
+import tifffile as _tifffile
+import nibabel as _nibabel
+import h5py as _h5py
+import sys as _sys
+import re as _re
+import os as _os
+import glob as _glob
+import datetime as _datetime
 
 
 class H5FileReader:
@@ -37,7 +36,7 @@ class H5FileReader:
         if not path == self.path:
             self.close()
             self.path = path
-            self.file = h5py.File(path, 'r')
+            self.file = _h5py.File(path, 'r')
 
     def close(self):
         """
@@ -72,8 +71,8 @@ class H5FileReader:
         if dataset not in self.content.keys():
             self.content[dataset] = self.file[dataset][:]
             if len(self.content[dataset].shape) == 3:
-                shape = numpy.array(self.content[dataset].shape)
-                self.content[dataset] = numpy.swapaxes(self.content[dataset],
+                shape = _numpy.array(self.content[dataset].shape)
+                self.content[dataset] = _numpy.swapaxes(self.content[dataset],
                                                        shape.argmin(), -1)
         return self.content[dataset]
 
@@ -136,21 +135,21 @@ class H5FileWriter:
         output_handler = AttributeHandler(self.file[dataset])
 
         if stack_path[:-3] == ".h5":
-            original_file = h5py.File(stack_path, 'r')
+            original_file = _h5py.File(stack_path, 'r')
             original_dataset = original_file[dataset]
             original_handler = AttributeHandler(original_dataset)
             original_handler.copy_all_attributes_to(output_handler)
             original_file.close()
 
         output_handler.add_creator()
-        output_handler.set_attribute('software', sys.argv[0])
+        output_handler.set_attribute('software', _sys.argv[0])
         output_handler.set_attribute('software_revision',
-                                     SLIX.__version__)
+                                     _SLIX.__version__)
         output_handler.set_attribute('creation_time',
-                                     datetime.datetime.now()
+                                     _datetime.datetime.now()
                                      .strftime('%Y-%m-%d %H:%M:%S'))
         output_handler.set_attribute('software_parameters',
-                                     ' '.join(sys.argv[1:]))
+                                     ' '.join(_sys.argv[1:]))
         output_handler.set_attribute('image_modality', "Placeholder")
         output_handler.add_id()
 
@@ -240,7 +239,7 @@ class H5FileWriter:
         if self.path != path:
             self.close()
             self.path = path
-            self.file = h5py.File(path, mode='w')
+            self.file = _h5py.File(path, mode='w')
 
 
 def read_folder(filepath):
@@ -265,10 +264,10 @@ def read_folder(filepath):
     """
     file_regex = r'.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
 
-    files_in_folder = glob.glob(filepath+'/*')
+    files_in_folder = _glob.glob(filepath+'/*')
     matching_files = []
     for file in files_in_folder:
-        if re.match(file_regex, file) is not None:
+        if _re.match(file_regex, file) is not None:
             matching_files.append(file)
     matching_files.sort(key=__natural_sort_filenames_key)
     image = None
@@ -279,15 +278,15 @@ def read_folder(filepath):
         if image is None:
             image = measurement_image
         elif len(image.shape) == 2:
-            image = numpy.stack((image, measurement_image), axis=-1)
+            image = _numpy.stack((image, measurement_image), axis=-1)
         else:
-            image = numpy.concatenate((image,
-                    measurement_image[:, :, numpy.newaxis]), axis=-1)
+            image = _numpy.concatenate((image,
+                    measurement_image[:, :, _numpy.newaxis]), axis=-1)
 
     return image
 
 
-def __natural_sort_filenames_key(string, regex=re.compile('([0-9]+)')):
+def __natural_sort_filenames_key(string, regex=_re.compile('([0-9]+)')):
     return [int(text) if text.isdigit() else text.lower()
             for text in regex.split(string)]
 
@@ -309,16 +308,16 @@ def imread(filepath, dataset="/Image"):
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
-    if os.path.isdir(filepath):
+    if _os.path.isdir(filepath):
         data = read_folder(filepath)
     # Load NIfTI dataset
     elif filepath.endswith('.nii'):
-        data = nibabel.load(filepath).get_fdata()
-        data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
+        data = _nibabel.load(filepath).get_fdata()
+        data = _numpy.squeeze(_numpy.swapaxes(data, 0, 1))
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
-        data = tifffile.imread(filepath)
+        data = _tifffile.imread(filepath)
         if len(data.shape) == 3:
-            data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
+            data = _numpy.squeeze(_numpy.moveaxis(data, 0, -1))
     elif filepath.endswith('.h5'):
         reader = H5FileReader()
         reader.open(filepath)
@@ -326,7 +325,7 @@ def imread(filepath, dataset="/Image"):
         reader.close()
         return data
     else:
-        data = numpy.array(Image.open(filepath))
+        data = _numpy.array(_Image.open(filepath))
     return data
 
 
@@ -354,34 +353,34 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
         None
     """
     save_data = data.copy()
-    if save_data.dtype == numpy.bool:
-        save_data = save_data.astype(numpy.uint8)
-    elif save_data.dtype == numpy.float64:
-        save_data = save_data.astype(numpy.float32)
-    elif save_data.dtype == numpy.int64:
-        save_data = save_data.astype(numpy.int32)
-    elif save_data.dtype == numpy.uint64:
-        save_data = save_data.astype(numpy.uint32)
+    if save_data.dtype == _numpy.bool:
+        save_data = save_data.astype(_numpy.uint8)
+    elif save_data.dtype == _numpy.float64:
+        save_data = save_data.astype(_numpy.float32)
+    elif save_data.dtype == _numpy.int64:
+        save_data = save_data.astype(_numpy.int32)
+    elif save_data.dtype == _numpy.uint64:
+        save_data = save_data.astype(_numpy.uint32)
 
     if filepath.endswith('.nii'):
         if len(save_data.shape) == 3:
-            save_data = numpy.swapaxes(save_data,
-                                       numpy.array(save_data.shape).argmin(),
+            save_data = _numpy.swapaxes(save_data,
+                                       _numpy.array(save_data.shape).argmin(),
                                        -1)
-        save_data = numpy.swapaxes(save_data, 0, 1)
-        nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
+        save_data = _numpy.swapaxes(save_data, 0, 1)
+        _nibabel.save(_nibabel.Nifti1Image(save_data, _numpy.eye(4)), filepath)
 
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if len(save_data.shape) == 3:
-            save_data = numpy.moveaxis(save_data,
-                                       numpy.array(save_data.shape).argmin(),
+            save_data = _numpy.moveaxis(save_data,
+                                       _numpy.array(save_data.shape).argmin(),
                                        0)
-        tifffile.imwrite(filepath, save_data)
+        _tifffile.imwrite(filepath, save_data)
 
     elif filepath.endswith('.h5'):
         if len(save_data.shape) == 3:
-            save_data = numpy.moveaxis(save_data,
-                                       numpy.array(save_data.shape).argmin(),
+            save_data = _numpy.moveaxis(save_data,
+                                       _numpy.array(save_data.shape).argmin(),
                                        0)
         writer = H5FileWriter()
         writer.open(filepath)
@@ -391,7 +390,7 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
         writer.close()
 
     else:
-        Image.fromarray(save_data).save(filepath)
+        _Image.fromarray(save_data).save(filepath)
 
 
 def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
@@ -418,14 +417,14 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
             None
         """
     save_data = data.copy()
-    axis = numpy.argwhere(numpy.array(save_data.shape) == 3).flatten()
+    axis = _numpy.argwhere(_numpy.array(save_data.shape) == 3).flatten()
     if len(axis) == 0:
         print('Cannot create RGB image as no dimension has a depth of 3.')
         return
 
     if filepath.endswith('.tiff') or filepath.endswith('.tif'):
-        save_data = numpy.moveaxis(save_data, axis[0], 0)
-        tifffile.imwrite(filepath, save_data, photometric='rgb')
+        save_data = _numpy.moveaxis(save_data, axis[0], 0)
+        _tifffile.imwrite(filepath, save_data, photometric='rgb')
     elif filepath.endswith('.h5'):
         writer = H5FileWriter()
         writer.open(filepath)

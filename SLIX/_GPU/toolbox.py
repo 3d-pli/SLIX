@@ -2,7 +2,7 @@ import cupy
 import numpy
 from numba import cuda
 
-from SLIX.SLIX_GPU._toolbox import _direction, _prominence, _peakwidth, \
+from SLIX._GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks
 

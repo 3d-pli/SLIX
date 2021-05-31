@@ -1,8 +1,8 @@
-import numpy
-from matplotlib.colors import hsv_to_rgb
-from matplotlib import pyplot as plt
-from PIL import Image
-import copy
+import numpy as _numpy
+from matplotlib.colors import hsv_to_rgb as _hsv_to_rgb
+from matplotlib import pyplot as _plt
+from PIL import Image as _Image
+import copy as _copy
 
 
 def downsample(image, kernel_size, background_value=-1,
@@ -34,7 +34,7 @@ def downsample(image, kernel_size, background_value=-1,
 
         2D or 3D NumPy array with reduced image dimensions.
     """
-    image = numpy.array(image)
+    image = _numpy.array(image)
     # downsample image
     if len(image.shape) == 2:
         x, y = image.shape
@@ -42,9 +42,9 @@ def downsample(image, kernel_size, background_value=-1,
     else:
         x, y, z = image.shape
 
-    nx = numpy.ceil(x / kernel_size).astype('int')
-    ny = numpy.ceil(y / kernel_size).astype('int')
-    small_img = numpy.empty((nx, ny, z), dtype='float32')
+    nx = _numpy.ceil(x / kernel_size).astype('int')
+    ny = _numpy.ceil(y / kernel_size).astype('int')
+    small_img = _numpy.empty((nx, ny, z), dtype='float32')
 
     for sub_image in range(z):
         for i in range(0, nx):
@@ -52,9 +52,9 @@ def downsample(image, kernel_size, background_value=-1,
                 roi = image[kernel_size * i:kernel_size * i + kernel_size,
                             kernel_size * j:kernel_size * j + kernel_size,
                             sub_image]
-                if numpy.count_nonzero(roi != background_value) >= \
+                if _numpy.count_nonzero(roi != background_value) >= \
                         background_threshold * roi.size:
-                    small_img[i, j, sub_image] = numpy.median(
+                    small_img[i, j, sub_image] = _numpy.median(
                         roi[roi != background_value])
                 else:
                     small_img[i, j, sub_image] = background_value
@@ -103,9 +103,9 @@ def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
         pyplot.show().
     """
     if fig is None or ax is None:
-        fig, ax = plt.subplots(1, 1)
+        fig, ax = _plt.subplots(1, 1)
 
-    cmap_mod = copy.copy(plt.get_cmap(cmap))
+    cmap_mod = _copy.copy(_plt.get_cmap(cmap))
     im = ax.imshow(parameter_map, interpolation='nearest', cmap=cmap_mod,
                    alpha=alpha)
     im.cmap.set_under(color='k')  # Color for values less than vmin
@@ -154,7 +154,7 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
 
     """
     if ax is None:
-        ax = plt.gca()
+        ax = _plt.gca()
 
     thinout = int(thinout)
     if thinout <= 1:
@@ -166,42 +166,42 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
         small_unit_x = downsample(UnitX, thinout, background_value=0,
                                   background_threshold=background_threshold)
         for i in range(UnitX.shape[-1]):
-            UnitX[:, :, i] = numpy.array(Image.fromarray(small_unit_x[:, :, i])
+            UnitX[:, :, i] = _numpy.array(_Image.fromarray(small_unit_x[:, :, i])
                                          .resize(original_size[::-1],
-                                                 resample=Image.NEAREST))
+                                                 resample=_Image.NEAREST))
 
         small_unit_y = downsample(UnitY, thinout, background_value=0,
                                   background_threshold=background_threshold)
         for i in range(UnitY.shape[-1]):
-            UnitY[:, :, i] = numpy.array(Image.fromarray(small_unit_y[:, :, i])
+            UnitY[:, :, i] = _numpy.array(_Image.fromarray(small_unit_y[:, :, i])
                                          .resize(original_size[::-1],
-                                                 resample=Image.NEAREST))
+                                                 resample=_Image.NEAREST))
         del original_size
         del small_unit_y
         del small_unit_x
     skip = (slice(None, None, thinout), slice(None, None, thinout))
 
     for i in range(UnitX.shape[-1]):
-        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]),
-                                        numpy.arange(0, UnitX.shape[0]))
+        mesh_x, mesh_y = _numpy.meshgrid(_numpy.arange(0, UnitX.shape[1]),
+                                        _numpy.arange(0, UnitX.shape[0]))
         mesh_u = UnitX[:, :, i]
         mesh_v = UnitY[:, :, i]
 
-        mask = numpy.logical_or(mesh_u[skip] != 0, mesh_v[skip] != 0)
+        mask = _numpy.logical_or(mesh_u[skip] != 0, mesh_v[skip] != 0)
         mesh_x = mesh_x[skip][mask]
         mesh_y = mesh_y[skip][mask]
         mesh_u = mesh_u[skip][mask]
         mesh_v = mesh_v[skip][mask]
 
         # Normalize the arrows:
-        mesh_u_normed = thinout * mesh_u / numpy.sqrt(mesh_u**2 + mesh_v**2)
-        mesh_v_normed = thinout * mesh_v / numpy.sqrt(mesh_u**2 + mesh_v**2)
+        mesh_u_normed = thinout * mesh_u / _numpy.sqrt(mesh_u**2 + mesh_v**2)
+        mesh_v_normed = thinout * mesh_v / _numpy.sqrt(mesh_u**2 + mesh_v**2)
 
         ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
-                  numpy.arctan2(mesh_v_normed, mesh_u_normed),
+                  _numpy.arctan2(mesh_v_normed, mesh_u_normed),
                   cmap='hsv', angles='xy', scale_units='xy', scale=1,
                   alpha=alpha, headwidth=0, headlength=0, headaxislength=0,
-                  minlength=0, pivot='mid', clim=(0, numpy.pi))
+                  minlength=0, pivot='mid', clim=(0, _numpy.pi))
     return ax
 
 
@@ -246,16 +246,16 @@ def visualize_direction(direction):
         numpy.ndarray: 2D image containing the resulting HSV orientation map
 
     """
-    direction = numpy.array(direction)
+    direction = _numpy.array(direction)
     direction_shape = direction.shape
 
     h = direction
-    s = numpy.ones(direction.shape)
-    v = numpy.ones(direction.shape)
+    s = _numpy.ones(direction.shape)
+    v = _numpy.ones(direction.shape)
 
-    hsv_stack = numpy.stack((1 - h / 180.0, s, v))
-    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-    rgb_stack = hsv_to_rgb(hsv_stack)
+    hsv_stack = _numpy.stack((1 - h / 180.0, s, v))
+    hsv_stack = _numpy.moveaxis(hsv_stack, 0, -1)
+    rgb_stack = _hsv_to_rgb(hsv_stack)
 
     if len(direction_shape) > 2:
         return _visualize_multiple_direction(direction, rgb_stack)
@@ -271,11 +271,11 @@ def _visualize_one_direction(direction, rgb_stack):
 
 
 def _visualize_multiple_direction(direction, rgb_stack):
-    output_image = numpy.empty((direction.shape[0] * 2,
+    output_image = _numpy.empty((direction.shape[0] * 2,
                                 direction.shape[1] * 2,
                                 3))
     # count valid directions
-    valid_directions = numpy.count_nonzero(direction > -1, axis=-1)
+    valid_directions = _numpy.count_nonzero(direction > -1, axis=-1)
 
     r = rgb_stack[..., 0]
     g = rgb_stack[..., 1]
