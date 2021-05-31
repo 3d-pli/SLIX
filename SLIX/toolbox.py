@@ -7,12 +7,18 @@ try:
         from SLIX._GPU import toolbox as _gpu_toolbox
 
         gpu_available = True
-    except (_cupy.cuda.runtime.CUDARuntimeError,
-            _cupy.cudadrv.driver.CudaAPIError,
-            _cupy.cudadrv.driver.LinkerError):
+    except _cupy.cuda.runtime.CUDARuntimeError:
         print('[WARNING] CuPy is installed but an error was thrown by the '
               'runtime. SLIX will fall back to the CPU variant.')
         gpu_available = False
+    except (_cuda.cudadrv.driver.CudaAPIError,
+            _cuda.cudadrv.driver.LinkerError):
+        print("[WARNING] Numba CUDA couldn't be initialized. "
+              "Please check if there are problems with your CUDA / Numba "
+              "version. SLIX will fall back to the CPU variant.")
+        gpu_available = False
+
+
 except (ModuleNotFoundError, NameError):
     gpu_available = False
     print('[WARNING] CuPy is not installed. The toolbox will use the CPU '
