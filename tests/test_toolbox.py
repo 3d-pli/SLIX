@@ -82,16 +82,16 @@ class TestToolbox:
         toolbox_peaks = toolbox.peaks(arr, use_gpu=use_gpu)
         toolbox_prominence = toolbox.peak_prominence(arr, toolbox_peaks, kind_of_normalization=0, use_gpu=use_gpu)
         toolbox_high_peaks = toolbox_peaks.copy()
-        toolbox_high_peaks[toolbox_prominence < toolbox.cpu_toolbox.TARGET_PROMINENCE] = False
+        toolbox_high_peaks[toolbox_prominence < toolbox._cpu_toolbox.TARGET_PROMINENCE] = False
         toolbox_low_peaks = toolbox_peaks.copy()
-        toolbox_low_peaks[toolbox_prominence >= toolbox.cpu_toolbox.TARGET_PROMINENCE] = False
+        toolbox_low_peaks[toolbox_prominence >= toolbox._cpu_toolbox.TARGET_PROMINENCE] = False
         assert numpy.all(high_peaks == toolbox_high_peaks)
         assert numpy.all(low_peaks == toolbox_low_peaks)
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_mean_peakprominence(self, use_gpu):
-        test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0]).reshape(1, 1, 11)
-        comparison = toolbox.cpu_toolbox.normalize(test_arr, kind_of_normalization=1)
+        test_arr = numpy.array([0, 1, 0, 0.1, 0, 1, 0, 0.1, 0, 1, 0]).reshape((1, 1, 11))
+        comparison = toolbox._cpu_toolbox.normalize(test_arr, kind_of_normalization=1)
 
         toolbox_peaks = toolbox.peaks(test_arr)
         toolbox_prominence = toolbox.mean_peak_prominence(test_arr, toolbox_peaks,
