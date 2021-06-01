@@ -43,8 +43,10 @@ def downsample(image, kernel_size, background_value=-1,
     if len(image.shape) == 2:
         x, y = image.shape
         z = 1
+        image_padded = True
     else:
         x, y, z = image.shape
+        image_padded = False
 
     nx = numpy.ceil(x / kernel_size).astype('int')
     ny = numpy.ceil(y / kernel_size).astype('int')
@@ -63,7 +65,7 @@ def downsample(image, kernel_size, background_value=-1,
                 else:
                     small_img[i, j, sub_image] = background_value
 
-    if z == 1:
+    if image_padded:
         small_img = small_img.reshape((nx, ny))
 
     return small_img
@@ -161,25 +163,32 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
         ax = plt.gca()
 
     thinout = int(thinout)
+
+    UnitX = UnitX.copy()
+    UnitY = UnitY.copy()
+
+    while len(UnitX.shape) < 3:
+        UnitX = UnitX[..., numpy.newaxis]
+    while len(UnitY.shape) < 3:
+        UnitY = UnitY[..., numpy.newaxis]
+
     if thinout <= 1:
         thinout = 1
     else:
-        UnitX = UnitX.copy()
-        UnitY = UnitY.copy()
         original_size = UnitX.shape[:-1]
         small_unit_x = downsample(UnitX, thinout, background_value=0,
                                   background_threshold=background_threshold)
         for i in range(UnitX.shape[-1]):
             UnitX[:, :, i] = numpy.array(Image.fromarray(small_unit_x[:, :, i])
-                                          .resize(original_size[::-1],
-                                                  resample=Image.NEAREST))
+                                         .resize(original_size[::-1],
+                                                 resample=Image.NEAREST))
 
         small_unit_y = downsample(UnitY, thinout, background_value=0,
                                   background_threshold=background_threshold)
         for i in range(UnitY.shape[-1]):
             UnitY[:, :, i] = numpy.array(Image.fromarray(small_unit_y[:, :, i])
-                                          .resize(original_size[::-1],
-                                                  resample=Image.NEAREST))
+                                         .resize(original_size[::-1],
+                                                 resample=Image.NEAREST))
         del original_size
         del small_unit_y
         del small_unit_x
@@ -187,7 +196,7 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
 
     for i in range(UnitX.shape[-1]):
         mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]),
-                                         numpy.arange(0, UnitX.shape[0]))
+                                        numpy.arange(0, UnitX.shape[0]))
         mesh_u = UnitX[:, :, i]
         mesh_v = UnitY[:, :, i]
 
@@ -201,11 +210,14 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
         mesh_u_normed = thinout * mesh_u / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
         mesh_v_normed = thinout * mesh_v / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
 
+        normed_angle = numpy.arctan2(mesh_v_normed, mesh_u_normed)
+        color = visualize_direction(180 - normed_angle * 180.0 / numpy.pi)
+
         ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
-                  numpy.arctan2(mesh_v_normed, mesh_u_normed),
-                  cmap='hsv', angles='xy', scale_units='xy', scale=1,
+                  color=color,
+                  angles='xy', scale_units='xy', scale=1,
                   alpha=alpha, headwidth=0, headlength=0, headaxislength=0,
-                  minlength=0, pivot='mid', clim=(0, numpy.pi))
+                  minlength=0, pivot='mid')
     return ax
 
 
@@ -257,7 +269,7 @@ def visualize_direction(direction):
     s = numpy.ones(direction.shape)
     v = numpy.ones(direction.shape)
 
-    hsv_stack = numpy.stack((1 - h / 180.0, s, v))
+    hsv_stack = numpy.stack((h / 180.0, s, v))
     hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
     rgb_stack = hsv_to_rgb(hsv_stack)
 
