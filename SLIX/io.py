@@ -362,7 +362,7 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
         None
     """
     save_data = data.copy()
-    if save_data.dtype == numpy.bool:
+    if save_data.dtype == bool:
         save_data = save_data.astype(numpy.uint8)
     elif save_data.dtype == numpy.float64:
         save_data = save_data.astype(numpy.float32)
