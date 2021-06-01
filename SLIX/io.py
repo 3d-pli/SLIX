@@ -72,7 +72,7 @@ class H5FileReader:
         if self.content is None:
             self.content = {}
         if dataset not in self.content.keys():
-            self.content[dataset] = self.file[dataset][:]
+            self.content[dataset] = numpy.squeeze(self.file[dataset][:])
             if len(self.content[dataset].shape) == 3:
                 shape = numpy.array(self.content[dataset].shape)
                 self.content[dataset] = numpy.swapaxes(self.content[dataset],
