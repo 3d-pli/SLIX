@@ -10,3 +10,4 @@ venv/
 .coverage
 htmlcov/
 .pytest_cache
+notebooks/
