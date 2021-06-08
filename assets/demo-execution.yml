@@ -1,0 +1,375 @@
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: bash -l
+  
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /home/3dpli/SLIX
+  
+  # Export additional ENV variables
+  env:
+    recording: true
+  
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 116
+  
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 22
+  
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+  
+  # Quality
+  # 1 - 100
+  quality: 100
+  
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+  
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 2000
+  
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: floating
+    title: Terminalizer
+    style:
+      border: 0px black solid
+      # boxShadow: none
+      # margin: 0px
+  
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+  
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+  
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "Monaco, Lucida Console, Ubuntu Mono, Monospace"
+  
+  # The size of the font
+  fontSize: 12
+  
+  # The height of lines
+  lineHeight: 1
+  
+  # The spacing between letters
+  letterSpacing: 0
+  
+  # Theme
+  theme:
+    background: "transparent"
+    foreground: "#afafaf"
+    cursor: "#c7c7c7"
+    black: "#232628"
+    red: "#fc4384"
+    green: "#b3e33b"
+    yellow: "#ffa727"
+    blue: "#75dff2"
+    magenta: "#ae89fe"
+    cyan: "#708387"
+    white: "#d5d5d0"
+    brightBlack: "#626566"
+    brightRed: "#ff7fac"
+    brightGreen: "#c8ed71"
+    brightYellow: "#ebdf86"
+    brightBlue: "#75dff2"
+    brightMagenta: "#ae89fe"
+    brightCyan: "#b1c6ca"
+    brightWhite: "#f9f9f4"
+  
+# Records, feel free to edit them
+records:
+  - delay: 269
+    content: "\e]0;3dpli@linux:~/SLIX\a\e[01;32m[3dpli@linux\e[01;37m SLIX\e[01;32m]$\e[00m "
+  - delay: 253
+    content: S
+  - delay: 360
+    content: L
+  - delay: 361
+    content: I
+  - delay: 99
+    content: X
+  - delay: 173
+    content: P
+  - delay: 233
+    content: 'arameterGenerator '
+  - delay: 932
+    content: '-'
+  - delay: 316
+    content: i
+  - delay: 317
+    content: ' '
+  - delay: 302
+    content: .
+  - delay: 99
+    content: /
+  - delay: 964
+    content: S
+  - delay: 216
+    content: L
+  - delay: 187
+    content: I
+  - delay: 230
+    content: "\a-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii"
+  - delay: 675
+    content: ' '
+  - delay: 1050
+    content: '-'
+  - delay: 360
+    content: o
+  - delay: 143
+    content: ' '
+  - delay: 202
+    content: .
+  - delay: 272
+    content: ' '
+  - delay: 763
+    content: '-'
+  - delay: 142
+    content: '-'
+  - delay: 346
+    content: 'n'
+  - delay: 100
+    content: u
+  - delay: 129
+    content: m
+  - delay: 361
+    content: _
+  - delay: 431
+    content: p
+  - delay: 74
+    content: r
+  - delay: 141
+    content: o
+  - delay: 130
+    content: c
+  - delay: 86
+    content: s
+  - delay: 115
+    content: ' '
+  - delay: 705
+    content: '4'
+  - delay: 101
+    content: ' '
+  - delay: 748
+    content: '-'
+  - delay: 129
+    content: '-'
+  - delay: 187
+    content: r
+  - delay: 144
+    content: o
+  - delay: 144
+    content: i
+  - delay: 144
+    content: s
+  - delay: 158
+    content: i
+  - delay: 117
+    content: z
+  - delay: 99
+    content: e
+  - delay: 116
+    content: ' '
+  - delay: 675
+    content: '5'
+  - delay: 546
+    content: "\r\n"
+  - delay: 341
+    content: "SLI Feature Generator:\r\nNumber of threads: 4\r\n\r\nChosen feature maps:\r\nDirection maps: True\r\nPeak maps: True\r\nPeak prominence map: True\r\nPeak width map: True\r\nPeak distance map: True\r\nOptional maps: False\r\n\r\n"
+  - delay: 39
+    content: "./SLI-human-Sub-01_2xOpticTracts_s0037_30um_SLI_105_Stack_3days_registered.nii\r\n"
+  - delay: 355
+    content: "Roi finished\r\nGenerating parameter maps.\r\n\r  0%|                                                                                     | 0/62068 [00:00<?, ?it/s]"
+  - delay: 1089
+    content: "\r  9%|██████▍                                                                 | 5553/62068 [00:01<00:11, 5098.05it/s]"
+  - delay: 1040
+    content: "\r 18%|████████████▋                                                          | 11049/62068 [00:02<00:09, 5152.59it/s]"
+  - delay: 1045
+    content: "\r 27%|██████████████████▊                                                    | 16472/62068 [00:03<00:08, 5164.31it/s]"
+  - delay: 1069
+    content: "\r 36%|█████████████████████████▎                                             | 22133/62068 [00:04<00:07, 5202.82it/s]"
+  - delay: 1069
+    content: "\r 45%|███████████████████████████████▋                                       | 27659/62068 [00:05<00:06, 5192.37it/s]"
+  - delay: 1086
+    content: "\r 53%|█████████████████████████████████████▉                                 | 33169/62068 [00:06<00:05, 5155.99it/s]"
+  - delay: 1069
+    content: "\r 62%|████████████████████████████████████████████▏                          | 38593/62068 [00:07<00:04, 5131.64it/s]"
+  - delay: 1075
+    content: "\r 71%|██████████████████████████████████████████████████▌                    | 44150/62068 [00:08<00:03, 5142.49it/s]"
+  - delay: 1037
+    content: "\r 80%|████████████████████████████████████████████████████████▌              | 49447/62068 [00:09<00:02, 5132.45it/s]"
+  - delay: 973
+    content: "\r 87%|█████████████████████████████████████████████████████████████▉         | 54138/62068 [00:10<00:01, 5034.61it/s]"
+  - delay: 858
+    content: "\r 91%|████████████████████████████████████████████████████████████████▎      | 56173/62068 [00:11<00:01, 3765.54it/s]"
+  - delay: 843
+    content: "\r 94%|██████████████████████████████████████████████████████████████████▌    | 58202/62068 [00:12<00:01, 3220.59it/s]"
+  - delay: 824
+    content: "\r 96%|████████████████████████████████████████████████████████████████████   | 59551/62068 [00:13<00:01, 2496.74it/s]"
+  - delay: 847
+    content: "\r 98%|█████████████████████████████████████████████████████████████████████▎ | 60551/62068 [00:13<00:00, 1870.47it/s]"
+  - delay: 763
+    content: "\r 99%|██████████████████████████████████████████████████████████████████████▍| 61551/62068 [00:14<00:00, 1658.69it/s]"
+  - delay: 392
+    content: "\r 99%|██████████████████████████████████████████████████████████████████████▍| 61551/62068 [00:15<00:00, 4081.95it/s]\r\n"
+  - delay: 5
+    content: "Parameter maps generated. Writing images.\r\n"
+  - delay: 11
+    content: "Low peaks written\r\n"
+  - delay: 6
+    content: "High peaks written\r\n"
+  - delay: 6
+    content: "Peak width written\r\n"
+  - delay: 5
+    content: "Peak prominence written\r\n"
+  - delay: 5
+    content: "Peak distance written\r\n"
+  - delay: 16
+    content: "Crossing directions written\r\n"
+  - delay: 61
+    content: "\e]0;3dpli@linux:~/SLIX\a\e[01;32m[3dpli@linux\e[01;37m SLIX\e[01;32m]$\e[00m "
+  - delay: 513
+    content: S
+  - delay: 115
+    content: L
+  - delay: 187
+    content: I
+  - delay: 116
+    content: X
+  - delay: 158
+    content: P
+  - delay: 262
+    content: 'arameterGenerator '
+  - delay: 846
+    content: '-'
+  - delay: 344
+    content: i
+  - delay: 432
+    content: ' '
+  - delay: 302
+    content: .
+  - delay: 86
+    content: /
+  - delay: 403
+    content: V
+  - delay: 331
+    content: 'ervet1818_s0512_60um_SLI_090_Stack_1day.nii '
+  - delay: 1423
+    content: '-'
+  - delay: 230
+    content: o
+  - delay: 159
+    content: ' '
+  - delay: 445
+    content: .
+  - delay: 920
+    content: ' '
+  - delay: 533
+    content: '-'
+  - delay: 158
+    content: '-'
+  - delay: 431
+    content: r
+  - delay: 173
+    content: o
+  - delay: 58
+    content: i
+  - delay: 143
+    content: s
+  - delay: 173
+    content: i
+  - delay: 144
+    content: z
+  - delay: 129
+    content: e
+  - delay: 101
+    content: ' '
+  - delay: 245
+    content: '1'
+  - delay: 761
+    content: '0'
+  - delay: 101
+    content: ' '
+  - delay: 1323
+    content: '-'
+  - delay: 158
+    content: '-'
+  - delay: 547
+    content: d
+  - delay: 131
+    content: i
+  - delay: 99
+    content: r
+  - delay: 72
+    content: e
+  - delay: 202
+    content: c
+  - delay: 201
+    content: t
+  - delay: 72
+    content: i
+  - delay: 87
+    content: o
+  - delay: 114
+    content: 'n'
+  - delay: 317
+    content: "\r\n"
+  - delay: 312
+    content: "SLI Feature Generator:\r\nNumber of threads: 16\r\n\r\nChosen feature maps:\r\nDirection maps: True\r\nPeak maps: False\r\nPeak prominence map: False\r\nPeak width map: False\r\nPeak distance map: False\r\nOptional maps: False\r\n\r\n"
+  - delay: 288
+    content: "./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii\r\n"
+  - delay: 291
+    content: "Roi finished\r\nGenerating parameter maps.\r\n\r  0%|                                                                                     | 0/81016 [00:00<?, ?it/s]"
+  - delay: 1355
+    content: "\r 34%|███████████████████████▍                                              | 27169/81016 [00:01<00:02, 20060.33it/s]"
+  - delay: 1288
+    content: "\r 67%|██████████████████████████████████████████████▉                       | 54303/81016 [00:02<00:01, 20350.27it/s]"
+  - delay: 1216
+    content: "\r 92%|████████████████████████████████████████████████████████████████▋     | 74889/81016 [00:03<00:00, 19187.37it/s]"
+  - delay: 773
+    content: "\r 98%|████████████████████████████████████████████████████████████████████▎ | 79103/81016 [00:04<00:00, 10921.11it/s]"
+  - delay: 753
+    content: "\r100%|██████████████████████████████████████████████████████████████████████▉| 80952/81016 [00:05<00:00, 5366.84it/s]"
+  - delay: 62
+    content: "\r100%|█████████████████████████████████████████████████████████████████████▉| 80952/81016 [00:05<00:00, 14859.03it/s]\r\n"
+  - delay: 6
+    content: "Parameter maps generated. Writing images.\r\n"
+  - delay: 89
+    content: "Crossing directions written\r\n"
+  - delay: 65
+    content: "\e]0;3dpli@linux:~/SLIX\a\e[01;32m[3dpli@linux\e[01;37m SLIX\e[01;32m]$\e[00m "
+  - delay: 2255
+    content: "logout\r\n"
