@@ -12,8 +12,10 @@
 - Added attributemanager.py which handles the newly added attributes in HDF5 files. 
 - Added the option to read an entire folder of 2D image files instead of an image stack when following the following regex syntax: `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`
 - Added `imwrite_rgb` to io.py for writing fiber orientation maps as TIFF or HDF5.
+- .nii.gz files can now be read. While this was technically possible before this change, a if clause prevented the usage of the right library
 
 ### Changed
+- Added compression to all available data types (.tiff, .nii.gz, .h5). nii files will only be written as a compressed file if you use --output_type .nii.gz. Other data types will be compressed automatically.
 - Overhaul of the documentation. The path changed from /doc to /docs. The documentation is now hosted on https://3d-pli.github.io/SLIX/
 and isn't solely in the GitHub wiki anymore.
 - Changed the datatype for the detected number of peaks from `int` to `uint16` because there shouldn't be more than 65535 peaks in a measurement.
