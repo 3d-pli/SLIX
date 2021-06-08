@@ -388,7 +388,14 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
             save_data = numpy.moveaxis(save_data,
                                        numpy.array(save_data.shape).argmin(),
                                        0)
-        tifffile.imwrite(filepath, save_data, compression=8)
+        tifffile_version_date = datetime.datetime.strptime(
+            tifffile.__version__, '%Y.%m.%d')
+        tifffile_comparison_date = datetime.datetime.strptime(
+            '2020.10.02', '%Y.%m.%d')
+        if tifffile_version_date > tifffile_comparison_date:
+            tifffile.imwrite(filepath, save_data, compression=8)
+        else:
+            tifffile.imwrite(filepath, save_data, compress=9)
 
     elif filepath.endswith('.h5'):
         if len(save_data.shape) == 3:
