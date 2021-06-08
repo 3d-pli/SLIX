@@ -13,6 +13,7 @@ from .attributemanager import AttributeHandler
 
 __all__ = ['H5FileReader', 'H5FileWriter', 'imread', 'imwrite', 'imwrite_rgb']
 
+nibabel.openers.Opener.default_compresslevel = 9
 
 class H5FileReader:
     """
@@ -76,7 +77,7 @@ class H5FileReader:
             if len(self.content[dataset].shape) == 3:
                 shape = numpy.array(self.content[dataset].shape)
                 self.content[dataset] = numpy.swapaxes(self.content[dataset],
-                                                        shape.argmin(), -1)
+                                                       shape.argmin(), -1)
         return self.content[dataset]
 
 
@@ -204,7 +205,9 @@ class H5FileWriter:
 
         if dataset not in self.file:
             self.file.create_dataset(dataset, content.shape,
-                                     dtype=content.dtype, data=content)
+                                     dtype=content.dtype, data=content,
+                                     compression='gzip', compression_opts=9,
+                                     shuffle=True)
         else:
             self.file[dataset] = content
 
@@ -289,8 +292,8 @@ def read_folder(filepath):
             image = numpy.stack((image, measurement_image), axis=-1)
         else:
             image = numpy.concatenate((image,
-                                        measurement_image
-                                        [:, :, numpy.newaxis]), axis=-1)
+                                       measurement_image
+                                       [:, :, numpy.newaxis]), axis=-1)
 
     return image
 
@@ -320,7 +323,7 @@ def imread(filepath, dataset="/Image"):
     if os.path.isdir(filepath):
         data = read_folder(filepath)
     # Load NIfTI dataset
-    elif filepath.endswith('.nii'):
+    elif filepath.endswith('.nii') or filepath.endswith('.nii.gz'):
         data = nibabel.load(filepath).get_fdata()
         data = numpy.squeeze(numpy.swapaxes(data, 0, 1))
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
@@ -371,26 +374,27 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
     elif save_data.dtype == numpy.uint64:
         save_data = save_data.astype(numpy.uint32)
 
-    if filepath.endswith('.nii'):
+    if filepath.endswith('.nii') or filepath.endswith('.nii.gz'):
         if len(save_data.shape) == 3:
             save_data = numpy.swapaxes(save_data,
-                                        numpy.array(save_data.shape).argmin(),
-                                        -1)
+                                       numpy.array(save_data.shape).argmin(),
+                                       -1)
         save_data = numpy.swapaxes(save_data, 0, 1)
-        nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)), filepath)
+        nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)),
+                     filepath)
 
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if len(save_data.shape) == 3:
             save_data = numpy.moveaxis(save_data,
-                                        numpy.array(save_data.shape).argmin(),
-                                        0)
-        tifffile.imwrite(filepath, save_data)
+                                       numpy.array(save_data.shape).argmin(),
+                                       0)
+        tifffile.imwrite(filepath, save_data, compression=8)
 
     elif filepath.endswith('.h5'):
         if len(save_data.shape) == 3:
             save_data = numpy.moveaxis(save_data,
-                                        numpy.array(save_data.shape).argmin(),
-                                        0)
+                                       numpy.array(save_data.shape).argmin(),
+                                       0)
         writer = H5FileWriter()
         writer.open(filepath)
         writer.write_dataset(dataset, save_data)
@@ -433,7 +437,8 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
 
     if filepath.endswith('.tiff') or filepath.endswith('.tif'):
         save_data = numpy.moveaxis(save_data, axis[0], 0)
-        tifffile.imwrite(filepath, save_data, photometric='rgb')
+        tifffile.imwrite(filepath, save_data, photometric='rgb',
+                         compression=8)
     elif filepath.endswith('.h5'):
         writer = H5FileWriter()
         writer.open(filepath)

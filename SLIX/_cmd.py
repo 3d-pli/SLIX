@@ -287,7 +287,7 @@ def main_full_image():
     UNIT_VECTORS = False
     output_data_type = '.' + args['output_type']
 
-    if output_data_type not in ['.nii', '.h5', '.tiff', '.tif']:
+    if output_data_type not in ['.nii', '.nii.gz', '.h5', '.tiff', '.tif']:
         print('Output data type is not supported. Please choose a valid '
               'datatype!')
         exit(1)

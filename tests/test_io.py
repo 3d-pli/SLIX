@@ -53,10 +53,10 @@ class TestIO:
 
     def test_write_nifti(self):
         test_arr = numpy.random.rand(100, 110, 24)
-        io.imwrite('tests/output/test_write_nifti.nii', test_arr)
-        assert os.path.isfile('tests/output/test_write_nifti.nii')
+        io.imwrite('tests/output/test_write_nifti.nii.gz', test_arr)
+        assert os.path.isfile('tests/output/test_write_nifti.nii.gz')
 
-        image = io.imread('tests/output/test_write_nifti.nii')
+        image = io.imread('tests/output/test_write_nifti.nii.gz')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
