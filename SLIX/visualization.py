@@ -287,7 +287,7 @@ def _visualize_one_direction(direction, rgb_stack):
 
 
 def _visualize_multiple_direction(direction, rgb_stack):
-    output_image = numpy.empty((direction.shape[0] * 2,
+    output_image = numpy.zeros((direction.shape[0] * 2,
                                 direction.shape[1] * 2,
                                 3))
     # count valid directions
@@ -301,7 +301,7 @@ def _visualize_multiple_direction(direction, rgb_stack):
     for x in range(direction.shape[0]):
         for y in range(direction.shape[1]):
             if valid_directions[x, y] == 0:
-                output_image[x * 2:x * 2 + 1, y * 2:y * 2 + 1] = 0
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2] = 0
             elif valid_directions[x, y] == 1:
                 output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 0] = r[x, y, 0]
                 output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 1] = g[x, y, 0]
