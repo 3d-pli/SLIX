@@ -7,12 +7,8 @@ import numpy
 
 class TestIO:
     def test_read_hdf5(self):
-        reader = io.H5FileReader()
-        reader.open('tests/files/demo.h5')
-        image = reader.read('/Image')
-        reader.close()
-
-        assert image.shape == (163, 170, 24)
+        image = io.imread('tests/files/demo.h5')
+        assert image.shape == (170, 163, 24)
 
     def test_write_hdf5(self):
         test_arr = numpy.random.rand(100, 110, 24)
@@ -57,6 +53,36 @@ class TestIO:
         assert os.path.isfile('tests/output/test_write_nifti.nii.gz')
 
         image = io.imread('tests/output/test_write_nifti.nii.gz')
+        assert image.shape == test_arr.shape
+        assert numpy.all(numpy.isclose(test_arr, image))
+
+    def test_read_interoperable(self):
+        test_arr = numpy.random.rand(10, 11, 24)
+        io.imwrite('tests/output/test_write_interoperable.tiff', test_arr)
+        assert os.path.isfile('tests/output/test_write_interoperable.tiff')
+
+        image = io.imread('tests/output/test_write_interoperable.tiff')
+        assert image.shape == test_arr.shape
+        assert numpy.all(numpy.isclose(test_arr, image))
+
+        io.imwrite('tests/output/test_write_interoperable.h5', test_arr)
+        assert os.path.isfile('tests/output/test_write_interoperable.h5')
+
+        image = io.imread('tests/output/test_write_interoperable.h5')
+        assert image.shape == test_arr.shape
+        assert numpy.all(numpy.isclose(test_arr, image))
+
+        io.imwrite('tests/output/test_write_interoperable.nii', test_arr)
+        assert os.path.isfile('tests/output/test_write_interoperable.nii')
+
+        image = io.imread('tests/output/test_write_interoperable.nii')
+        assert image.shape == test_arr.shape
+        assert numpy.all(numpy.isclose(test_arr, image))
+
+        io.imwrite('tests/output/test_write_interoperable.nii.gz', test_arr)
+        assert os.path.isfile('tests/output/test_write_interoperable.nii.gz')
+
+        image = io.imread('tests/output/test_write_interoperable.nii.gz')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 

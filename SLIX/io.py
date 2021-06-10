@@ -15,6 +15,7 @@ __all__ = ['H5FileReader', 'H5FileWriter', 'imread', 'imwrite', 'imwrite_rgb']
 
 nibabel.openers.Opener.default_compresslevel = 9
 
+
 class H5FileReader:
     """
     This class allows to read HDF5 files from your file system.
@@ -74,10 +75,6 @@ class H5FileReader:
             self.content = {}
         if dataset not in self.content.keys():
             self.content[dataset] = numpy.squeeze(self.file[dataset][:])
-            if len(self.content[dataset].shape) == 3:
-                shape = numpy.array(self.content[dataset].shape)
-                self.content[dataset] = numpy.swapaxes(self.content[dataset],
-                                                       shape.argmin(), -1)
         return self.content[dataset]
 
 
@@ -204,10 +201,18 @@ class H5FileWriter:
             return
 
         if dataset not in self.file:
-            self.file.create_dataset(dataset, content.shape,
-                                     dtype=content.dtype, data=content,
-                                     compression='gzip', compression_opts=9,
-                                     shuffle=True)
+            # Change compression algorithm for large files as it can take
+            # very long for the compression to finish
+            if len(content.shape) == 3:
+                self.file.create_dataset(dataset, content.shape,
+                                         dtype=content.dtype, data=content,
+                                         compression='lzf', shuffle=True)
+            else:
+                self.file.create_dataset(dataset, content.shape,
+                                         dtype=content.dtype, data=content,
+                                         compression='gzip',
+                                         compression_opts=9,
+                                         shuffle=True)
         else:
             self.file[dataset] = content
 
@@ -259,7 +264,7 @@ def read_folder(filepath):
     0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.
 
     The follwing regex is used to find the measurements:
-    `.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)`
+    ".*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)"
 
     Supported file formats for the image file equal the supported formats of
     SLIX.imread.
@@ -334,6 +339,8 @@ def imread(filepath, dataset="/Image"):
         reader = H5FileReader()
         reader.open(filepath)
         data = reader.read(dataset)
+        if len(data.shape) == 3:
+            data = numpy.squeeze(numpy.moveaxis(data, 0, -1))
         reader.close()
         return data
     else:
@@ -375,19 +382,13 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
         save_data = save_data.astype(numpy.uint32)
 
     if filepath.endswith('.nii') or filepath.endswith('.nii.gz'):
-        if len(save_data.shape) == 3:
-            save_data = numpy.swapaxes(save_data,
-                                       numpy.array(save_data.shape).argmin(),
-                                       -1)
         save_data = numpy.swapaxes(save_data, 0, 1)
         nibabel.save(nibabel.Nifti1Image(save_data, numpy.eye(4)),
                      filepath)
 
     elif filepath.endswith('.tiff') or filepath.endswith('.tif'):
         if len(save_data.shape) == 3:
-            save_data = numpy.moveaxis(save_data,
-                                       numpy.array(save_data.shape).argmin(),
-                                       0)
+            save_data = numpy.moveaxis(save_data, -1, 0)
         tifffile_version_date = datetime.datetime.strptime(
             tifffile.__version__, '%Y.%m.%d')
         tifffile_comparison_date = datetime.datetime.strptime(
@@ -399,9 +400,7 @@ def imwrite(filepath, data, dataset='/Image', original_stack_path=""):
 
     elif filepath.endswith('.h5'):
         if len(save_data.shape) == 3:
-            save_data = numpy.moveaxis(save_data,
-                                       numpy.array(save_data.shape).argmin(),
-                                       0)
+            save_data = numpy.moveaxis(save_data, -1, 0)
         writer = H5FileWriter()
         writer.open(filepath)
         writer.write_dataset(dataset, save_data)

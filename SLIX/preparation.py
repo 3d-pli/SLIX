@@ -57,7 +57,7 @@ def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
                                     image,
                                     image[:, :, :window_length]), axis=-1)
     conc_image = signal.savgol_filter(conc_image, window_length,
-                                      polyorder, axis=2)
+                                      polyorder, axis=-1)
     return conc_image[:, :, window_length:-window_length]
 
 
