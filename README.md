@@ -378,7 +378,11 @@ When three directions are present, the first three pixel will have the HSV color
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/vector.jpg" width="327">
 
 ## Tutorial
-The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), `thinout = 30` (i.e. 30 x 30 pixels were evaluated together), and `background_threshold = 0.3` (i.e. if more than 30% of the evaluated pixels are `-1`, no vector will be computed). 
+The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. 
+For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. 
+The following vector map has been generated with the function `visualize_unit_vectors`, using `alpha = 0.8` (defining the transparency of the background image), 
+`thinout = 20` (i.e. 20 x 20 pixels were evaluated together), 
+and `background_threshold = 0.25` (i.e. if more than 25% of the evaluated pixels are `-1`, no vector will be computed). 
 
 <img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/output_unit_vectors.png" height="327">
 
