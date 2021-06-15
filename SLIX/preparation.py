@@ -7,32 +7,19 @@ __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
 
 
-def low_pass_fourier_smoothing(image, threshold_low=10, threshold_high=25):
+def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
     fft = numpy.fft.fft(image, axis=-1)
 
-    # Define thresholds for low pass filter
-    threshold_start_position = image.shape[-1] * threshold_low // 100
-    threshold_end_position = image.shape[-1] * threshold_high // 100
+    frequencies = numpy.fft.fftfreq(fft.shape[2])
+    frequencies = frequencies / frequencies.max()
 
-    magnitude = numpy.abs(fft)
-    magnitude_copy = -magnitude.copy()
-    magnitude_threshold_low = -1.0 * numpy.sort(magnitude_copy, axis=-1) \
-        [:, :, threshold_end_position][..., numpy.newaxis]
-    magnitude_threshold_high = -1.0 * numpy.sort(magnitude_copy, axis=-1) \
-        [:, :, threshold_start_position][..., numpy.newaxis]
+    # multiplier = numpy.clip(1 - 1./numpy.maximum(window, 1e-15) *
+    #                        (numpy.abs(frequencies) - threshold), 0, 1)
 
-    interval = numpy.maximum(1e-15,
-                             magnitude_threshold_high -
-                             magnitude_threshold_low)
-    middle_point = magnitude_threshold_low + 0.5 * magnitude_threshold_high
-
-    # Calculate low pass filter and apply it to our original signal
-    multiplier = 0.5 + 0.5 * numpy.tanh((magnitude - middle_point) / interval)
-    fft = numpy.multiply(multiplier, fft)
-
-    # Apply inverse fourier transform
-    image = numpy.real(numpy.fft.ifft(fft)).astype(numpy.float32)
-    return image
+    multiplier = 1 - (0.5 + 0.5 * numpy.tanh(
+        (numpy.abs(frequencies) - threshold) / window))
+    fft = numpy.multiply(fft, multiplier[numpy.newaxis, numpy.newaxis, ...])
+    return numpy.real_if_close(numpy.fft.ifft(fft)).astype(image.dtype)
 
 
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
