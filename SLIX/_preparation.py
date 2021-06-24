@@ -1,6 +1,30 @@
 import numba
 import numpy
 
+_multiprocessing_worker_fourier_var_dict = {}
+
+
+def _init_worker_fourier_smoothing(X, X_shape):
+    _multiprocessing_worker_fourier_var_dict['X'] = X
+    _multiprocessing_worker_fourier_var_dict['X_shape'] = X_shape
+
+
+def _worker_function_fourier_smoothing(i, threshold, window):
+    x = i % _multiprocessing_worker_fourier_var_dict['X_shape'][0]
+    y = i // _multiprocessing_worker_fourier_var_dict['X_shape'][0]
+    image = numpy.frombuffer(_multiprocessing_worker_fourier_var_dict['X'])\
+        .reshape(_multiprocessing_worker_fourier_var_dict['X_shape'])
+
+    fft = numpy.fft.fft(image[x, y, :])
+    frequencies = numpy.fft.fftfreq(len(fft))
+    frequencies = frequencies / frequencies.max()
+
+    multiplier = 1 - (0.5 + 0.5 * numpy.tanh(
+        (numpy.abs(frequencies) - threshold) / window))
+    fft = numpy.multiply(fft, multiplier[numpy.newaxis, numpy.newaxis, ...])
+
+    image[x, y, :] = numpy.real(numpy.fft.ifft(fft)).astype(image.dtype)
+
 
 @numba.jit(nopython=True)
 def _thin_out_plain(image, factor):

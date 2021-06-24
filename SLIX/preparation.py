@@ -1,26 +1,32 @@
+from functools import partial
 import numpy
+from multiprocessing import Pool
+from multiprocessing.sharedctypes import RawArray
 import scipy.signal as signal
 from SLIX._preparation import _thin_out_median, _thin_out_plain, \
-    _thin_out_average
+    _thin_out_average, _init_worker_fourier_smoothing, \
+    _worker_function_fourier_smoothing
 
 __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
 
 
 def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
-    fft = numpy.fft.fft(image, axis=-1)
+    X_shape = image.shape
+    X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
+    X_np = numpy.frombuffer(X).reshape(X_shape)
 
-    frequencies = numpy.fft.fftfreq(fft.shape[2])
-    frequencies = frequencies / frequencies.max()
+    numpy.copyto(X_np, image)
 
-    # multiplier = numpy.clip(1 - 1./numpy.maximum(window, 1e-15) *
-    #                        (numpy.abs(frequencies) - threshold), 0, 1)
+    partial_worker_function = partial(_worker_function_fourier_smoothing,
+                                      threshold=threshold, window=window)
 
-    multiplier = 1 - (0.5 + 0.5 * numpy.tanh(
-        (numpy.abs(frequencies) - threshold) / window))
-    fft = numpy.multiply(fft, multiplier[numpy.newaxis, numpy.newaxis, ...])
-    return numpy.real_if_close(numpy.fft.ifft(fft)).astype(image.dtype)
+    with Pool(processes=30, initializer=_init_worker_fourier_smoothing,
+              initargs=(X, X_shape)) as pool:
+        pool.map(partial_worker_function,
+                 range(X_shape[0] * X_shape[1]))
 
+    return X_np
 
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     """
