@@ -11,14 +11,15 @@ else:
 class TestToolbox:
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_background_mask(self, use_gpu):
-        array = numpy.empty((256, 3))
-        array[:, 0] = numpy.zeros(256)
-        array[:, 1] = numpy.ones(256)
-        array[:, 2] = numpy.arange(0, 256)
+        average_image = numpy.zeros((256, 256, 10))
+        for i in range(0, 128):
+            average_image[i, :] = 0
+            average_image[i + 128, :] = 128
 
-        toolbox_mask = toolbox.background_mask(array, use_gpu=use_gpu)
-        assert numpy.all(toolbox_mask[:10] == True)
-        assert numpy.all(toolbox_mask[10:] == False)
+        toolbox_mask = toolbox.background_mask(average_image, use_gpu=use_gpu)
+        print(toolbox_mask)
+        assert numpy.all(toolbox_mask[:128, :] == True)
+        assert numpy.all(toolbox_mask[128:, :] == False)
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_all_peaks(self, use_gpu):

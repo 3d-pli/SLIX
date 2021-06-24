@@ -41,14 +41,6 @@ def create_argument_parser_full_image():
                           action='store_true',
                           help='Use mask to try to remove some of the '
                                'background')
-    optional.add_argument('--mask_threshold',
-                          type=float,
-                          default=10,
-                          help='Value for filtering background noise when '
-                               'calculating masks. Higher values might result '
-                               'in the removal of some of the gray matter in '
-                               'the mask but will remove the background '
-                               'more effectively.')
     optional.add_argument('--thinout',
                           type=int,
                           default=1,
@@ -400,8 +392,7 @@ def main_full_image():
 
         if args['with_mask']:
             tqdm_step.set_description('Creating mask')
-            mask = toolbox.background_mask(image, args['mask_threshold'],
-                                           use_gpu=toolbox.gpu_available)
+            mask = toolbox.background_mask(image, use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
             io.imwrite(output_path_name + '_background_mask'
                        + output_data_type, mask)

@@ -34,7 +34,7 @@ __all__ = ['background_mask', 'centroid_correction',
            'mean_peak_width', 'significant_peaks']
 
 
-def background_mask(image, threshold=10, use_gpu=gpu_available,
+def background_mask(image, use_gpu=gpu_available,
                     return_numpy=True):
     """
     Creates a background mask by setting all image pixels with low scattering
@@ -61,9 +61,9 @@ def background_mask(image, threshold=10, use_gpu=gpu_available,
     """
 
     if use_gpu:
-        return gpu_toolbox.background_mask(image, threshold, return_numpy)
+        return gpu_toolbox.background_mask(image, return_numpy)
     else:
-        return cpu_toolbox.background_mask(image, threshold)
+        return cpu_toolbox.background_mask(image)
 
 
 def peaks(image, use_gpu=gpu_available, return_numpy=True):
