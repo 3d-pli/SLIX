@@ -5,6 +5,7 @@ import shlex
 from SLIX import _cmd
 from unittest import mock
 
+
 class TestCommandFullImage:
     def test_argparse(self):
         argparse = _cmd.create_argument_parser_full_image()
@@ -153,12 +154,6 @@ class TestCommandFullImage:
         assert args['input'] == ['input']
         assert args['output'] == 'output'
         assert args['with_mask'] == True
-
-        test_string = minimal_string + ' --mask_threshold 55'
-        args = vars(argparse.parse_args(shlex.split(test_string)))
-        assert args['input'] == ['input']
-        assert args['output'] == 'output'
-        assert args['mask_threshold'] == 55
 
         test_string = minimal_string + ' --disable_gpu'
         args = vars(argparse.parse_args(shlex.split(test_string)))

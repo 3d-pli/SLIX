@@ -2,6 +2,7 @@ import cupy
 import numpy
 from numba import cuda
 
+import SLIX
 from SLIX.GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks
@@ -16,7 +17,7 @@ __all__ = ['TARGET_PROMINENCE', 'peaks',
 TARGET_PROMINENCE = 0.08
 
 
-def background_mask(image, threshold=10, return_numpy=True):
+def background_mask(image, return_numpy=True):
     """
     Creates a background mask by setting all image pixels with low scattering
     signals to zero. As all background pixels are near zero for all images in
@@ -39,7 +40,26 @@ def background_mask(image, threshold=10, return_numpy=True):
                      foreground as False
     """
     gpu_image = cupy.array(image, dtype='float32')
-    gpu_mask = cupy.min(gpu_image < threshold, axis=-1)
+    gpu_average = cupy.average(gpu_image, axis=-1)
+
+    # Set histogram to a range of 0 to 1 ignoring any outliers.
+    hist_avg_image = gpu_average / cupy.percentile(gpu_image, 99)
+    # Generate histogram in range of 0 to 1 to ignore outliers again. We search for values at the beginning anyway.
+    avg_hist, avg_bins = cupy.histogram(hist_avg_image, bins=256, range=(0, 1))
+    # Use SLIX to search for significant peaks in the histogram
+    avg_hist = avg_hist[numpy.newaxis, numpy.newaxis, ...]
+    peaks = SLIX.toolbox.significant_peaks(image=avg_hist).flatten()
+    # Reverse the histogram to search for minimal values with SLIX (again)
+    avg_hist = -avg_hist
+    reversed_peaks = SLIX.toolbox.significant_peaks(image=avg_hist).flatten()
+
+    # We can now calculate the index of our background threshold using the reversed_peaks
+    index = numpy.argmax(reversed_peaks)
+    # Reverse from 0 to 1 to original image scale and calculate the threshold position
+    threshold = avg_bins[index] * numpy.percentile(gpu_average, 99)
+
+    # Return a mask with the calculated background image
+    gpu_mask = gpu_average < threshold
 
     if return_numpy:
         cpu_mask = cupy.asnumpy(gpu_mask)

@@ -1,39 +1,32 @@
+from functools import partial
 import numpy
+from multiprocessing import Pool
+from multiprocessing.sharedctypes import RawArray
 import scipy.signal as signal
 from SLIX._preparation import _thin_out_median, _thin_out_plain, \
-    _thin_out_average
+    _thin_out_average, _init_worker_fourier_smoothing, \
+    _worker_function_fourier_smoothing
 
 __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
 
 
-def low_pass_fourier_smoothing(image, threshold_low=10, threshold_high=25):
-    fft = numpy.fft.fft(image, axis=-1)
+def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
+    X_shape = image.shape
+    X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
+    X_np = numpy.frombuffer(X).reshape(X_shape)
 
-    # Define thresholds for low pass filter
-    threshold_start_position = image.shape[-1] * threshold_low // 100
-    threshold_end_position = image.shape[-1] * threshold_high // 100
+    numpy.copyto(X_np, image)
 
-    magnitude = numpy.abs(fft)
-    magnitude_copy = -magnitude.copy()
-    magnitude_threshold_low = -1.0 * numpy.sort(magnitude_copy, axis=-1) \
-        [:, :, threshold_end_position][..., numpy.newaxis]
-    magnitude_threshold_high = -1.0 * numpy.sort(magnitude_copy, axis=-1) \
-        [:, :, threshold_start_position][..., numpy.newaxis]
+    partial_worker_function = partial(_worker_function_fourier_smoothing,
+                                      threshold=threshold, window=window)
 
-    interval = numpy.maximum(1e-15,
-                             magnitude_threshold_high -
-                             magnitude_threshold_low)
-    middle_point = magnitude_threshold_low + 0.5 * magnitude_threshold_high
+    with Pool(processes=30, initializer=_init_worker_fourier_smoothing,
+              initargs=(X, X_shape)) as pool:
+        pool.map(partial_worker_function,
+                 range(X_shape[0] * X_shape[1]))
 
-    # Calculate low pass filter and apply it to our original signal
-    multiplier = 0.5 + 0.5 * numpy.tanh((magnitude - middle_point) / interval)
-    fft = numpy.multiply(multiplier, fft)
-
-    # Apply inverse fourier transform
-    image = numpy.real(numpy.fft.ifft(fft)).astype(numpy.float32)
-    return image
-
+    return X_np
 
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     """

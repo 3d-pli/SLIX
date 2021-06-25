@@ -9,31 +9,33 @@ NUMBER_OF_SAMPLES = 100
 TARGET_PEAK_HEIGHT = 0.06
 
 
-@jit(nopython=True)
+@jit(nopython=True, parallel=True)
 def _peaks(image):
     peaks = image.copy()
     resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
-    for idx in range(peaks.shape[0]):
+    for idx in prange(peaks.shape[0]):
         sub_image = image[idx]
 
         pos = 0
-        while pos < len(sub_image):
-            if sub_image[pos] - sub_image[pos - 1] > 0:
-                pos_ahead = pos + 1
-
-                while pos_ahead < 2 * len(sub_image) and \
-                        sub_image[pos_ahead % len(sub_image)] == \
-                        sub_image[pos]:
-                    pos_ahead = pos_ahead + 1
-
-                if sub_image[pos] - sub_image[pos_ahead % len(sub_image)] > 0:
-                    left = pos
-                    right = pos_ahead - 1
-                    resulting_peaks[idx, (left + right) // 2] = 1
-
-                pos = pos_ahead
-            else:
+        for loop_pos in range(0, len(sub_image)):
+            if loop_pos < pos:
+                continue
+            if sub_image[pos] - sub_image[pos - 1] <= 0:
                 pos = pos + 1
+                continue
+
+            pos_ahead = pos + 1
+            while pos_ahead < 2 * len(sub_image) and \
+                    sub_image[pos_ahead % len(sub_image)] == \
+                    sub_image[pos]:
+                pos_ahead = pos_ahead + 1
+
+            if sub_image[pos] - sub_image[pos_ahead % len(sub_image)] > 0:
+                left = pos
+                right = pos_ahead - 1
+                resulting_peaks[idx, (left + right) // 2] = 1
+
+            pos = pos_ahead
     return resulting_peaks
 
 
