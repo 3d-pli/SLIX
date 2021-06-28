@@ -1,6 +1,8 @@
+import os
 import re
 import sys
-sys.path.append('../')
+sys.path.append(os.getcwd())
+sys.path.append("..")
 
 from SLIX._cmd import main_line_profile
 if __name__ == '__main__':
