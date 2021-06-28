@@ -156,6 +156,13 @@ def main():
         io.imwrite(args['output'] + '/' + crossing_name + output_data_type,
                    crossing_mask)
 
+    if inclination and flat and crossing:
+        full_mask = inclination_mask.copy()
+        full_mask[crossing_mask] = 4
+        full_name = basename.replace('basename', 'classification_mask')
+        io.imwrite(args['output'] + '/' + full_name + output_data_type,
+                   full_mask)
+
 
 if __name__ == "__main__":
     main()

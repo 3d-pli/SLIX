@@ -16,7 +16,7 @@ def inclinated_mask(high_prominence_peaks, peakdistance, max_image, flat_mask):
     inclinated_areas[flat_mask] = 1
     inclinated_areas[two_peak_mask & (peakdistance > 120) & (peakdistance < 150)] = 2
     inclinated_areas[two_peak_mask & (peakdistance < 120)] = 3
-    inclinated_areas[high_prominence_peaks == 1] = 2
+    inclinated_areas[high_prominence_peaks == 1] = 3
 
     return inclinated_areas
 
