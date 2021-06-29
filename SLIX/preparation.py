@@ -1,7 +1,9 @@
+import multiprocessing
 from functools import partial
 import numpy
 from multiprocessing import Pool
 from multiprocessing.sharedctypes import RawArray
+import os
 import scipy.signal as signal
 from SLIX._preparation import _thin_out_median, _thin_out_plain, \
     _thin_out_average, _init_worker_fourier_smoothing, \
@@ -12,6 +14,18 @@ __all__ = ['thin_out', 'savitzky_golay_smoothing',
 
 
 def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
+    """
+    Applies Low Pass fourier filter to given line profiles / image
+    and returns the smoothened measurement.
+
+    Args:
+        image:
+        threshold:
+        window:
+
+    Returns:
+
+    """
     X_shape = image.shape
     X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
     X_np = numpy.frombuffer(X).reshape(X_shape)
@@ -21,17 +35,19 @@ def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
     partial_worker_function = partial(_worker_function_fourier_smoothing,
                                       threshold=threshold, window=window)
 
-    with Pool(processes=30, initializer=_init_worker_fourier_smoothing,
+    with Pool(processes=os.cpu_count(),
+              initializer=_init_worker_fourier_smoothing,
               initargs=(X, X_shape)) as pool:
         pool.map(partial_worker_function,
                  range(X_shape[0] * X_shape[1]))
 
-    return X_np
+    return X_np.astype(image.dtype)
+
 
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     """
-    Applies Savitzky-Golay filter to given roiset and returns the
-    smoothened measurement.
+    Applies Savitzky-Golay filter to given line profiles / image
+    and returns the smoothened measurement.
 
     Args:
 

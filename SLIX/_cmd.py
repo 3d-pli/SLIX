@@ -355,11 +355,11 @@ def main_full_image():
 
             algorithm = args['smoothing'][0]
             if algorithm == "fourier":
-                low_percentage = 0.2
+                low_percentage = 0.25
                 if len(args['smoothing']) > 1:
                     low_percentage = float(args['smoothing'][1])
 
-                high_percentage = 0.05
+                high_percentage = 0.025
                 if len(args['smoothing']) > 2:
                     high_percentage = float(args['smoothing'][2])
 
