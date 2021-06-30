@@ -28,6 +28,7 @@ def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
 
     return X_np
 
+
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
     """
     Applies Savitzky-Golay filter to given roiset and returns the

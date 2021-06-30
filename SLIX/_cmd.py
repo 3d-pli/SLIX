@@ -62,7 +62,7 @@ def create_argument_parser_full_image():
                                'Available options: "fourier" or "savgol"'
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'
-                               ' --smoothing fourier 10 20 or '
+                               ' --smoothing fourier 0.25 0.025 or '
                                ' --smoothing savgol 45 3')
     optional.add_argument('--prominence_threshold',
                           type=float,
