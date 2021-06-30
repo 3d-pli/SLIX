@@ -13,18 +13,28 @@ __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
 
 
-def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
+def low_pass_fourier_smoothing(image, threshold=0.2, smoothing_factor=0.025):
     """
     Applies Low Pass fourier filter to given line profiles / image
     and returns the smoothened measurement.
 
     Args:
-        image:
-        threshold:
-        window:
+
+        image: Complete SLI measurement image stack as a 2D/3D Numpy array
+
+        threshold: Threshold percentage of low frequencies
+                   which will completely pass
+
+        smoothing_factor: Apply a smoothing factor which will smooth out the 
+                          applied multiplication factor for the low pass filter.
+                          A higher value will result in more smoothing of the curve.
+                          Values between 1e-15 and 1 are accepted. Other values 
+                          might result in an error.
 
     Returns:
 
+        Complete SLI measurement image with applied Low Pass fourier filter
+        and the same shape as the original image.
     """
     X_shape = image.shape
     X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
@@ -33,7 +43,7 @@ def low_pass_fourier_smoothing(image, threshold=0.2, window=0.025):
     numpy.copyto(X_np, image)
 
     partial_worker_function = partial(_worker_function_fourier_smoothing,
-                                      threshold=threshold, window=window)
+                                      threshold=threshold, window=smoothing_factor)
 
     with Pool(processes=os.cpu_count(),
               initializer=_init_worker_fourier_smoothing,
