@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import copy
 
-from _visualization import _downsample, _downsample_2d, _count_nonzero
+from SLIX._visualization import _downsample, _downsample_2d, _count_nonzero
 
 __all__ = ['visualize_parameter_map',
            'visualize_unit_vectors',
