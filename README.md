@@ -332,8 +332,10 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 | Argument               | Function                                                      |
 | ---------------------- | ------------------------------------------------------------- |
 | `--slimeasurement`     | SLI measurement used for the generation of the direction. Required.      |
-| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
 | `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1) |
+| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
+| `--scale`              | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option.               |
+| `--vector_width`       | Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout) |
 | `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1) |
 
 

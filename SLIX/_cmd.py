@@ -242,16 +242,22 @@ def create_argument_parser_visualization():
     vector_parser.add_argument('--slimeasurement', type=str, required=True,
                                help='Add measurement to the background'
                                     'of the visualized image.')
-    vector_parser.add_argument('--thinout', default=20, type=int,
-                               help='Thin out vectors by an integer value. '
-                                    'A thinout of 20 means that both the '
-                                    'x-axis and y-axis are thinned by '
-                                    'a value of 20.')
     vector_parser.add_argument('--alpha', default=0.8, type=float,
                                help='Factor for the vectors which will be used'
                                     ' during visualization. A higher value'
                                     ' means that the vectors will be more'
                                     ' visible.')
+    vector_parser.add_argument('--scale', default=-1, type=float,
+                               help='Increase the vector length by the given '
+                                    'scale. Vectors will be longer and might '
+                                    'overlap if the scale is too high. If no'
+                                    'scale is used the scale will match the'
+                                    'thinout option.')
+    vector_parser.add_argument('--thinout', default=20, type=int,
+                               help='Thin out vectors by an integer value. '
+                                    'A thinout of 20 means that both the '
+                                    'x-axis and y-axis are thinned by '
+                                    'a value of 20.')
     vector_parser.add_argument('--threshold', default=0.5, type=float,
                                help='When using the thinout option, you might'
                                     ' not want to get a vector for a lonely'
@@ -261,6 +267,11 @@ def create_argument_parser_visualization():
                                     ' The percentage defines the number of '
                                     ' vectors present in the area which are '
                                     'not zero.')
+    vector_parser.add_argument('--vector_width', default=1, type=float,
+                               help='Change the default width of the shown '
+                                    'vectors. A larger value might help'
+                                    ' to see the vectors better when using'
+                                    ' a large thinout.')
 
     # Return generated parser
     return parser
@@ -770,8 +781,10 @@ def main_visualize():
             image = numpy.swapaxes(image, 0, 1)
 
         thinout = args['thinout']
+        scale = args['scale']
         alpha = args['alpha']
         background_threshold = args['threshold']
+        vector_width = args['vector_width']
 
         if len(image.shape) == 2:
             plt.imshow(image, cmap='gray')
@@ -779,7 +792,10 @@ def main_visualize():
             plt.imshow(numpy.max(image, axis=-1), cmap='gray')
 
         SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,
-                                                  thinout=thinout, alpha=alpha,
+                                                  thinout=thinout,
+                                                  scale=scale,
+                                                  alpha=alpha,
+                                                  vector_width=vector_width,
                                                   background_threshold=
                                                   background_threshold)
         plt.axis('off')
