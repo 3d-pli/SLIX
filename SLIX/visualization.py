@@ -4,71 +4,11 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import copy
 
-__all__ = ['downsample', 'visualize_parameter_map',
+from SLIX._visualization import _downsample, _downsample_2d, _count_nonzero
+
+__all__ = ['visualize_parameter_map',
            'visualize_unit_vectors',
            'visualize_direction']
-
-
-def downsample(image, kernel_size, background_value=-1,
-               background_threshold=0.5):
-    """
-    Reduce image dimensions of a parameter map by replacing (N x N) pixels by
-    their median value for each image. Image pixels with undefined values
-    (background) will not be considered for computing the median,
-    except when the fraction of background pixels lies above the defined
-    threshold.
-
-    Args:
-
-        image: 2D or 3D parameter map (single image or image stack) calculated with
-         SLIX.toolbox.
-
-        kernel_size: Downsampling parameter N (defines how many image pixels
-        (N x N) are replaced by their median value).
-
-        background_value: Background value of the parameter map. This is generally
-        -1 but can differ for unit vector maps.
-
-        background_threshold: Fraction of background pixels in the considered
-        (N x N) area for which the image pixels are set to background_value.
-        If the fraction of background pixels lies above this defined threshold,
-        background pixels will not be considered for computing the median.
-
-    Returns:
-
-        2D or 3D NumPy array with reduced image dimensions.
-    """
-    image = numpy.array(image)
-    # downsample image
-    if len(image.shape) == 2:
-        x, y = image.shape
-        z = 1
-        image_padded = True
-    else:
-        x, y, z = image.shape
-        image_padded = False
-
-    nx = numpy.ceil(x / kernel_size).astype('int')
-    ny = numpy.ceil(y / kernel_size).astype('int')
-    small_img = numpy.empty((nx, ny, z), dtype='float32')
-
-    for sub_image in range(z):
-        for i in range(0, nx):
-            for j in range(0, ny):
-                roi = image[kernel_size * i:kernel_size * i + kernel_size,
-                      kernel_size * j:kernel_size * j + kernel_size,
-                      sub_image]
-                if numpy.count_nonzero(roi != background_value) >= \
-                        background_threshold * roi.size:
-                    small_img[i, j, sub_image] = numpy.median(
-                        roi[roi != background_value])
-                else:
-                    small_img[i, j, sub_image] = background_value
-
-    if image_padded:
-        small_img = small_img.reshape((nx, ny))
-
-    return small_img
 
 
 def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
@@ -123,8 +63,10 @@ def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
     return fig, ax
 
 
-def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
-                           background_threshold=0.5):
+def visualize_unit_vectors(UnitX, UnitY, ax=None, thinout=20,
+                           scale=-1, vector_width=1,
+                           alpha=0.8, background_threshold=0.5,
+                           background_value=0):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -139,20 +81,37 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
 
         UnitY: Unit vector components along the y-axis (3D NumPy array).
 
-        thinout: Downsampling parameter N (defines how many vectors N x N are
-        replaced by one vector using the downsample function).
-        Unit vectors will be thinned out using downsampling and thinning in
+        thinout: Downscaling parameter N (defines how many vectors N x N are
+        replaced by one vector).
+        Unit vectors will be thinned out using downscaling and thinning in
         combination. This will increase the
         vector size in the resulting image but will also reduce the information
         density. Please use with caution.
 
+        scale: Increase the vector length by the given scale. Vectors will be
+               longer and might overlap if the scale is too high.
+
         ax: Matplotlib axis. If None, the current context axis will be used.
+
+        vector_width: When choosing a high scale, the vectors might appear
+        quite thin which results in hard to read images. This option allows to
+        increase the vector thickness to improve visibility.
 
         alpha: Apply alpha to Matplotlib plots to overlay them with some other
         other image like the averaged transmitted light intensity.
         background_threshold: If the fraction of background pixels (number of
         pixels without vector within N x N pixels) is below this threshold,
-        the downsampled pixel will not show a vector.
+        the downscaled pixel will not show a vector.
+
+        background_value: Background value of the parameter map. This is
+        generally 0 in both axes for unit vector maps
+        but can differ if another threshold was set.
+
+        background_value: Fraction of background pixels in the considered
+        (N x N) area for which the image pixels are set to background_value.
+        If the fraction of background pixels lies above this defined threshold,
+        background pixels will not be considered for computing the median.
+
 
     Returns:
 
@@ -162,62 +121,65 @@ def visualize_unit_vectors(UnitX, UnitY, thinout=1, ax=None, alpha=1,
     if ax is None:
         ax = plt.gca()
 
-    thinout = int(thinout)
-
-    UnitX = UnitX.copy()
-    UnitY = UnitY.copy()
-
     while len(UnitX.shape) < 3:
         UnitX = UnitX[..., numpy.newaxis]
     while len(UnitY.shape) < 3:
         UnitY = UnitY[..., numpy.newaxis]
 
-    if thinout <= 1:
-        thinout = 1
-    else:
-        original_size = UnitX.shape[:-1]
-        small_unit_x = downsample(UnitX, thinout, background_value=0,
-                                  background_threshold=background_threshold)
-        for i in range(UnitX.shape[-1]):
-            UnitX[:, :, i] = numpy.array(Image.fromarray(small_unit_x[:, :, i])
-                                         .resize(original_size[::-1],
-                                                 resample=Image.NEAREST))
+    # The default scale is below zero to allow the user to define his own scale
+    # A scale below zero isn't valid for visualization. If the user
+    # defines no scale, we suspect that the user wants an image
+    # where each vector has a scale of one. Therefore we set the scale to
+    # the same as our thinout when we draw the image.
+    if scale < 0:
+        scale = thinout
 
-        small_unit_y = downsample(UnitY, thinout, background_value=0,
-                                  background_threshold=background_threshold)
-        for i in range(UnitY.shape[-1]):
-            UnitY[:, :, i] = numpy.array(Image.fromarray(small_unit_y[:, :, i])
-                                         .resize(original_size[::-1],
-                                                 resample=Image.NEAREST))
-        del original_size
-        del small_unit_y
-        del small_unit_x
-    skip = (slice(None, None, thinout), slice(None, None, thinout))
+    if thinout > 1:
+        downscaled_unit_x = _downsample(UnitX, thinout,
+                                        background_threshold, background_value)
+        downscaled_unit_y = _downsample(UnitY, thinout,
+                                        background_threshold, background_value)
+        # Rescale images to original dimensions
 
-    for i in range(UnitX.shape[-1]):
-        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]),
-                                        numpy.arange(0, UnitX.shape[0]))
-        mesh_u = UnitX[:, :, i]
-        mesh_v = UnitY[:, :, i]
+        for i in range(UnitX.shape[2]):
+            UnitX[:, :, i] = numpy.array(
+                Image.fromarray(downscaled_unit_x[:, :, i]) \
+                .resize(UnitX.shape[:2][::-1], Image.NEAREST)
+            )
+            UnitY[:, :, i] = numpy.array(
+                Image.fromarray(downscaled_unit_y[:, :, i]) \
+                .resize(UnitY.shape[:2][::-1], Image.NEAREST)
+            )
 
-        mask = numpy.logical_or(mesh_u[skip] != 0, mesh_v[skip] != 0)
-        mesh_x = mesh_x[skip][mask]
-        mesh_y = mesh_y[skip][mask]
-        mesh_u = mesh_u[skip][mask]
-        mesh_v = mesh_v[skip][mask]
+        del downscaled_unit_y
+        del downscaled_unit_x
+    for i in range(UnitX.shape[2]):
+        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1], thinout),
+                                        numpy.arange(0, UnitX.shape[0], thinout))
+        mesh_u = UnitX[::thinout, ::thinout, i]
+        mesh_v = UnitY[::thinout, ::thinout, i]
 
         # Normalize the arrows:
-        mesh_u_normed = thinout * mesh_u / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
-        mesh_v_normed = thinout * mesh_v / numpy.sqrt(mesh_u ** 2 + mesh_v ** 2)
+        mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
+                                            mesh_u ** 2 + mesh_v ** 2))
+        mesh_v_normed = mesh_v / numpy.sqrt(numpy.maximum(1e-15,
+                                            mesh_u ** 2 + mesh_v ** 2))
+        mesh_u_normed[numpy.isclose(mesh_u, 0) &
+                      numpy.isclose(mesh_v, 0)] = numpy.nan
+        mesh_v_normed[numpy.isclose(mesh_u, 0) &
+                      numpy.isclose(mesh_v, 0)] = numpy.nan
 
-        normed_angle = numpy.arctan2(mesh_v_normed, mesh_u_normed)
-        color = visualize_direction(180 - normed_angle * 180.0 / numpy.pi)
+        normed_angle = numpy.arctan2(mesh_v_normed, -mesh_u_normed)
+        color_rgb = visualize_direction(normed_angle * 180.0 / numpy.pi)
+        color_rgb = numpy.clip(color_rgb.reshape(color_rgb.shape[0] *
+                                                 color_rgb.shape[1], 3), 0, 1)
 
+        # 1/scale to increase vector length for scale > 1
         ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
-                  color=color,
-                  angles='xy', scale_units='xy', scale=1,
-                  alpha=alpha, headwidth=0, headlength=0, headaxislength=0,
-                  minlength=0, pivot='mid')
+                  color=color_rgb, angles='xy', scale_units='xy',
+                  scale=1.0/scale, headwidth=0, headlength=0, headaxislength=0,
+                  minlength=0, pivot='mid', alpha=alpha,
+                  width=vector_width, units='xy', edgecolors=color_rgb)
     return ax
 
 
