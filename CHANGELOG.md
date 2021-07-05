@@ -25,11 +25,15 @@ and isn't solely in the GitHub wiki anymore.
 background pixels will not be considered for computing the median for visualizing a downscaled vector image.
 - The CPU and GPU separation of the SLIX toolbox are now protected as users should only use the main methods.
 - Changed the error message when the GPU cannot be used due to errors with Numba. Previously the same message shown when CuPy couldn't be initialized was shown.
+- Changed the background mask algorithm when using `SLIXParameterGenerator`. Instead of a fix value it is not based on the average image histogram. The parameter remains disabled by default.
+- Removed the `--mask_threshold` parameter from `SLIXParameterGenerator` in process of the previously bullet point.
 
 ### Fixed
 - Fixed a bug where the direction of a line profile with two peaks wasn't generated when the distance between the peaks was outside of 180° +- 35°.
 - Fixed a few bugs regarding image orientations when reading / writing different data types
 - When importing a module from SLIX, the underlying modules were visible. This is now resolved.
+- Fixed a bug which could result in white pixels inside of the visualized direciton.
+- Fixed the missing parallelization of the peak generation when using only the GPU. Previously an issue with Numba prevented this. A change in the code structure now allowed to implement parallelization.
 
 ## v2.0
 
