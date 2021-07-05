@@ -142,10 +142,14 @@ def visualize_unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         # Rescale images to original dimensions
 
         for i in range(UnitX.shape[2]):
-            UnitX[:, :, i] = Image.fromarray(downscaled_unit_x[:, :, i]) \
+            UnitX[:, :, i] = numpy.array(
+                Image.fromarray(downscaled_unit_x[:, :, i]) \
                 .resize(UnitX.shape[:2][::-1], Image.NEAREST)
-            UnitY[:, :, i] = Image.fromarray(downscaled_unit_y[:, :, i]) \
+            )
+            UnitY[:, :, i] = numpy.array(
+                Image.fromarray(downscaled_unit_y[:, :, i]) \
                 .resize(UnitY.shape[:2][::-1], Image.NEAREST)
+            )
 
         del downscaled_unit_y
         del downscaled_unit_x
