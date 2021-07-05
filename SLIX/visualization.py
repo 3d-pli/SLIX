@@ -65,7 +65,7 @@ def visualize_parameter_map(parameter_map, fig=None, ax=None, alpha=1,
 
 def visualize_unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                            scale=-1, vector_width=1,
-                           alpha=0.8, background_threshold=0.2,
+                           alpha=0.8, background_threshold=0.5,
                            background_value=0):
     """
     This method will create a Matplotlib plot based on quiver to represent the
