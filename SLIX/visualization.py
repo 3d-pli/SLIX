@@ -179,7 +179,7 @@ def visualize_unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                   color=color_rgb, angles='xy', scale_units='xy',
                   scale=1.0/scale, headwidth=0, headlength=0, headaxislength=0,
                   minlength=0, pivot='mid', alpha=alpha,
-                  linewidths=vector_width, edgecolors=color_rgb)
+                  width=vector_width, units='xy', edgecolors=color_rgb)
     return ax
 
 

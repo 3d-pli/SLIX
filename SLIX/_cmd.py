@@ -267,7 +267,7 @@ def create_argument_parser_visualization():
                                     ' The percentage defines the number of '
                                     ' vectors present in the area which are '
                                     'not zero.')
-    vector_parser.add_argument('--vector_width', default=1, type=float,
+    vector_parser.add_argument('--vector_width', default=-1, type=float,
                                help='Change the default width of the shown '
                                     'vectors. A larger value might help'
                                     ' to see the vectors better when using'
@@ -785,6 +785,8 @@ def main_visualize():
         alpha = args['alpha']
         background_threshold = args['threshold']
         vector_width = args['vector_width']
+        if vector_width < 0:
+            vector_width = numpy.ceil(thinout / 3)
 
         if len(image.shape) == 2:
             plt.imshow(image, cmap='gray')
