@@ -145,15 +145,14 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
     mesh_v_normed[numpy.isclose(mesh_u, 0) &
                   numpy.isclose(mesh_v, 0)] = numpy.nan
 
+    # Convert to RGB colors
     normed_angle = numpy.arctan2(mesh_v_normed, -mesh_u_normed)
     hsv_stack = numpy.stack((normed_angle / numpy.pi,
                              numpy.ones(normed_angle.shape),
                              numpy.ones(normed_angle.shape)))
     hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
     color_rgb = hsv_to_rgb(hsv_stack)
-
-    color_rgb = numpy.clip(color_rgb.reshape(color_rgb.shape[0] *
-                                             color_rgb.shape[1], 3), 0, 1)
+    color_rgb = numpy.clip(color_rgb, 0, 1)
 
     # 1/scale to increase vector length for scale > 1
     ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,

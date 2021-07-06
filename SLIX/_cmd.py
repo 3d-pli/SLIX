@@ -806,9 +806,7 @@ def main_visualize():
                                                         scale=scale,
                                                         alpha=alpha,
                                                         vector_width=
-                                                        vector_width,
-                                                        background_threshold=
-                                                        background_threshold)
+                                                        vector_width)
             plt.savefig(output_path_name + 'vector_distribution.tiff',
                         dpi=1000,
                         bbox_inches='tight')

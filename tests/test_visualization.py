@@ -15,7 +15,7 @@ class TestVisualization:
     def test_visualize_parameter_map(self):
         example = io.imread('tests/files/demo.nii')
         prominence = toolbox.mean_peak_prominence(example, kind_of_normalization=1, use_gpu=False)
-        visualization.visualize_parameter_map(prominence, colorbar=False)
+        visualization.parameter_map(prominence, colorbar=False)
 
     @image_comparison(baseline_images=['unit_vectors'], remove_text=True, extensions=['png'])
     def test_visualize_unit_vectors(self):
@@ -24,11 +24,11 @@ class TestVisualization:
         centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
         direction = toolbox.direction(peaks, centroid, use_gpu=False)
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
-        visualization.visualize_unit_vectors(unit_x, unit_y, thinout=10)
+        visualization.unit_vectors(unit_x, unit_y, thinout=10)
 
     def test_visualize_direction_one_dir(self):
         image = numpy.arange(0, 180)
-        hsv_image = visualization.visualize_direction(image)
+        hsv_image = visualization.direction(image)
         assert numpy.all(hsv_image[0, :] == [1, 0, 0])
         assert numpy.all(hsv_image[30, :] == [1, 1, 0])
         assert numpy.all(hsv_image[60, :] == [0, 1, 0])
@@ -49,7 +49,7 @@ class TestVisualization:
                                              third_dir,
                                              fourth_dir),
                                             axis=-1)
-        hsv_image = visualization.visualize_direction(stack_direction)
+        hsv_image = visualization.direction(stack_direction)
 
         print(hsv_image)
 

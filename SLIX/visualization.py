@@ -5,8 +5,8 @@ from PIL import Image
 import copy
 
 from SLIX._visualization import _downsample, _plot_axes_unit_vectors, \
-                                _visualize_multiple_direction, \
-                                _visualize_one_direction
+    _visualize_multiple_direction, \
+    _visualize_one_direction
 
 __all__ = ['parameter_map',
            'unit_vectors',
@@ -146,12 +146,12 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
         for i in range(UnitX.shape[2]):
             UnitX[:, :, i] = numpy.array(
-                Image.fromarray(downscaled_unit_x[:, :, i]) \
-                    .resize(UnitX.shape[:2][::-1], Image.NEAREST)
+                Image.fromarray(downscaled_unit_x[:, :, i])
+                     .resize(UnitX.shape[:2][::-1], Image.NEAREST)
             )
             UnitY[:, :, i] = numpy.array(
-                Image.fromarray(downscaled_unit_y[:, :, i]) \
-                    .resize(UnitY.shape[:2][::-1], Image.NEAREST)
+                Image.fromarray(downscaled_unit_y[:, :, i])
+                     .resize(UnitY.shape[:2][::-1], Image.NEAREST)
             )
 
         del downscaled_unit_y
@@ -164,15 +164,18 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         mesh_u = UnitX[::thinout, ::thinout, i]
         mesh_v = UnitY[::thinout, ::thinout, i]
 
-        _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
+        _plot_axes_unit_vectors(ax,
+                                mesh_x.flatten(),
+                                mesh_y.flatten(),
+                                mesh_u.flatten(),
+                                mesh_v.flatten(),
                                 scale, alpha, vector_width)
     return ax
 
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.8, background_threshold=0.5,
-                             background_value=0):
+                             alpha=0.8):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -240,19 +243,35 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     if scale < 0:
         scale = thinout
 
+    mesh_x = numpy.empty(UnitX.size)
+    mesh_y = numpy.empty(UnitX.size)
+    mesh_u = numpy.empty(UnitX.size)
+    mesh_v = numpy.empty(UnitX.size)
+    idx = 0
+
     for offset_x in range(thinout):
         for offset_y in range(thinout):
             print(f'{offset_x} of {thinout}, {offset_y} of {thinout}')
             for i in range(UnitX.shape[2]):
-                mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1]-offset_x,
-                                                             thinout),
-                                                numpy.arange(0, UnitX.shape[0]-offset_y,
-                                                             thinout))
-                mesh_u = UnitX[offset_y::thinout, offset_x::thinout, i]
-                mesh_v = UnitY[offset_y::thinout, offset_x::thinout, i]
+                mesh_x_it, mesh_y_it = numpy.meshgrid(
+                    numpy.arange(0, UnitX.shape[1] - offset_x, thinout),
+                    numpy.arange(0, UnitX.shape[0] - offset_y, thinout)
+                )
+                mesh_x_it = mesh_x_it.flatten()
+                mesh_y_it = mesh_y_it.flatten()
+                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i].flatten()
+                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i].flatten()
 
-                _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                                        scale, alpha, vector_width)
+                mesh_x[idx:idx + len(mesh_x_it)] = mesh_x_it
+                mesh_y[idx:idx + len(mesh_y_it)] = mesh_y_it
+                mesh_u[idx:idx + len(mesh_u_it)] = mesh_u_it
+                mesh_v[idx:idx + len(mesh_v_it)] = mesh_v_it
+
+                idx = idx + len(mesh_x_it)
+                print(f'{idx} / {UnitX.size}')
+
+    _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
+                            scale, alpha, vector_width)
     return ax
 
 
@@ -312,4 +331,3 @@ def direction(direction):
         return _visualize_multiple_direction(direction, rgb_stack)
     else:
         return _visualize_one_direction(direction, rgb_stack)
-
