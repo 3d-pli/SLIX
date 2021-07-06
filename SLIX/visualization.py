@@ -3,6 +3,7 @@ from matplotlib.colors import hsv_to_rgb
 from matplotlib import pyplot as plt
 from PIL import Image
 import copy
+import tqdm
 
 from SLIX._visualization import _downsample, _plot_axes_unit_vectors, \
     _visualize_multiple_direction, \
@@ -249,9 +250,10 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     mesh_v = numpy.empty(UnitX.size)
     idx = 0
 
+    progress_bar = tqdm.tqdm(total=thinout*thinout, desc='Creating unit vectors.')
     for offset_x in range(thinout):
         for offset_y in range(thinout):
-            print(f'{offset_x} of {thinout}, {offset_y} of {thinout}')
+            progress_bar.update(1)
             for i in range(UnitX.shape[2]):
                 mesh_x_it, mesh_y_it = numpy.meshgrid(
                     numpy.arange(0, UnitX.shape[1] - offset_x, thinout),
@@ -268,10 +270,11 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                 mesh_v[idx:idx + len(mesh_v_it)] = mesh_v_it
 
                 idx = idx + len(mesh_x_it)
-                print(f'{idx} / {UnitX.size}')
-
+    progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
                             scale, alpha, vector_width)
+    progress_bar.set_description('Done')
+    progress_bar.close()
     return ax
 
 
