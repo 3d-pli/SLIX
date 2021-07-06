@@ -3,7 +3,7 @@ import numpy
 from matplotlib.colors import hsv_to_rgb
 
 
-@numba.jit
+@numba.njit()
 def _count_nonzero(image):
     iterator_image = image.flatten()
     number_of_pixels = 0
@@ -15,7 +15,7 @@ def _count_nonzero(image):
     return number_of_pixels
 
 
-@numba.jit()
+@numba.njit(parallel=True)
 def _downsample_2d(image, kernel_size,
                    background_threshold, background_value):
     nx = int(numpy.ceil(image.shape[0] / kernel_size))
@@ -27,7 +27,7 @@ def _downsample_2d(image, kernel_size,
     for i in numba.prange(0, nx):
         for j in numba.prange(0, ny):
             roi = image[kernel_size * i:kernel_size * i + kernel_size,
-                  kernel_size * j:kernel_size * j + kernel_size]
+                        kernel_size * j:kernel_size * j + kernel_size]
 
             number_of_valid_vectors = _count_nonzero(roi != background_value)
 
@@ -38,7 +38,7 @@ def _downsample_2d(image, kernel_size,
 
                 for idx in range(roi.size):
                     roi_x = idx % roi.shape[0]
-                    roi_y = idx // roi.shape[1]
+                    roi_y = idx // roi.shape[0]
 
                     if roi[roi_x, roi_y] != background_value:
                         valid_vectors += 1
