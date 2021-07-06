@@ -242,6 +242,12 @@ def create_argument_parser_visualization():
     vector_parser.add_argument('--slimeasurement', type=str, required=True,
                                help='Add measurement to the background'
                                     'of the visualized image.')
+    vector_parser.add_argument('--distribution', action='store_true',
+                               help='Print vector distribution instead of '
+                                    'just a single vector. With this,'
+                                    ' it is easier to check if vectors are '
+                                    'similar to each other when reducing'
+                                    ' the number of vectors.')
     vector_parser.add_argument('--alpha', default=0.8, type=float,
                                help='Factor for the vectors which will be used'
                                     ' during visualization. A higher value'
@@ -771,7 +777,7 @@ def main_visualize():
 
         rgb_fom = SLIX.visualization.visualize_direction(direction_image)
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        io.imwrite_rgb(output_path_name + 'fom'+output_data_type, rgb_fom)
+        io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
@@ -792,15 +798,29 @@ def main_visualize():
             plt.imshow(image, cmap='gray')
         else:
             plt.imshow(numpy.max(image, axis=-1), cmap='gray')
-
-        SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,
-                                                  thinout=thinout,
-                                                  scale=scale,
-                                                  alpha=alpha,
-                                                  vector_width=vector_width,
-                                                  background_threshold=
-                                                  background_threshold)
         plt.axis('off')
-        plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
-                    bbox_inches='tight')
+
+        if args['distribution']:
+            SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
+                                                        thinout=thinout,
+                                                        scale=scale,
+                                                        alpha=alpha,
+                                                        vector_width=
+                                                        vector_width,
+                                                        background_threshold=
+                                                        background_threshold)
+            plt.savefig(output_path_name + 'vector_distribution.tiff',
+                        dpi=1000,
+                        bbox_inches='tight')
+        else:
+            SLIX.visualization.unit_vectors(UnitX, UnitY,
+                                            thinout=thinout,
+                                            scale=scale,
+                                            alpha=alpha,
+                                            vector_width=vector_width,
+                                            background_threshold=
+                                            background_threshold)
+
+            plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
+                        bbox_inches='tight')
         plt.clf()

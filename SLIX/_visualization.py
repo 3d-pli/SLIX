@@ -1,5 +1,6 @@
 import numba
 import numpy
+from matplotlib.colors import hsv_to_rgb
 
 
 @numba.jit
@@ -67,3 +68,96 @@ def _downsample(image, kernel_size, background_threshold=0,
 
     result_image = numpy.squeeze(result_image)
     return result_image
+
+
+def _visualize_one_direction(direction, rgb_stack):
+    output_image = rgb_stack
+    output_image[direction == -1] = 0
+
+    return output_image.astype('float32')
+
+
+def _visualize_multiple_direction(direction, rgb_stack):
+    output_image = numpy.zeros((direction.shape[0] * 2,
+                                direction.shape[1] * 2,
+                                3))
+    # count valid directions
+    valid_directions = numpy.count_nonzero(direction > -1, axis=-1)
+
+    r = rgb_stack[..., 0]
+    g = rgb_stack[..., 1]
+    b = rgb_stack[..., 2]
+
+    # Now we need to place them in the right pixel on our output image
+    for x in range(direction.shape[0]):
+        for y in range(direction.shape[1]):
+            if valid_directions[x, y] == 0:
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2] = 0
+            elif valid_directions[x, y] == 1:
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 0] = r[x, y, 0]
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 1] = g[x, y, 0]
+                output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2, 2] = b[x, y, 0]
+            else:
+                output_image[x * 2, y * 2, 0] = r[x, y, 0]
+                output_image[x * 2, y * 2, 1] = g[x, y, 0]
+                output_image[x * 2, y * 2, 2] = b[x, y, 0]
+
+                output_image[x * 2 + 1, y * 2, 0] = r[x, y, 1]
+                output_image[x * 2 + 1, y * 2, 1] = g[x, y, 1]
+                output_image[x * 2 + 1, y * 2, 2] = b[x, y, 1]
+
+                if valid_directions[x, y] == 2:
+                    output_image[x * 2, y * 2 + 1, 0] = r[x, y, 1]
+                    output_image[x * 2, y * 2 + 1, 1] = g[x, y, 1]
+                    output_image[x * 2, y * 2 + 1, 2] = b[x, y, 1]
+
+                    output_image[x * 2 + 1, y * 2 + 1, 0] = r[x, y, 0]
+                    output_image[x * 2 + 1, y * 2 + 1, 1] = g[x, y, 0]
+                    output_image[x * 2 + 1, y * 2 + 1, 2] = b[x, y, 0]
+                else:
+                    output_image[x * 2, y * 2 + 1, 0] = r[x, y, 2]
+                    output_image[x * 2, y * 2 + 1, 1] = g[x, y, 2]
+                    output_image[x * 2, y * 2 + 1, 2] = b[x, y, 2]
+
+                    if valid_directions[x, y] == 3:
+                        output_image[x * 2 + 1, y * 2 + 1, 0] = 0
+                        output_image[x * 2 + 1, y * 2 + 1, 1] = 0
+                        output_image[x * 2 + 1, y * 2 + 1, 2] = 0
+                    if valid_directions[x, y] == 4:
+                        output_image[x * 2 + 1, y * 2 + 1, 0] = r[x, y, 3]
+                        output_image[x * 2 + 1, y * 2 + 1, 1] = g[x, y, 3]
+                        output_image[x * 2 + 1, y * 2 + 1, 2] = b[x, y, 3]
+
+    return output_image.astype('float32')
+
+
+def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
+                            scale, alpha, vector_width):
+    # Normalize the arrows:
+    mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
+                                                      mesh_u ** 2 +
+                                                      mesh_v ** 2))
+    mesh_v_normed = mesh_v / numpy.sqrt(numpy.maximum(1e-15,
+                                                      mesh_u ** 2 +
+                                                      mesh_v ** 2))
+    mesh_u_normed[numpy.isclose(mesh_u, 0) &
+                  numpy.isclose(mesh_v, 0)] = numpy.nan
+    mesh_v_normed[numpy.isclose(mesh_u, 0) &
+                  numpy.isclose(mesh_v, 0)] = numpy.nan
+
+    normed_angle = numpy.arctan2(mesh_v_normed, -mesh_u_normed)
+    hsv_stack = numpy.stack((normed_angle / numpy.pi,
+                             numpy.ones(normed_angle.shape),
+                             numpy.ones(normed_angle.shape)))
+    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
+    color_rgb = hsv_to_rgb(hsv_stack)
+
+    color_rgb = numpy.clip(color_rgb.reshape(color_rgb.shape[0] *
+                                             color_rgb.shape[1], 3), 0, 1)
+
+    # 1/scale to increase vector length for scale > 1
+    ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
+              color=color_rgb, angles='xy', scale_units='xy',
+              scale=1.0 / scale, headwidth=0, headlength=0, headaxislength=0,
+              minlength=0, pivot='mid', alpha=alpha,
+              width=vector_width, units='xy', edgecolors=color_rgb)
