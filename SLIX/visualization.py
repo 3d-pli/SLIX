@@ -270,6 +270,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                 mesh_v[idx:idx + len(mesh_v_it)] = mesh_v_it
 
                 idx = idx + len(mesh_x_it)
+
     progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
                             scale, alpha, vector_width)
