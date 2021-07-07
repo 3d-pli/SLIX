@@ -176,14 +176,17 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.8):
+                             alpha=0.01):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
-    Parameters like thinout can be used to reduce the computing load. If
-    thinout = 1, the resulting vectors might not be visible
-    without zooming in significantly. Here, the vectors will only be plotted
-    to the current axis. To show the results, please use pyplot.show().
+    Instead of showing a single vector like in unit_vector, here each vector
+    will be shown in the resulting image. The thinout parameter will determine
+    how many vectors will be overlapping. It is recommended to use a very small
+    alpha value to see which directions in the resulting plot are dominant.
+    Here, the vectors will only be plotted
+    to the current axis. To show the results, please use pyplot.show(). The
+    result might need some time to show depending on the input image size.
 
     Args:
 
@@ -209,19 +212,6 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
 
         alpha: Apply alpha to Matplotlib plots to overlay them with some other
         other image like the averaged transmitted light intensity.
-        background_threshold: If the fraction of background pixels (number of
-        pixels without vector within N x N pixels) is below this threshold,
-        the downscaled pixel will not show a vector.
-
-        background_value: Background value of the parameter map. This is
-        generally 0 in both axes for unit vector maps
-        but can differ if another threshold was set.
-
-        background_value: Fraction of background pixels in the considered
-        (N x N) area for which the image pixels are set to background_value.
-        If the fraction of background pixels lies above this defined threshold,
-        background pixels will not be considered for computing the median.
-
 
     Returns:
 
@@ -250,7 +240,8 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     mesh_v = numpy.empty(UnitX.size)
     idx = 0
 
-    progress_bar = tqdm.tqdm(total=thinout*thinout, desc='Creating unit vectors.')
+    progress_bar = tqdm.tqdm(total=thinout*thinout,
+                             desc='Creating unit vectors.')
     for offset_x in range(thinout):
         for offset_y in range(thinout):
             progress_bar.update(1)
@@ -261,8 +252,10 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                 )
                 mesh_x_it = mesh_x_it.flatten()
                 mesh_y_it = mesh_y_it.flatten()
-                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i].flatten()
-                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i].flatten()
+                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i]\
+                    .flatten()
+                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i]\
+                    .flatten()
 
                 mesh_x[idx:idx + len(mesh_x_it)] = mesh_x_it
                 mesh_y[idx:idx + len(mesh_y_it)] = mesh_y_it
