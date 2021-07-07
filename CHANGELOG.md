@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.2.0 (work in progress)
+## v2.2.0
 ### Added
 - Added SLIXVisualizeParameter to the toolbox which enables visualizing directions either as a fiber orientation map or as vectors seen before in the example Jupyter notebook
 - Added a new paragraph to the README.md to explain the new SLIXVisualizeParameter
