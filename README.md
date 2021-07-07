@@ -45,7 +45,7 @@ This repository contains the *Scattered Light Imaging ToolboX (SLIX)* &ndash; an
 
 The figure belows shows the different steps, from the SLI measurement to the generation of parameter maps: 
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/figure_Doku.jpg" height="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/figure_Doku.jpg" height="327">
 
 ### SLI Measurement
 The sample is illuminated from different angles, with constant polar angle <img src="https://render.githubusercontent.com/render/math?math=\theta"> and different equidistant azimuthal angles <img src="https://render.githubusercontent.com/render/math?math=\phi"> (starting on top and rotating clock-wise), see figure (a). A camera behind the sample records an image of the transmitted light under normal incidence for each direction of illumination, yielding a series of images (b). 
@@ -146,7 +146,7 @@ SLIXLineplotParameterGenerator -i examples/*.txt -o output --with_plots
 ```
 The resulting plot and txt-file are shown below, exemplary for one of the SLI profiles (90-Stack-1647-1234.txt):
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/90-Stack-1647-1234.png" height="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/90-Stack-1647-1234.png" height="327">
 
 
 ```
@@ -183,7 +183,7 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 | `--thinout`    | Average every NxN pixels in the SLI image stack and run the evaluation on the resulting (downsampled) images. (Default: N=1) |
 | `--with_mask`      | Consider all image pixels with low scattering as background: Pixels for which the maximum intensity value of the SLI profile is below a defined threshold (`--mask_threshold`) are set to zero and will not be further evaluated.                                                                |
 | `--correctdir` | Correct the resulting direction angle by a floating point value (in degree). This is useful when the stack or camera was rotated. |
-| `--smoothing [args]` | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose the low and high percentage for the low pass filter (e.g. `fourier 10 20`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`)|
+| `--smoothing [args]` | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`)|
 | `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! |
 | `--detailed` | Save 3D images in addition to 2D mean images which include more detailed information but will need a lot more disk space. |
 | `--disable_gpu` | Use the CPU in combination with Numba instead of the GPU variant. This is only recommended if your GPU is significantly slower than your CPU. |
@@ -205,7 +205,7 @@ The arguments listed below determine which parameter maps will be generated from
 ### Example
 The following example demonstrates the generation of the parameter maps, for two artificially crossing sections of human optic tracts (left) and the upper left corner of a coronal vervet brain section (right): 
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/Screenshot_Demo1.png" height="327">&nbsp;&nbsp;<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/Screenshot_Demo2.png" height="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/Screenshot_Demo1.png" height="327">&nbsp;&nbsp;<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/Screenshot_Demo2.png" height="327">
 
 #### How to run the demo yourself:
 
@@ -241,32 +241,32 @@ SLIXParameterGenerator -i ./Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o .
 ```
 
 ##### Average
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/avg.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/avg.jpg" width="327">
 
 `_average.tiff` shows the average intensity for each SLI profile (image pixel). Regions with high scattering show higher values.
 
 ##### Low Prominence Peaks
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/low_prominence_peaks.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/low_prominence_peaks.jpg" width="327">
 
 `_low_prominence_peaks.tiff` shows the number of non-prominent peaks for each image pixel, i.e. peaks that have a prominence below 8% of the total signal amplitude (max-min) of the SLI profile and are not used for further evaluation. For a reliable reconstruction of the direction angles, this number should be small, ideally zero.
 
 ##### High Prominence Peaks
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/high_prominence_peaks.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/high_prominence_peaks.jpg" width="327">
 
 `_high_prominence_peaks.tiff` shows the number of prominent peaks for each image pixel, i.e. peaks with a prominence above 8% of the total signal amplitude (max-min) of the SLI profile. The position of these peaks is used to compute the fiber direction angles.
 
 ##### Average Peak Prominence
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/peakprominence.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/peakprominence.jpg" width="327">
 
 `_peakprominence.tiff` shows the average prominence of the peaks for each image pixel, normalized by the average of each profile. The higher the value, the clearer the signal.
 
 ##### Average Peak Width
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/peakwidth.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/peakwidth.jpg" width="327">
 
 `_peakwidth.tiff` shows the average width of all prominent peaks for each image pixel. A small peak width implies that the fiber directions can be precisely determined. Larger peak widths occur for out-of-plane fibers and/or fibers with small crossing angles.
 
 ##### Peak Distance
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/peakdistance.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/peakdistance.jpg" width="327">
 
 `_peakdistance.tiff` shows the distance between two prominent peaks for each image pixel. If an SLI profile contains only one peak, the distance is zero. In regions with crossing nerve fibers, the distance is not defined and the image pixels are set to `-1`. The peak distance is a measure for the out-of-plane angle of the fibers: A peak distance of about 180° implies that the region contains in-plane fibers; the more the fibers point out of the section plane, the smaller the peak distance becomes. For fibers with an inclination angle of about 70° and above, a single broad peak is expected.
 
@@ -275,29 +275,29 @@ The in-plane direction angles are only computed if the SLI profile has one, two,
 
 In case of three or five prominent peaks, the peak pairs cannot be safely assigned and are therefore not evaluated. SLI profiles with three peaks could also be caused e.g. by strongly inclined crossing fibers, where a reliable determination of the in-plane fiber directions is not possible. If an SLI profile contains three prominent peaks, it might also be the case that the forth peak lies below the prominence threshold because the signal is not very clear. To account for missing peaks, the user has the possibility to decrease the prominence threshold by setting another value with `--prominence_threshold`. However, this should be done with caution, as this also causes non-significant peaks that are generated by noise or other artifacts to be considered for evaluation and might yield wrong fiber direction angles. Therefore, we strongly recommend to read the derivation in [Menzel et al. (2020)](https://arxiv.org/abs/2008.01037), Appx. A, before adjusting the threshold.
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir_1.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir_1.jpg" width="327">
 
 `_dir_1.tiff` shows the first detected fiber direction angle. 
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir_2.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir_2.jpg" width="327">
 
 `_dir_2.tiff` shows the second detected fiber direction angle (only defined in regions with two or three crossing fibers).
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir_3.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir_3.jpg" width="327">
 
 `_dir_3.tiff` shows the third detected fiber direction angle (only defined in regions with three crossing fibers).
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir.jpg" width="327">
 
 `_dir.tiff` shows the fiber direction angle only in regions with one or two prominent peaks, i.e. excluding regions with crossing fibers.
 
 ##### Maximum 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/max.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/max.jpg" width="327">
 
 `_max.tiff` shows the maximum of the SLI profile for each image pixel. 
 
 ##### Minimum
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/min.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/min.jpg" width="327">
 
 `_min.tiff` shows the minimum of the SLI profile for each image pixel. 
 To obtain a measure for the signal-to-noise, the difference between maximum and minimum can be divided by the average.
@@ -332,8 +332,10 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 | Argument               | Function                                                      |
 | ---------------------- | ------------------------------------------------------------- |
 | `--slimeasurement`     | SLI measurement used for the generation of the direction. Required.      |
-| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
 | `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1) |
+| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
+| `--scale`              | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option.               |
+| `--vector_width`       | Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout) |
 | `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1) |
 
 
@@ -354,11 +356,11 @@ SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.
 
 ### Resulting images
 #### FOM
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/fom.jpg" width="654">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/fom.jpg" width="654">
 
 The following color bubble is used for the visualization of the orientation map. The color will match the angle of the direction.
 
-<img src="./assets/FOM-Colorbubble-HSV.jpg" width="128">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/FOM-Colorbubble-HSV.jpg" width="128">
 
 The fiber orientation map, which is generated by `SLIXVisualizeParameter` presents each pixel of the raw measurement as a four pixel region.
 Each pixel in that region will get a color based on the number of directions in the measurement as well as the orientation of each direction.
@@ -367,14 +369,14 @@ When only one direction is present, all four pixels will be mapped to the HSV co
 
 Two directions will be shown in a cross pattern. An example is shown below.
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir_fom_two_dirs.png">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir_fom_two_dirs.png">
 
 When three directions are present, the first three pixel will have the HSV color of the direction. The fourth pixel will be black (no direction). 
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/dir_fom_three_dirs.png">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/dir_fom_three_dirs.png">
 
 #### Unit vector map
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/vector.jpg" width="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vector.jpg" width="327">
 
 ## Tutorial
 The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. 
@@ -383,7 +385,7 @@ The following vector map has been generated with the function `visualize_unit_ve
 `thinout = 20` (i.e. 20 x 20 pixels were evaluated together), 
 and `background_threshold = 0.25` (i.e. if more than 25% of the evaluated pixels are `-1`, no vector will be computed). 
 
-<img src="https://jugit.fz-juelich.de/j.reuter/slix/-/raw/master/assets/output_unit_vectors.png" height="327">
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/output_unit_vectors.png" height="327">
 
 ## Performance Metrics
 The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark. Each benchmark used an Anaconda environment with Python 3.8.5 and all neccessary packages installed.

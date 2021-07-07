@@ -62,7 +62,7 @@ def create_argument_parser_full_image():
                                'Available options: "fourier" or "savgol"'
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'
-                               ' --smoothing fourier 10 20 or '
+                               ' --smoothing fourier 0.25 0.025 or '
                                ' --smoothing savgol 45 3')
     optional.add_argument('--prominence_threshold',
                           type=float,
@@ -242,16 +242,28 @@ def create_argument_parser_visualization():
     vector_parser.add_argument('--slimeasurement', type=str, required=True,
                                help='Add measurement to the background'
                                     'of the visualized image.')
-    vector_parser.add_argument('--thinout', default=20, type=int,
-                               help='Thin out vectors by an integer value. '
-                                    'A thinout of 20 means that both the '
-                                    'x-axis and y-axis are thinned by '
-                                    'a value of 20.')
+    vector_parser.add_argument('--distribution', action='store_true',
+                               help='Print vector distribution instead of '
+                                    'just a single vector. With this,'
+                                    ' it is easier to check if vectors are '
+                                    'similar to each other when reducing'
+                                    ' the number of vectors.')
     vector_parser.add_argument('--alpha', default=0.8, type=float,
                                help='Factor for the vectors which will be used'
                                     ' during visualization. A higher value'
                                     ' means that the vectors will be more'
                                     ' visible.')
+    vector_parser.add_argument('--scale', default=-1, type=float,
+                               help='Increase the vector length by the given '
+                                    'scale. Vectors will be longer and might '
+                                    'overlap if the scale is too high. If no'
+                                    'scale is used the scale will match the'
+                                    'thinout option.')
+    vector_parser.add_argument('--thinout', default=20, type=int,
+                               help='Thin out vectors by an integer value. '
+                                    'A thinout of 20 means that both the '
+                                    'x-axis and y-axis are thinned by '
+                                    'a value of 20.')
     vector_parser.add_argument('--threshold', default=0.5, type=float,
                                help='When using the thinout option, you might'
                                     ' not want to get a vector for a lonely'
@@ -261,6 +273,11 @@ def create_argument_parser_visualization():
                                     ' The percentage defines the number of '
                                     ' vectors present in the area which are '
                                     'not zero.')
+    vector_parser.add_argument('--vector_width', default=-1, type=float,
+                               help='Change the default width of the shown '
+                                    'vectors. A larger value might help'
+                                    ' to see the vectors better when using'
+                                    ' a large thinout.')
 
     # Return generated parser
     return parser
@@ -355,11 +372,11 @@ def main_full_image():
 
             algorithm = args['smoothing'][0]
             if algorithm == "fourier":
-                low_percentage = 0.2
+                low_percentage = 0.25
                 if len(args['smoothing']) > 1:
                     low_percentage = float(args['smoothing'][1])
 
-                high_percentage = 0.05
+                high_percentage = 0.025
                 if len(args['smoothing']) > 2:
                     high_percentage = float(args['smoothing'][2])
 
@@ -760,7 +777,7 @@ def main_visualize():
 
         rgb_fom = SLIX.visualization.visualize_direction(direction_image)
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        io.imwrite_rgb(output_path_name + 'fom'+output_data_type, rgb_fom)
+        io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
@@ -770,19 +787,38 @@ def main_visualize():
             image = numpy.swapaxes(image, 0, 1)
 
         thinout = args['thinout']
+        scale = args['scale']
         alpha = args['alpha']
         background_threshold = args['threshold']
+        vector_width = args['vector_width']
+        if vector_width < 0:
+            vector_width = numpy.ceil(thinout / 3)
 
         if len(image.shape) == 2:
             plt.imshow(image, cmap='gray')
         else:
             plt.imshow(numpy.max(image, axis=-1), cmap='gray')
-
-        SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,
-                                                  thinout=thinout, alpha=alpha,
-                                                  background_threshold=
-                                                  background_threshold)
         plt.axis('off')
-        plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
-                    bbox_inches='tight')
+
+        if args['distribution']:
+            SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
+                                                        thinout=thinout,
+                                                        scale=scale,
+                                                        alpha=alpha,
+                                                        vector_width=
+                                                        vector_width)
+            plt.savefig(output_path_name + 'vector_distribution.tiff',
+                        dpi=1000,
+                        bbox_inches='tight')
+        else:
+            SLIX.visualization.unit_vectors(UnitX, UnitY,
+                                            thinout=thinout,
+                                            scale=scale,
+                                            alpha=alpha,
+                                            vector_width=vector_width,
+                                            background_threshold=
+                                            background_threshold)
+
+            plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
+                        bbox_inches='tight')
         plt.clf()
