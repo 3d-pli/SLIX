@@ -14,16 +14,16 @@ class TestIO:
         test_arr = numpy.random.rand(100, 110, 24)
 
         writer = io.H5FileWriter()
-        writer.open('tests/output/test_write_hdf5.h5')
+        writer.open('tests/output/io/test_write_hdf5.h5')
         writer.write_dataset('/Image', test_arr)
         writer.close()
 
-        assert os.path.isfile('tests/output/test_write_hdf5.h5')
+        assert os.path.isfile('tests/output/io/test_write_hdf5.h5')
 
         ############
 
         reader = io.H5FileReader()
-        reader.open('tests/output/test_write_hdf5.h5')
+        reader.open('tests/output/io/test_write_hdf5.h5')
         image = reader.read('/Image')
         reader.close()
 
@@ -36,10 +36,10 @@ class TestIO:
 
     def test_write_tiff(self):
         test_arr = numpy.random.rand(100, 110, 24)
-        io.imwrite('tests/output/test_write_tiff.tiff', test_arr)
-        assert os.path.isfile('tests/output/test_write_tiff.tiff')
+        io.imwrite('tests/output/io/test_write_tiff.tiff', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_tiff.tiff')
 
-        image = io.imread('tests/output/test_write_tiff.tiff')
+        image = io.imread('tests/output/io/test_write_tiff.tiff')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
@@ -49,40 +49,40 @@ class TestIO:
 
     def test_write_nifti(self):
         test_arr = numpy.random.rand(100, 110, 24)
-        io.imwrite('tests/output/test_write_nifti.nii.gz', test_arr)
-        assert os.path.isfile('tests/output/test_write_nifti.nii.gz')
+        io.imwrite('tests/output/io/test_write_nifti.nii.gz', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_nifti.nii.gz')
 
-        image = io.imread('tests/output/test_write_nifti.nii.gz')
+        image = io.imread('tests/output/io/test_write_nifti.nii.gz')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
     def test_read_interoperable(self):
         test_arr = numpy.random.rand(10, 11, 24)
-        io.imwrite('tests/output/test_write_interoperable.tiff', test_arr)
-        assert os.path.isfile('tests/output/test_write_interoperable.tiff')
+        io.imwrite('tests/output/io/test_write_interoperable.tiff', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_interoperable.tiff')
 
-        image = io.imread('tests/output/test_write_interoperable.tiff')
+        image = io.imread('tests/output/io/test_write_interoperable.tiff')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
-        io.imwrite('tests/output/test_write_interoperable.h5', test_arr)
-        assert os.path.isfile('tests/output/test_write_interoperable.h5')
+        io.imwrite('tests/output/io/test_write_interoperable.h5', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_interoperable.h5')
 
-        image = io.imread('tests/output/test_write_interoperable.h5')
+        image = io.imread('tests/output/io/test_write_interoperable.h5')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
-        io.imwrite('tests/output/test_write_interoperable.nii', test_arr)
-        assert os.path.isfile('tests/output/test_write_interoperable.nii')
+        io.imwrite('tests/output/io/test_write_interoperable.nii', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_interoperable.nii')
 
-        image = io.imread('tests/output/test_write_interoperable.nii')
+        image = io.imread('tests/output/io/test_write_interoperable.nii')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
-        io.imwrite('tests/output/test_write_interoperable.nii.gz', test_arr)
-        assert os.path.isfile('tests/output/test_write_interoperable.nii.gz')
+        io.imwrite('tests/output/io/test_write_interoperable.nii.gz', test_arr)
+        assert os.path.isfile('tests/output/io/test_write_interoperable.nii.gz')
 
-        image = io.imread('tests/output/test_write_interoperable.nii.gz')
+        image = io.imread('tests/output/io/test_write_interoperable.nii.gz')
         assert image.shape == test_arr.shape
         assert numpy.all(numpy.isclose(test_arr, image))
 
@@ -93,14 +93,14 @@ def run_around_tests(request):
     assert os.path.isfile('tests/files/demo.nii')
     assert os.path.isfile('tests/files/demo.tiff')
     assert os.path.isfile('tests/files/demo.h5')
-    if not os.path.isdir('tests/output/'):
-        os.mkdir('tests/output/')
+    if not os.path.isdir('tests/output/io'):
+        os.makedirs('tests/output/io')
 
     # A test function will be run at this point
     yield
 
     # Code that will run after your test, for example:
     def remove_test_dir():
-        if os.path.isdir('tests/output/'):
-            shutil.rmtree('tests/output/')
+        if os.path.isdir('tests/output/io'):
+            shutil.rmtree('tests/output/io')
     request.addfinalizer(remove_test_dir)
