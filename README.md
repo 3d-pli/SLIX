@@ -345,13 +345,17 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 wget https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
 
 # Generate direction
-SLIXParameterGenerator -i Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o Output/ --direction
+SLIXParameterGenerator -i Vervet1818_s0512_60um_SLI_090_Stack_1day.nii -o Output/ --direction --with_mask
 
 # Use direction to create a FOM
 SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output fom
 
 # Visualize the unit vectors from the direction
 SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output vector --slimeasurement Vervet1818_s0512_60um_SLI_090_Stack_1day.nii
+
+# Visualize the unit vector distribution from the direction
+SLIXVisualizeParameter -i Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_1.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_2.tiff Output/Vervet1818_s0512_60um_SLI_090_Stack_1day_dir_3.tiff -o Output vector --slimeasurement Vervet1818_s0512_60um_SLI_090_Stack_1day.nii --distribution --alpha 0.03 --thinout 40 --vector_width 1
+
 ```
 
 ### Resulting images
@@ -377,6 +381,9 @@ When three directions are present, the first three pixel will have the HSV color
 
 #### Unit vector map
 <img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vector.jpg" width="327">
+
+#### Vector distribution
+<img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vectordistribution.jpg" width="327">
 
 ## Tutorial
 The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. 
