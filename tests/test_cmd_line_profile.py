@@ -4,12 +4,12 @@ import pytest
 import shlex
 import shutil
 from unittest import mock
-from SLIX import _cmd
+from SLIX._cmd import LineplotParameterGenerator
 
 
 class TestCommandLineProfile:
     def test_argparse(self):
-        argparse = _cmd.create_argument_parser_line_profile()
+        argparse = LineplotParameterGenerator.create_argument_parser()
 
         minimal_string = "--input input --output output"
         args = vars(argparse.parse_args(shlex.split(minimal_string)))
@@ -129,7 +129,7 @@ class TestCommandLineProfile:
                                      'tests/files/output/',
                                      '--optional',
                                      '--with_plots']):
-            _cmd.main_line_profile()
+            LineplotParameterGenerator.main()
         assert os.path.isdir('tests/files/output/')
         assert os.path.isfile('tests/files/output/90-Stack-1647-1234.csv')
         assert os.path.isfile('tests/files/output/90-Stack-1647-1234.png')
@@ -155,7 +155,7 @@ class TestCommandLineProfile:
                                      'examples/90-Stack-1647-1234.txt',
                                      '--output',
                                      'tests/files/output/second/']):
-            _cmd.main_line_profile()
+            LineplotParameterGenerator.main()
         assert os.path.isdir('tests/files/output/second/')
         assert os.path.isfile('tests/files/output/second/90-Stack-1647-1234.csv')
         assert not os.path.isfile('tests/files/output/second/90-Stack-1647-1234.png')
