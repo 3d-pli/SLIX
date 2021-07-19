@@ -87,6 +87,12 @@ def create_argument_parser():
                                     'vectors. A larger value might help'
                                     ' to see the vectors better when using'
                                     ' a large thinout.')
+    vector_parser.add_argument('--dpi',
+                               default=1000,
+                               type=int,
+                               help='Set the Matplotlib dpi vale for the vector plots. Higher dpi images'
+                                    ' will be more clear but also consume more disk space and will take '
+                                    'significantly longer to render completely.')
 
     # Return generated parser
     return parser
@@ -163,7 +169,7 @@ def main():
                                                         vector_width=
                                                         vector_width)
             plt.savefig(output_path_name + 'vector_distribution.tiff',
-                        dpi=1000,
+                        dpi=args['dpi'],
                         bbox_inches='tight')
         else:
             SLIX.visualization.unit_vectors(UnitX, UnitY,
@@ -174,7 +180,7 @@ def main():
                                             background_threshold=
                                             background_threshold)
 
-            plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
+            plt.savefig(output_path_name + 'vector.tiff', dpi=args['dpi'],
                         bbox_inches='tight')
         plt.clf()
 
