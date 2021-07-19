@@ -325,8 +325,9 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 #### Argument `fom`
 | Argument               | Function                                                      |
 | ---------------------- | ------------------------------------------------------------- |
-| `--output_type`     | Define the output data type of the parameter images. Default = tiff. Supported types: h5, tiff.      |
-
+| `--output_type`        | Define the output data type of the parameter images. Default = tiff. Supported types: h5, tiff.      |
+| `--value`              | Set another mask image which will be used to weight the image through the HSV value operator. The image will be normalized 0-1. If this option isn't used, the value will be one. |
+| `--saturation`         | Set another mask image which will be used to weight the image through the HSV saturation operator. The image will be normalized to 0-1. If this option isn't used, the value will be one.|
 
 #### Argument `vector`
 | Argument               | Function                                                      |
@@ -337,7 +338,7 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 | `--scale`              | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option.               |
 | `--vector_width`       | Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout) |
 | `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1) |
-
+| `--dpi`                | Set the image DPI value for Matplotlib. Smaller values will result in a lower resolution image which will be written faster. Larger values will need more computation time but will result in clearer images. Default = 1000dpi|
 
 ### Example
 ```bash
