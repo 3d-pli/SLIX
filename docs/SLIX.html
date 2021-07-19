@@ -86,7 +86,7 @@ SLIX    </h1>
             <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Scattered Light Imaging ToolboX (SLIX) – an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.2.0-beta8&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.3.0-alpha2&#39;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;toolbox&#39;</span><span class="p">,</span> <span class="s1">&#39;io&#39;</span><span class="p">,</span> <span class="s1">&#39;visualization&#39;</span><span class="p">,</span> <span class="s1">&#39;preparation&#39;</span><span class="p">,</span>
            <span class="s1">&#39;attributemanager&#39;</span><span class="p">,</span> <span class="s1">&#39;CPU&#39;</span><span class="p">,</span> <span class="s1">&#39;GPU&#39;</span><span class="p">]</span>
 
@@ -1353,7 +1353,7 @@ SLIX    </h1>
     <span class="k">return</span> <span class="n">ax</span>
 
 
-<span class="k">def</span> <span class="nf">direction</span><span class="p">(</span><span class="n">direction</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a 2D colorized direction image in the HSV color space based on</span>
 <span class="sd">    the original direction. Value and saturation of the color will always be</span>
@@ -1389,6 +1389,14 @@ SLIX    </h1>
 <span class="sd">        direction: 2D or 3D Numpy array containing the direction of the image</span>
 <span class="sd">                   stack</span>
 
+<span class="sd">        saturation: Weight image by using the saturation value. Use either a 2D image</span>
+<span class="sd">                    or a 3D image with the same shape as the direction. If no image</span>
+<span class="sd">                    is used, the saturation for all image pixels will be set to 1</span>
+
+<span class="sd">        value:  Weight image by using the value. Use either a 2D image</span>
+<span class="sd">                or a 3D image with the same shape as the direction. If no image</span>
+<span class="sd">                is used, the value for all image pixels will be set to 1</span>
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        numpy.ndarray: 2D image containing the resulting HSV orientation map</span>
@@ -1397,11 +1405,30 @@ SLIX    </h1>
     <span class="n">direction</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
     <span class="n">direction_shape</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">shape</span>
 
-    <span class="n">h</span> <span class="o">=</span> <span class="n">direction</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">hue</span> <span class="o">=</span> <span class="n">direction</span>
+    <span class="c1"># If no saturation is given, create an &quot;empty&quot; saturation image that will be used</span>
+    <span class="k">if</span> <span class="n">saturation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># Normalize saturation image</span>
+    <span class="n">saturation</span> <span class="o">=</span> <span class="n">saturation</span> <span class="o">/</span> <span class="n">saturation</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="c1"># If we have a saturation image, check if the shape matches (3D) and correct accordingly</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">saturation</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">saturation</span><span class="p">,</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">h</span> <span class="o">/</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="c1"># If no value is given, create an &quot;empty&quot; value image that will be used</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># Normalize value image</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">value</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="c1"># If we have a value image, check if the shape matches (3D) and correct accordingly</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">hue</span> <span class="o">/</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
     <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">hsv_stack</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">rgb_stack</span> <span class="o">=</span> <span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">hsv_stack</span><span class="p">)</span>
 

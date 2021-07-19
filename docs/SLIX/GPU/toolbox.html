@@ -144,12 +144,10 @@
     <span class="c1"># Reverse the histogram to search for minimal values with SLIX (again)</span>
     <span class="n">avg_hist</span> <span class="o">=</span> <span class="o">-</span><span class="n">avg_hist</span>
     <span class="n">reversed_peaks</span> <span class="o">=</span> <span class="n">SLIX</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">avg_hist</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
     <span class="c1"># We can now calculate the index of our background threshold using the reversed_peaks</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">reversed_peaks</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">peaks</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">reversed_peaks</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">peaks</span><span class="p">):])</span>
     <span class="c1"># Reverse from 0 to 1 to original image scale and calculate the threshold position</span>
     <span class="n">threshold</span> <span class="o">=</span> <span class="n">avg_bins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">gpu_average</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
-
     <span class="c1"># Return a mask with the calculated background image</span>
     <span class="n">gpu_mask</span> <span class="o">=</span> <span class="n">gpu_average</span> <span class="o">&lt;</span> <span class="n">threshold</span>
 
@@ -1233,12 +1231,10 @@ the line profiles in degrees.
     <span class="c1"># Reverse the histogram to search for minimal values with SLIX (again)</span>
     <span class="n">avg_hist</span> <span class="o">=</span> <span class="o">-</span><span class="n">avg_hist</span>
     <span class="n">reversed_peaks</span> <span class="o">=</span> <span class="n">SLIX</span><span class="o">.</span><span class="n">toolbox</span><span class="o">.</span><span class="n">significant_peaks</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">avg_hist</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
     <span class="c1"># We can now calculate the index of our background threshold using the reversed_peaks</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">reversed_peaks</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">peaks</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">reversed_peaks</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">peaks</span><span class="p">):])</span>
     <span class="c1"># Reverse from 0 to 1 to original image scale and calculate the threshold position</span>
     <span class="n">threshold</span> <span class="o">=</span> <span class="n">avg_bins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">gpu_average</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
-
     <span class="c1"># Return a mask with the calculated background image</span>
     <span class="n">gpu_mask</span> <span class="o">=</span> <span class="n">gpu_average</span> <span class="o">&lt;</span> <span class="n">threshold</span>
 
