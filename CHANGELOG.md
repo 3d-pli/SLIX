@@ -7,6 +7,7 @@
 - Added a new parameter to `SLIXVisualizeParameter [...] vector` named `--distribution` which allows to plot all vectors in a selected threshold region. This allows to see which regions have a high confidence in their reported orientation and which regions might not give any information. Please note that the performance for full measurements isn't that high in the current state.
 - Added `SLIX.visualization.unit_vector_distribution` which is used for the creating of the image described in the last bullet point.
 - Added DPI option to SLIXVisualizeParameter. The default was 1000 dpi but images with a lower dpi value might be interesting when presenting the image for a paper or presentation.
+- Added `--value` and `--saturation` to `SLIXVisualizeParameter [...] fom` which allows the user to set two images to weight the FOM. 
 
 ### Changed
 - Restructured some of the hidden methods to other Python files to make the basic package infrastructure easier to read.
