@@ -41,6 +41,19 @@ def create_argument_parser():
                             help='Define the output data type of the parameter'
                                  ' images. Default = tiff. Supported types:'
                                  ' h5, tiff.')
+    fom_parser.add_argument('--saturation',
+                            required=False,
+                            default="",
+                            type=str,
+                            help='Change the saturation of the FOM based on another parameter map. The parameter'
+                                 ' map will be normed to 0-1.')
+    fom_parser.add_argument('--value',
+                            required=False,
+                            default="",
+                            type=str,
+                            help='Change the value of the FOM based on another parameter map. The parameter'
+                                 ' map will be normed to 0-1.')
+
     vector_parser = subparser.add_parser('vector', help="Write vector "
                                                         "orientation "
                                                         "map from direction"
@@ -136,7 +149,14 @@ def main():
                   'datatype!')
             exit(1)
 
-        rgb_fom = SLIX.visualization.direction(direction_image)
+        saturation = None
+        value = None
+        if args['saturation']:
+            saturation = SLIX.io.imread(args['saturation'])
+        if args['value']:
+            value = SLIX.io.imread(args['value'])
+
+        rgb_fom = SLIX.visualization.direction(direction_image, saturation, value)
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
         SLIX.io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
 

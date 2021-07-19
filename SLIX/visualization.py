@@ -272,7 +272,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction):
+def direction(direction, saturation=None, value=None):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -308,6 +308,14 @@ def direction(direction):
         direction: 2D or 3D Numpy array containing the direction of the image
                    stack
 
+        saturation: Weight image by using the saturation value. Use either a 2D image
+                    or a 3D image with the same shape as the direction. If no image
+                    is used, the saturation for all image pixels will be set to 1
+
+        value:  Weight image by using the value. Use either a 2D image
+                or a 3D image with the same shape as the direction. If no image
+                is used, the value for all image pixels will be set to 1
+
     Returns:
 
         numpy.ndarray: 2D image containing the resulting HSV orientation map
@@ -316,11 +324,30 @@ def direction(direction):
     direction = numpy.array(direction)
     direction_shape = direction.shape
 
-    h = direction
-    s = numpy.ones(direction.shape)
-    v = numpy.ones(direction.shape)
+    hue = direction
+    # If no saturation is given, create an "empty" saturation image that will be used
+    if saturation is None:
+        saturation = numpy.ones(direction.shape)
+    # Normalize saturation image
+    saturation = saturation / saturation.max()
+    # If we have a saturation image, check if the shape matches (3D) and correct accordingly
+    while len(saturation.shape) < len(direction.shape):
+        saturation = saturation[..., numpy.newaxis]
+    if not saturation.shape[-1] == direction_shape[-1]:
+        saturation = numpy.repeat(saturation, direction_shape[-1], axis=-1)
 
-    hsv_stack = numpy.stack((h / 180.0, s, v))
+    # If no value is given, create an "empty" value image that will be used
+    if value is None:
+        value = numpy.ones(direction.shape)
+    # Normalize value image
+    value = value / value.max()
+    # If we have a value image, check if the shape matches (3D) and correct accordingly
+    while len(value.shape) < len(direction.shape):
+        value = value[..., numpy.newaxis]
+    if not value.shape[-1] == direction_shape[-1]:
+        value = numpy.repeat(value, direction_shape[-1], axis=-1)
+
+    hsv_stack = numpy.stack((hue / 180.0, saturation, value))
     hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
     rgb_stack = hsv_to_rgb(hsv_stack)
 
