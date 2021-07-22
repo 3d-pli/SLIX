@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import os
 import tqdm
 import numpy
+import multiprocessing
 
 
 def create_argument_parser():
@@ -33,12 +34,6 @@ def create_argument_parser():
                                ' for further evaluation. (Default: 8%% of'
                                ' total signal amplitude.) Only recommended for'
                                ' experienced users!')
-    optional.add_argument('--with_plots',
-                          action='store_true',
-                          help='Generates plots (png-files) showing the SLI '
-                               'profiles and the determined peak positions '
-                               '(orange dots: before correction; '
-                               'green crosses: after correction).')
     optional.add_argument(
         '-h',
         '--help',
@@ -46,68 +41,133 @@ def create_argument_parser():
         default=SUPPRESS,
         help='show this help message and exit'
     )
-    # Parameters to select which images will be generated
-    image = parser.add_argument_group('output choice (none = all except '
-                                      'optional)')
-    image.add_argument('--direction',
-                       action='store_true',
-                       help='Add crossing directions (dir_1, dir_2, dir_3)'
-                       )
-    image.add_argument('--peaks',
-                       action='store_true',
-                       help='Add number of peaks below prominence and above '
-                            'prominence')
-    image.add_argument('--peakprominence',
-                       action='store_true',
-                       help='Add average peak prominence for each pixel')
-    image.add_argument('--peakwidth',
-                       action='store_true',
-                       help='Add average width of all peaks detected')
-    image.add_argument('--peakdistance',
-                       action='store_true',
-                       help='Add distance between two peaks if two peaks are '
-                            'detected')
-    image.add_argument('--optional',
-                       action='store_true',
-                       help='Adds Max/Min/Non Crossing Direction to the output'
-                            ' images.')
-    image.add_argument('--no_centroids',
-                       action='store_false',
-                       help='Disable centroid calculation. Not recommended.')
     # Return generated parser
     return parser
+
+
+def read_textfile(path, includes_angles=True):
+    profile = numpy.fromfile(path, sep='\n')
+    profile = profile[numpy.newaxis, numpy.newaxis, ...]
+    return profile
+
+
+def generate_all_peaks(profile, detailed=False):
+    peaks = toolbox.peaks(profile,
+                          use_gpu=False)
+    if detailed:
+        return peaks
+    return numpy.sum(peaks)
+
+
+def generate_significant_peaks(profile, low_prominence, detailed=False):
+    significant_peaks = toolbox.significant_peaks(profile,
+                                                  low_prominence,
+                                                  use_gpu=False)
+    if detailed:
+        return significant_peaks
+    return numpy.sum(significant_peaks)
+
+
+def generate_direction(significant_peaks, centroids):
+    return toolbox.direction(significant_peaks,
+                             centroids,
+                             use_gpu=False)
+
+
+def generate_prominence(profile, significant_peaks, detailed=False):
+    if detailed:
+        return toolbox.peak_prominence(profile,
+                                       significant_peaks,
+                                       use_gpu=False)
+    return toolbox.mean_peak_prominence(profile,
+                                        significant_peaks,
+                                        use_gpu=False)
+
+
+def generate_peakwidth(profile, significant_peaks, detailed=False):
+    if detailed:
+        return toolbox.peak_width(profile,
+                                  significant_peaks,
+                                  use_gpu=False)
+    return toolbox.mean_peak_width(profile,
+                                   significant_peaks,
+                                   use_gpu=False)
+
+
+def generate_peakdistance(significant_peaks, centroids, detailed=False):
+    if detailed:
+        return toolbox.peak_distance(significant_peaks,
+                                     centroids,
+                                     use_gpu=False)
+    return toolbox.mean_peak_distance(significant_peaks,
+                                      centroids,
+                                      use_gpu=False)
+
+
+def generate_centroids(profile, significant_peaks, low_prominence):
+    return toolbox.centroid_correction(profile,
+                                       significant_peaks,
+                                       low_prominence,
+                                       use_gpu=False)
+
+
+def create_plot(profile, significant_peaks, centroids):
+    profile = profile.flatten()
+    plt.plot(profile)
+    significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
+        .flatten()
+    centroids = centroids.flatten()[significant_peaks]
+    plt.plot(significant_peaks,
+             profile[significant_peaks], 'x',
+             label='Peak position')
+
+    centroid_positions = numpy.where(centroids < 0,
+                                     # True
+                                     profile[significant_peaks] -
+                                     (profile[significant_peaks] -
+                                      profile[significant_peaks - 1]) *
+                                     numpy.abs(centroids),
+                                     # False
+                                     profile[significant_peaks] +
+                                     (profile[(significant_peaks + 1) %
+                                            len(profile)] -
+                                      profile[significant_peaks]) *
+                                     centroids)
+
+    plt.plot(significant_peaks + centroids,
+             centroid_positions, 'o', label='Corrected peak position')
+    plt.legend()
+
+
+def write_parameter_file(object, output_file):
+    with open(output_file+".csv", 'w') as file:
+        for key, value in object.items():
+            value = value.flatten()
+            file.write(key+",")
+            file.write(",".join([f'{num}' for num in value]))
+            file.write("\n")
+
+
+def subprocess(input_file, detailed, low_prominence, output_file):
+    output_parameters = {'profile': read_textfile(input_file)}
+    output_parameters['peaks'] = generate_all_peaks(output_parameters['profile'], detailed)
+    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['profile'], low_prominence, detailed)
+    output_parameters['centroids'] = generate_centroids(output_parameters['profile'],  output_parameters['significant peaks'], low_prominence)
+    output_parameters['prominence'] = generate_prominence(output_parameters['profile'],  output_parameters['significant peaks'], detailed)
+    output_parameters['width'] = generate_peakwidth(output_parameters['profile'],  output_parameters['significant peaks'], detailed)
+    output_parameters['distance'] = generate_peakdistance(output_parameters['significant peaks'], output_parameters['centroids'], detailed)
+    output_parameters['direction'] = generate_direction(output_parameters['significant peaks'], output_parameters['centroids'])
+
+    write_parameter_file(output_parameters, output_file)
+    create_plot(output_parameters['profile'],  output_parameters['significant peaks'], output_parameters['centroids'])
+    plt.savefig(output_file+".png", dpi=300)
+    plt.clf()
 
 
 def main():
     parser = create_argument_parser()
     arguments = parser.parse_args()
     args = vars(arguments)
-
-    DIRECTION = True
-    PEAKS = True
-    PEAKWIDTH = True
-    PEAKPROMINENCE = True
-    PEAKDISTANCE = True
-
-    if args['direction'] or args['peaks'] or args['peakprominence'] or \
-            args['peakwidth'] or args['peakdistance']:
-        DIRECTION = args['direction']
-        PEAKS = args['peaks']
-        PEAKPROMINENCE = args['peakprominence']
-        PEAKWIDTH = args['peakwidth']
-        PEAKDISTANCE = args['peakdistance']
-    OPTIONAL = args['optional']
-
-    print(
-        'SLI Feature Generator:\n' +
-        'Chosen feature maps:\n' +
-        'Direction maps: ' + str(DIRECTION) + '\n' +
-        'Peak maps: ' + str(PEAKS) + '\n' +
-        'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
-        'Peak width map: ' + str(PEAKWIDTH) + '\n' +
-        'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-        'Optional maps: ' + str(OPTIONAL) + '\n'
-    )
 
     paths = args['input']
     if not isinstance(paths, list):
@@ -122,106 +182,7 @@ def main():
             os.path.splitext(os.path.basename(path))[0]
         output_path_name = args['output'] + '/' + filename_without_extension
         tqdm_paths.set_description(filename_without_extension)
-
-        output_string = ""
-
-        image = numpy.fromfile(path, sep='\n')
-        image = image[numpy.newaxis, numpy.newaxis, ...]
-        significant_peaks = toolbox. \
-            significant_peaks(image,
-                              low_prominence=args['prominence_threshold'],
-                              use_gpu=False)
-
-        if PEAKS:
-            peaks = toolbox.peaks(image, use_gpu=False)
-            output_string += 'High Prominence Peaks,' + \
-                             str(int(numpy.sum(significant_peaks, axis=-1))) \
-                             + '\n'
-            output_string += 'Low Prominence Peaks,' + \
-                             str(int(numpy.sum(peaks, axis=-1) -
-                                     numpy.sum(significant_peaks, axis=-1))) \
-                             + '\n'
-
-        if PEAKPROMINENCE:
-            mean_prominence = toolbox.mean_peak_prominence(image,
-                                                           significant_peaks,
-                                                           use_gpu=False)
-
-            output_string += 'Mean Prominence,' \
-                             + str(float(mean_prominence.flatten())) + '\n'
-
-        if PEAKWIDTH:
-            mean_peak_width = toolbox.mean_peak_width(image,
-                                                      significant_peaks,
-                                                      use_gpu=False)
-            output_string += 'Mean peak width,' \
-                             + str(float(mean_peak_width)) \
-                             + '\n'
-
-        if args['no_centroids']:
-            centroids = toolbox. \
-                centroid_correction(image, significant_peaks,
-                                    use_gpu=False)
-        else:
-            centroids = numpy.zeros(image.shape)
-
-        if PEAKDISTANCE:
-            mean_peak_distance = toolbox.mean_peak_distance(significant_peaks,
-                                                            centroids,
-                                                            use_gpu=False)
-            output_string += 'Mean peak distance,' \
-                             + str(float(mean_peak_distance)) + '\n'
-
-        if DIRECTION:
-            direction = toolbox.direction(significant_peaks, centroids,
-                                          use_gpu=False)
-            output_string += 'Direction,' + str(direction.flatten()) + '\n'
-
-        if OPTIONAL:
-            min_img = numpy.min(image, axis=-1)
-            output_string += 'Min,' + str(float(min_img.flatten())) + '\n'
-            del min_img
-
-            max_img = numpy.max(image, axis=-1)
-            output_string += 'Max,' + str(float(max_img.flatten())) + '\n'
-            del max_img
-
-            avg_img = numpy.average(image, axis=-1)
-            output_string += 'Avg,' + str(float(avg_img.flatten())) + '\n'
-            del avg_img
-
-        if args['with_plots']:
-            image = image.flatten()
-            plt.plot(image)
-            significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
-                .flatten()
-            centroids = centroids.flatten()[significant_peaks]
-            plt.plot(significant_peaks,
-                     image[significant_peaks], 'x',
-                     label='Peak position')
-
-            centroid_positions = numpy.where(centroids < 0,
-                                             # True
-                                             image[significant_peaks] -
-                                             (image[significant_peaks] -
-                                              image[significant_peaks - 1]) *
-                                             numpy.abs(centroids),
-                                             # False
-                                             image[significant_peaks] +
-                                             (image[(significant_peaks + 1) %
-                                                    len(image)] -
-                                              image[significant_peaks]) *
-                                             centroids)
-
-            plt.plot(significant_peaks + centroids,
-                     centroid_positions, 'o', label='Corrected peak position')
-            plt.legend()
-            plt.savefig(output_path_name + '.png', dpi=100)
-            plt.close()
-
-        with open(output_path_name + '.csv', mode='w') as f:
-            f.write(output_string)
-            f.flush()
+        subprocess(path, True, args['prominence_threshold'], output_path_name)
 
 
 if __name__ == "__main__":
