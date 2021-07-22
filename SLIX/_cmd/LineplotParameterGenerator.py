@@ -205,7 +205,7 @@ def main():
                 os.path.splitext(os.path.basename(path))[0]
             output_path_name = args['output'] + '/' + filename_without_extension
             tqdm_paths.set_description(filename_without_extension)
-            subprocess(path, True, args['prominence_threshold'], output_path_name)
+            subprocess(path, True, args['prominence_threshold'], not args['without_angles'], output_path_name)
 
 
 if __name__ == "__main__":
