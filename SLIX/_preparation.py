@@ -14,16 +14,19 @@ def _worker_function_fourier_smoothing(i, threshold, window):
     y = i // _multiprocessing_worker_fourier_var_dict['X_shape'][0]
     image = numpy.frombuffer(_multiprocessing_worker_fourier_var_dict['X'])\
         .reshape(_multiprocessing_worker_fourier_var_dict['X_shape'])
+    image[x, y, :] = _fourier_smoothing(image[x, y, :], threshold, window)
 
-    fft = numpy.fft.fft(image[x, y, :])
-    frequencies = numpy.fft.fftfreq(len(fft))
+
+def _fourier_smoothing(image, threshold, window):
+    fft = numpy.fft.fft(image, axis=-1)
+    frequencies = numpy.fft.fftfreq(fft.shape[-1])
     frequencies = frequencies / frequencies.max()
 
     multiplier = 1 - (0.5 + 0.5 * numpy.tanh(
         (numpy.abs(frequencies) - threshold) / window))
     fft = numpy.multiply(fft, multiplier[numpy.newaxis, numpy.newaxis, ...])
 
-    image[x, y, :] = numpy.real(numpy.fft.ifft(fft)).astype(image.dtype)
+    return numpy.real(numpy.fft.ifft(fft)).astype(image.dtype)
 
 
 @numba.jit(nopython=True)
