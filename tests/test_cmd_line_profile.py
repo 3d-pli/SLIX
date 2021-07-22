@@ -37,6 +37,7 @@ class TestCommandLineProfile:
 
         list_of_attrs = [
             'profile',
+            'filtered',
             'peaks',
             'significant peaks',
             'centroids',
