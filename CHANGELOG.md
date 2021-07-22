@@ -1,5 +1,23 @@
 # Changelog
 
+## v2.3.0
+### Added
+- Added `SLIXCluster`, a tool which can be used to separate regions based on classification data through SLI measurements. The parameters aren't final yet and might change in the future.
+- Added `SLIX.classification` which includes the classification methods of generated parameter maps.
+- Added a new parameter to `SLIXVisualizeParameter [...] vector` named `--distribution` which allows to plot all vectors in a selected threshold region. This allows to see which regions have a high confidence in their reported orientation and which regions might not give any information. Please note that the performance for full measurements isn't that high in the current state.
+- Added `SLIX.visualization.unit_vector_distribution` which is used for the creating of the image described in the last bullet point.
+- Added DPI option to SLIXVisualizeParameter. The default was 1000 dpi but images with a lower dpi value might be interesting when presenting the image for a paper or presentation.
+- Added `--value` and `--saturation` to `SLIXVisualizeParameter [...] fom` which allows the user to set two images to weight the FOM. 
+
+### Changed
+- Restructured some of the hidden methods to other Python files to make the basic package infrastructure easier to read.
+- Renamed methods in `SLIX.visualization` to prevent the repetition of `visualize`
+- The README.md will now use GitHub asset links instead of the old repository used during the first implementation of SLIX.
+- Changed the structure for the command line programs from `_cmd.py` to a package named `_cmd` containing all programs in separate files. Both solutions work but the new solution allows SLIX to scale more easily in the future.
+
+### Fixed
+- Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
+
 ## v2.2.1
 ### Added
 
