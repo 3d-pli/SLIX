@@ -34,6 +34,15 @@ def create_argument_parser():
                                ' for further evaluation. (Default: 8%% of'
                                ' total signal amplitude.) Only recommended for'
                                ' experienced users!')
+    optional.add_argument('--without_angles',
+                          action="store_true",
+                          help='Scatterometry measurements typically include '
+                               'the measurment angle in their text files. '
+                               'Enable this option if you have line profiles '
+                               'which do not have angles for each measurement. '
+                               'Keep in mind, that the angles will be ignored '
+                               'regardless. SLIX will generate the parameters '
+                               'based on the number of measurement angles.')
     optional.add_argument(
         '-h',
         '--help',
@@ -46,7 +55,9 @@ def create_argument_parser():
 
 
 def read_textfile(path, includes_angles=True):
-    profile = numpy.fromfile(path, sep='\n')
+    profile = numpy.fromfile(path, sep='\t')
+    if includes_angles:
+        profile = profile[1::2]
     profile = profile[numpy.newaxis, numpy.newaxis, ...]
     return profile
 
@@ -148,8 +159,8 @@ def write_parameter_file(object, output_file):
             file.write("\n")
 
 
-def subprocess(input_file, detailed, low_prominence, output_file):
-    output_parameters = {'profile': read_textfile(input_file)}
+def subprocess(input_file, detailed, low_prominence, with_angle, output_file):
+    output_parameters = {'profile': read_textfile(input_file, with_angle)}
     output_parameters['peaks'] = generate_all_peaks(output_parameters['profile'], detailed)
     output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['profile'], low_prominence, detailed)
     output_parameters['centroids'] = generate_centroids(output_parameters['profile'],  output_parameters['significant peaks'], low_prominence)
@@ -176,13 +187,25 @@ def main():
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
-    tqdm_paths = tqdm.tqdm(paths)
-    for path in tqdm_paths:
-        filename_without_extension = \
-            os.path.splitext(os.path.basename(path))[0]
-        output_path_name = args['output'] + '/' + filename_without_extension
-        tqdm_paths.set_description(filename_without_extension)
-        subprocess(path, True, args['prominence_threshold'], output_path_name)
+    if len(paths) > 1:
+        print('Applying pool workers...')
+        args = zip(
+            paths,
+            [True for _ in paths],
+            [args['prominence_threshold'] for _ in paths],
+            [not args['without_angles'] for _ in paths],
+            [args['output'] + '/' + os.path.splitext(os.path.basename(path))[0] for path in paths]
+        )
+        with multiprocessing.Pool(None) as pool:
+            pool.starmap(subprocess, args)
+    else:
+        tqdm_paths = tqdm.tqdm(paths)
+        for path in tqdm_paths:
+            filename_without_extension = \
+                os.path.splitext(os.path.basename(path))[0]
+            output_path_name = args['output'] + '/' + filename_without_extension
+            tqdm_paths.set_description(filename_without_extension)
+            subprocess(path, True, args['prominence_threshold'], output_path_name)
 
 
 if __name__ == "__main__":
