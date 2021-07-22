@@ -134,15 +134,14 @@ SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[paramet
 ### Optional Arguments
 | Argument      | Function                                                                    |
 | -------------- | --------------------------------------------------------------------------- |
-| `--smoothing`  | Smoothing of SLI profiles before evaluation. The smoothing is performed using a Savitzky-Golay filter with 45 sampling points and a second order polynomial. (Designed for measurements with <img src="https://render.githubusercontent.com/render/math?math=\Delta\phi"> < 5° steps to reduce the impact of irrelevant details in the fiber structure, cf. orange vs. black curve in Figure 1c in the [paper](https://github.com/3d-pli/SLIX/blob/master/paper/paper.pdf).) |
-| `--with_plots` | Generates plots (png-files) showing the SLI profiles and the determined peak positions (orange dots: before correction; green crosses: after correction). |
+| `--smoothing [args]` | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`)|
 | `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! (default: 0.08) |
-
+| `--without_angles`   | Scatterometry measurements typically include the measurment angle in their text files. Enable this option if you have line profiles which do not have angles for each measurement. Keep in mind, that the angles will be ignored regardless. SLIX will generate the parameters based on the number of measurement angles. |
 
 ### Example
 The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
 ```
-SLIXLineplotParameterGenerator -i examples/*.txt -o output --with_plots
+SLIXLineplotParameterGenerator -i examples/*.txt -o output --without_angles
 ```
 The resulting plot and txt-file are shown below, exemplary for one of the SLI profiles (90-Stack-1647-1234.txt):
 
@@ -150,16 +149,24 @@ The resulting plot and txt-file are shown below, exemplary for one of the SLI pr
 
 
 ```
-Max: 119.0
-Min: 68.0
-Num_Peaks: 4
-Peak_Pos: [2.5935516 7.723009 14.294096 20.10292]
-Directions: [143.3426513671875 61.305511474609375 -1.0]
-Prominence: 0.27323946356773376
+profile,82.0,90.0,100.0,99.0,95.0,93.0,100.0,115.0,119.0,105.0,83.0,78.0,68.0,74.0,94.0,90.0,77.0,75.0,77.0,79.0,93.0,86.0,85.0,73.0
+filtered,82.0,90.0,100.0,99.0,95.0,93.0,100.0,115.0,119.0,105.0,83.0,78.0,68.0,74.0,94.0,90.0,77.0,75.0,77.0,79.0,93.0,86.0,85.0,73.0
+peaks,False,False,True,False,False,False,False,False,True,False,False,False,False,False,True,False,False,False,False,False,True,False,False,False
+significant peaks,False,False,True,False,False,False,False,False,True,False,False,False,False,False,True,False,False,False,False,False,True,False,False,False
+centroids,0.0,0.0,0.5981955528259277,0.0,0.0,0.0,0.0,0.0,-0.27211764454841614,0.0,0.0,0.0,0.0,0.0,0.2986946105957031,0.0,0.0,0.0,0.0,0.0,0.10755850374698639,0.0,0.0,0.0
+prominence,0.0,0.0,0.07887327671051025,0.0,0.0,0.0,0.0,0.0,0.5746479034423828,0.0,0.0,0.0,0.0,0.0,0.236619770526886,0.0,0.0,0.0,0.0,0.0,0.202816903591156,0.0,0.0,0.0
+width,0.0,0.0,29.625,0.0,0.0,0.0,0.0,0.0,66.76947784423828,0.0,0.0,0.0,0.0,0.0,30.375001907348633,0.0,0.0,0.0,0.0,0.0,40.89285659790039,0.0,0.0,0.0
+distance,0.0,0.0,175.5074920654297,0.0,0.0,0.0,0.0,0.0,185.6951446533203,0.0,0.0,0.0,0.0,0.0,184.4925079345703,0.0,0.0,0.0,0.0,0.0,174.3048553466797,0.0,0.0,0.0
+direction,143.27333068847656,61.23419189453125,-1.0
 ```
-The plot shows the SLI profile derived from a stack of 24 images. The x-axis displays the number of images, the y-axis the measured light intensity [a.u.]. To detect peaks at the outer boundaries, the profile was extended taking the 360° periodicity of the signal into account; the red line indicates the boundary. The orange dots are the original peak positions, the green crosses indicate the corrected peak positions, taking the discretization of the profile into account.
+The plot shows the SLI profile derived from a stack of 24 images. 
+The x-axis displays the number of images, the y-axis the measured light intensity [a.u.]. 
+To detect peaks at the outer boundaries, SLIX uses a derived version of SciPys peak finding algorithm which is extended to respect boundary regions; 
+The dots are the original peak positions, the crosses indicate the corrected peak positions, taking the discretization of the profile into account.
 
-The txt-file lists the maximum and minimum intensity values in the SLI profile, the number of prominent peaks (i.e. peaks with a prominence above 8% of the total signal amplitude), the corrected peak positions (on the x-axis), the direction angles of the nerve fibers (in degrees, derived from the mid-positions between peak pairs), and the average prominence of the peaks normalized by the average of the signal.
+The resulting .csv file will contain detailed information of each feature SLIX can compute. Here, the filtered profile,
+as well as the peaks, significant peaks, centroids and more will be shown in a per-measurement basis. 
+This allows a detailed analysis of the data.
 
 ## Generation of Parameter Maps
 
