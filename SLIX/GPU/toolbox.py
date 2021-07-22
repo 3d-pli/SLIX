@@ -52,12 +52,10 @@ def background_mask(image, return_numpy=True):
     # Reverse the histogram to search for minimal values with SLIX (again)
     avg_hist = -avg_hist
     reversed_peaks = SLIX.toolbox.significant_peaks(image=avg_hist).flatten()
-
     # We can now calculate the index of our background threshold using the reversed_peaks
-    index = numpy.argmax(reversed_peaks)
+    index = numpy.argmax(peaks) + numpy.argmax(reversed_peaks[numpy.argmax(peaks):])
     # Reverse from 0 to 1 to original image scale and calculate the threshold position
     threshold = avg_bins[index] * numpy.percentile(gpu_average, 99)
-
     # Return a mask with the calculated background image
     gpu_mask = gpu_average < threshold
 

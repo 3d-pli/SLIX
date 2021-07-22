@@ -46,7 +46,7 @@ def background_mask(image):
     reversed_peaks = SLIX.toolbox.significant_peaks(image=avg_hist).flatten()
 
     # We can now calculate the index of our background threshold using the reversed_peaks
-    index = numpy.argmax(reversed_peaks)
+    index = numpy.argmax(peaks) + numpy.argmax(reversed_peaks[numpy.argmax(peaks):])
     # Reverse from 0 to 1 to original image scale and calculate the threshold position
     threshold = avg_bins[index] * numpy.percentile(avg_image, 99)
 
@@ -56,7 +56,7 @@ def background_mask(image):
 
 def peaks(image):
     """
-Detect all peaks from a full SLI measurement. Peaks will not be filtered
+    Detect all peaks from a full SLI measurement. Peaks will not be filtered
     in any way. To detect only significant peaks, filter the peaks by using
     the prominence as a threshold.
 

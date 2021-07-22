@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.1
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an error regarding the mask caluclation which sometimes would not create a mask because of an error when using the average histogram
+
 ## v2.2.0
 ### Added
 - Added SLIXVisualizeParameter to the toolbox which enables visualizing directions either as a fiber orientation map or as vectors seen before in the example Jupyter notebook
