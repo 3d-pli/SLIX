@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
-from SLIX import toolbox
+from SLIX import toolbox, preparation
 from matplotlib import pyplot as plt
 import os
 import tqdm
@@ -43,6 +43,18 @@ def create_argument_parser():
                                'Keep in mind, that the angles will be ignored '
                                'regardless. SLIX will generate the parameters '
                                'based on the number of measurement angles.')
+    optional.add_argument('--smoothing',
+                          type=str,
+                          nargs="*",
+                          default="",
+                          help='Apply smoothing for each line profile for '
+                               'noisy images. Recommended for measurements'
+                               ' with less than 5 degree between each image.'
+                               'Available options: "fourier" or "savgol"'
+                               '. The parameters of those algorithms can be '
+                               'set with additional parameters. For example'
+                               ' --smoothing fourier 0.25 0.025 or '
+                               ' --smoothing savgol 45 3')
     optional.add_argument(
         '-h',
         '--help',
@@ -122,9 +134,14 @@ def generate_centroids(profile, significant_peaks, low_prominence):
                                        use_gpu=False)
 
 
-def create_plot(profile, significant_peaks, centroids):
+def create_plot(profile, filtered_profile, significant_peaks, centroids):
     profile = profile.flatten()
+    filtered_profile = filtered_profile.flatten()
+
     plt.plot(profile)
+    if not numpy.all(profile == filtered_profile):
+        plt.plot(filtered_profile)
+
     significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
         .flatten()
     centroids = centroids.flatten()[significant_peaks]
@@ -159,18 +176,33 @@ def write_parameter_file(object, output_file):
             file.write("\n")
 
 
-def subprocess(input_file, detailed, low_prominence, with_angle, output_file):
+def generate_filtered_profile(profile, algorithm, first_arg, second_arg):
+    if algorithm == "fourier":
+        return preparation.low_pass_fourier_smoothing(profile,
+                                                      first_arg,
+                                                      second_arg)
+    elif algorithm == "savgol":
+        return preparation.savitzky_golay_smoothing(profile,
+                                                    first_arg,
+                                                    second_arg)
+    else:
+        return profile
+
+
+def subprocess(input_file, detailed, low_prominence, with_angle, output_file, algorithm, first_arg, second_arg):
     output_parameters = {'profile': read_textfile(input_file, with_angle)}
-    output_parameters['peaks'] = generate_all_peaks(output_parameters['profile'], detailed)
-    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['profile'], low_prominence, detailed)
-    output_parameters['centroids'] = generate_centroids(output_parameters['profile'],  output_parameters['significant peaks'], low_prominence)
-    output_parameters['prominence'] = generate_prominence(output_parameters['profile'],  output_parameters['significant peaks'], detailed)
-    output_parameters['width'] = generate_peakwidth(output_parameters['profile'],  output_parameters['significant peaks'], detailed)
+    output_parameters['filtered'] = generate_filtered_profile(output_parameters['profile'], algorithm, first_arg, second_arg)
+    output_parameters['peaks'] = generate_all_peaks(output_parameters['filtered'], detailed)
+    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['filtered'], low_prominence, detailed)
+    output_parameters['centroids'] = generate_centroids(output_parameters['filtered'],  output_parameters['significant peaks'], low_prominence)
+    output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],  output_parameters['significant peaks'], detailed)
+    output_parameters['width'] = generate_peakwidth(output_parameters['filtered'],  output_parameters['significant peaks'], detailed)
     output_parameters['distance'] = generate_peakdistance(output_parameters['significant peaks'], output_parameters['centroids'], detailed)
     output_parameters['direction'] = generate_direction(output_parameters['significant peaks'], output_parameters['centroids'])
 
     write_parameter_file(output_parameters, output_file)
-    create_plot(output_parameters['profile'],  output_parameters['significant peaks'], output_parameters['centroids'])
+    create_plot(output_parameters['profile'], output_parameters['filtered'],
+                output_parameters['significant peaks'], output_parameters['centroids'])
     plt.savefig(output_file+".png", dpi=300)
     plt.clf()
 
@@ -187,6 +219,29 @@ def main():
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
+    algorithm = ""
+    first_val = -1
+    second_val = -1
+    if args['smoothing']:
+        algorithm = args['smoothing'][0]
+        if algorithm == "fourier":
+            first_val = 0.25
+            if len(args['smoothing']) > 1:
+                first_val = float(args['smoothing'][1])
+
+            second_val = 0.025
+            if len(args['smoothing']) > 2:
+                second_val = float(args['smoothing'][2])
+
+        elif algorithm == "savgol":
+            first_val = 45
+            if len(args['smoothing']) > 1:
+                first_val = int(args['smoothing'][1])
+
+            second_val = 2
+            if len(args['smoothing']) > 2:
+                second_val = int(args['smoothing'][2])
+
     if len(paths) > 1:
         print('Applying pool workers...')
         args = zip(
@@ -194,7 +249,10 @@ def main():
             [True for _ in paths],
             [args['prominence_threshold'] for _ in paths],
             [not args['without_angles'] for _ in paths],
-            [args['output'] + '/' + os.path.splitext(os.path.basename(path))[0] for path in paths]
+            [args['output'] + '/' + os.path.splitext(os.path.basename(path))[0] for path in paths],
+            [algorithm for _ in paths],
+            [first_val for _ in paths],
+            [second_val for _ in paths]
         )
         with multiprocessing.Pool(None) as pool:
             pool.starmap(subprocess, args)
@@ -205,7 +263,8 @@ def main():
                 os.path.splitext(os.path.basename(path))[0]
             output_path_name = args['output'] + '/' + filename_without_extension
             tqdm_paths.set_description(filename_without_extension)
-            subprocess(path, True, args['prominence_threshold'], not args['without_angles'], output_path_name)
+            subprocess(path, True, args['prominence_threshold'], not args['without_angles'], output_path_name,
+                       algorithm, first_val, second_val)
 
 
 if __name__ == "__main__":
