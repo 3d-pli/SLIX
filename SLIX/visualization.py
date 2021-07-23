@@ -143,8 +143,13 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                                         background_threshold, background_value)
         downscaled_unit_y = _downsample(UnitY, thinout,
                                         background_threshold, background_value)
-        # Rescale images to original dimensions
 
+        while len(downscaled_unit_x.shape) < 3:
+            downscaled_unit_x = downscaled_unit_x[..., numpy.newaxis]
+        while len(downscaled_unit_y.shape) < 3:
+            downscaled_unit_y = downscaled_unit_y[..., numpy.newaxis]
+
+        # Rescale images to original dimensions
         for i in range(UnitX.shape[2]):
             UnitX[:, :, i] = numpy.array(
                 Image.fromarray(downscaled_unit_x[:, :, i])
