@@ -199,8 +199,8 @@ def main():
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
-            io.imwrite(output_path_name + '_thinout_' + str(args['thinout'])
-                       + output_data_type, image)
+            output_path_name = output_path_name + '_thinout_' + str(args['thinout'])
+            io.imwrite(output_path_name + output_data_type, image)
         tqdm_step.update(1)
 
         if args['smoothing']:
@@ -212,13 +212,14 @@ def main():
                 if len(args['smoothing']) > 1:
                     low_percentage = float(args['smoothing'][1])
 
-                high_percentage = 0.025
+                smoothing_factor = 0.025
                 if len(args['smoothing']) > 2:
-                    high_percentage = float(args['smoothing'][2])
+                    smoothing_factor = float(args['smoothing'][2])
+                output_path_name = output_path_name + f'_{algorithm}_{low_percentage}_{smoothing_factor}_smoothed'
 
                 image = preparation.low_pass_fourier_smoothing(image,
                                                                low_percentage,
-                                                               high_percentage)
+                                                               smoothing_factor)
             elif algorithm == "savgol":
                 window_length = 45
                 if len(args['smoothing']) > 1:
@@ -227,6 +228,7 @@ def main():
                 poly_order = 2
                 if len(args['smoothing']) > 2:
                     poly_order = int(args['smoothing'][2])
+                output_path_name = output_path_name + f'_{algorithm}_{window_length}_{poly_order}'
 
                 image = preparation.savitzky_golay_smoothing(image,
                                                              window_length,
@@ -237,8 +239,7 @@ def main():
                       "'fourier' or 'savgol'!")
 
             tqdm_step.update(1)
-            io.imwrite(output_path_name + '_' + algorithm + '_smoothed'
-                       + output_data_type, image)
+            io.imwrite(output_path_name + output_data_type, image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
