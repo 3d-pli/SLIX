@@ -14,7 +14,7 @@ def _count_nonzero(image):
     return number_of_pixels
 
 
-@numba.jit(parallel=False, nopython=True)
+@numba.jit(parallel=True, nopython=True)
 def _downsample_2d(image, kernel_size,
                    background_threshold, background_value):
     nx = int(numpy.ceil(image.shape[0] / kernel_size))
