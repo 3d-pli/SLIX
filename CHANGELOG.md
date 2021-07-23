@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.2
+### Added
+
+### Changed
+
+### Fixed
+- Fixed a visualization issue which could result in a wrong vector because the median of all vectors within that region was not chosen correctly.
+
 ## v2.2.1
 ### Added
 
