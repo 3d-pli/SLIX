@@ -8,29 +8,13 @@ def _count_nonzero(image):
     number_of_pixels = 0
 
     for i in range(len(iterator_image)):
-        if iterator_image[i] > 0:
+        if iterator_image[i] != 0:
             number_of_pixels += 1
 
     return number_of_pixels
 
 
-@numba.jit(nopython=True)
-def _shell_sort(array):
-    # Using the Ciura, 2001 sequence for best performance
-    gaps = [1, 4, 10, 23, 57, 132, 301, 701]
-    for gap in gaps[::-1]:
-        for i in range(gap, len(array)):
-            temp = array[i]
-            j = 0
-            for j in range(i, gap, -gap):
-                if array[j - gap] < temp:
-                    break
-                array[j] = array[j - gap]
-            array[j] = temp
-    return array
-
-
-@numba.jit(parallel=True, nopython=True)
+@numba.jit(parallel=False, nopython=True)
 def _downsample_2d(image, kernel_size,
                    background_threshold, background_value):
     nx = int(numpy.ceil(image.shape[0] / kernel_size))
@@ -42,28 +26,23 @@ def _downsample_2d(image, kernel_size,
     for i in numba.prange(0, nx):
         for j in numba.prange(0, ny):
             roi = image[kernel_size * i:kernel_size * i + kernel_size,
-                  kernel_size * j:kernel_size * j + kernel_size]
-
+                        kernel_size * j:kernel_size * j + kernel_size]
+            roi = roi.flatten()
             number_of_valid_vectors = _count_nonzero(roi != background_value)
 
             if number_of_valid_vectors >= background_threshold * roi.size:
                 valid_vectors = 0
-                roi_x = 0
-                roi_y = 0
-
-                _shell_sort(roi)
+                roi.sort()
 
                 for idx in range(roi.size):
-                    roi_x = idx % roi.shape[0]
-                    roi_y = idx // roi.shape[1]
-
-                    if roi[roi_x, roi_y] != background_value:
+                    if roi[idx] != background_value:
                         valid_vectors += 1
 
                     if valid_vectors == number_of_valid_vectors // 2:
-                        break
-
-                output_image[i, j] = roi[roi_x, roi_y]
+                        if number_of_valid_vectors % 2 == 0:
+                            output_image[i, j] = roi[idx]
+                        else:
+                            output_image[i, j] = (roi[idx+1] + roi[idx]) / 2
 
     return output_image
 
