@@ -55,6 +55,15 @@ def create_argument_parser():
                                'set with additional parameters. For example'
                                ' --smoothing fourier 0.25 0.025 or '
                                ' --smoothing savgol 45 3')
+    optional.add_argument('--simple',
+                          action='store_true',
+                          help='Replaces the very detailed output of this '
+                               'tool by the average values for '
+                               'most of the parameter maps. The line '
+                               'profile and filtered line profile will '
+                               'still be written completely but all '
+                               'other parameter maps are shortened down '
+                               'to a single value')
     optional.add_argument(
         '-h',
         '--help',
@@ -190,15 +199,19 @@ def generate_filtered_profile(profile, algorithm, first_arg, second_arg):
 
 
 def subprocess(input_file, detailed, low_prominence, with_angle, output_file, algorithm, first_arg, second_arg):
+    # Parameters than cannot be created without details and will be shown fully.
     output_parameters = {'profile': read_textfile(input_file, with_angle)}
     output_parameters['filtered'] = generate_filtered_profile(output_parameters['profile'], algorithm, first_arg, second_arg)
+    sig_peaks = toolbox.significant_peaks(output_parameters['filtered'], use_gpu=False)
+    output_parameters['centroids'] = generate_centroids(output_parameters['filtered'], sig_peaks, low_prominence)
+    # Parameters than can change their output depending on the detailed parameters
     output_parameters['peaks'] = generate_all_peaks(output_parameters['filtered'], detailed)
     output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['filtered'], low_prominence, detailed)
-    output_parameters['centroids'] = generate_centroids(output_parameters['filtered'],  output_parameters['significant peaks'], low_prominence)
-    output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],  output_parameters['significant peaks'], detailed)
-    output_parameters['width'] = generate_peakwidth(output_parameters['filtered'],  output_parameters['significant peaks'], detailed)
-    output_parameters['distance'] = generate_peakdistance(output_parameters['significant peaks'], output_parameters['centroids'], detailed)
-    output_parameters['direction'] = generate_direction(output_parameters['significant peaks'], output_parameters['centroids'])
+    output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],  sig_peaks, detailed)
+    output_parameters['width'] = generate_peakwidth(output_parameters['filtered'],  sig_peaks, detailed)
+    output_parameters['distance'] = generate_peakdistance(sig_peaks, output_parameters['centroids'], detailed)
+    # Direction
+    output_parameters['direction'] = generate_direction(sig_peaks, output_parameters['centroids'])
 
     write_parameter_file(output_parameters, output_file)
     create_plot(output_parameters['profile'], output_parameters['filtered'],
@@ -246,7 +259,7 @@ def main():
         print('Applying pool workers...')
         args = zip(
             paths,
-            [True for _ in paths],
+            [not args['simple'] for _ in paths],
             [args['prominence_threshold'] for _ in paths],
             [not args['without_angles'] for _ in paths],
             [args['output'] + '/' + os.path.splitext(os.path.basename(path))[0] for path in paths],
@@ -263,7 +276,11 @@ def main():
                 os.path.splitext(os.path.basename(path))[0]
             output_path_name = args['output'] + '/' + filename_without_extension
             tqdm_paths.set_description(filename_without_extension)
-            subprocess(path, True, args['prominence_threshold'], not args['without_angles'], output_path_name,
+            subprocess(path,
+                       not args['simple'],
+                       args['prominence_threshold'],
+                       not args['without_angles'],
+                       output_path_name,
                        algorithm, first_val, second_val)
 
 

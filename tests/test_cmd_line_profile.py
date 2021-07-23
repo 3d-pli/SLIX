@@ -38,9 +38,9 @@ class TestCommandLineProfile:
         list_of_attrs = [
             'profile',
             'filtered',
+            'centroids',
             'peaks',
             'significant peaks',
-            'centroids',
             'prominence',
             'width',
             'distance',
@@ -59,7 +59,8 @@ class TestCommandLineProfile:
                                      'examples/90-Stack-1647-1234.txt',
                                      '--output',
                                      'tests/files/output/second/',
-                                     '--without_angles']):
+                                     '--without_angles',
+                                     '--simple']):
             LineplotParameterGenerator.main()
         assert os.path.isdir('tests/files/output/second/')
         assert os.path.isfile('tests/files/output/second/90-Stack-1647-1234.csv')
