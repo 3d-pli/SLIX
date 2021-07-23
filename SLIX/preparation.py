@@ -1,13 +1,13 @@
 import multiprocessing
 from functools import partial
 import numpy
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
 from multiprocessing.sharedctypes import RawArray
 import os
 import scipy.signal as signal
 from SLIX._preparation import _thin_out_median, _thin_out_plain, \
     _thin_out_average, _init_worker_fourier_smoothing, \
-    _worker_function_fourier_smoothing
+    _worker_function_fourier_smoothing, _fourier_smoothing
 
 __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
@@ -36,22 +36,27 @@ def low_pass_fourier_smoothing(image, threshold=0.2, smoothing_factor=0.025):
         Complete SLI measurement image with applied Low Pass fourier filter
         and the same shape as the original image.
     """
-    X_shape = image.shape
-    X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
-    X_np = numpy.frombuffer(X).reshape(X_shape)
+    if not "daemon" in current_process()._config:
+        X_shape = image.shape
+        X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
+        X_np = numpy.frombuffer(X).reshape(X_shape)
 
-    numpy.copyto(X_np, image)
+        numpy.copyto(X_np, image)
 
-    partial_worker_function = partial(_worker_function_fourier_smoothing,
-                                      threshold=threshold, window=smoothing_factor)
+        partial_worker_function = partial(_worker_function_fourier_smoothing,
+                                          threshold=threshold, window=smoothing_factor)
 
-    with Pool(processes=os.cpu_count(),
-              initializer=_init_worker_fourier_smoothing,
-              initargs=(X, X_shape)) as pool:
-        pool.map(partial_worker_function,
-                 range(X_shape[0] * X_shape[1]))
+        with Pool(processes=os.cpu_count(),
+                  initializer=_init_worker_fourier_smoothing,
+                  initargs=(X, X_shape)) as pool:
+            pool.map(partial_worker_function,
+                     range(X_shape[0] * X_shape[1]))
 
-    return X_np.astype(image.dtype)
+        return X_np.astype(image.dtype)
+
+    image = _fourier_smoothing(image, threshold, smoothing_factor)
+    return image
+
 
 
 
