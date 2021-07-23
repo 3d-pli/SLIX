@@ -1,5 +1,6 @@
 # Changelog
 
+
 ## v2.3.0
 ### Added
 - Added `SLIXCluster`, a tool which can be used to separate regions based on classification data through SLI measurements. The parameters aren't final yet and might change in the future.
@@ -21,6 +22,15 @@
 
 ### Fixed
 - Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
+
+## v2.2.2
+### Added
+
+### Changed
+
+### Fixed
+- Fixed a visualization issue which could result in a wrong vector because the median of all vectors within that region was not chosen correctly.
+
 
 ## v2.2.1
 ### Added
