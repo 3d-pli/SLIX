@@ -14,7 +14,23 @@ def _count_nonzero(image):
     return number_of_pixels
 
 
-@numba.jit()
+@numba.jit(nopython=True)
+def _shell_sort(array):
+    # Using the Ciura, 2001 sequence for best performance
+    gaps = [1, 4, 10, 23, 57, 132, 301, 701]
+    for gap in gaps[::-1]:
+        for i in range(gap, len(array)):
+            temp = array[i]
+            j = 0
+            for j in range(i, gap, -gap):
+                if array[j - gap] < temp:
+                    break
+                array[j] = array[j - gap]
+            array[j] = temp
+    return array
+
+
+@numba.jit(parallel=True, nopython=True)
 def _downsample_2d(image, kernel_size,
                    background_threshold, background_value):
     nx = int(numpy.ceil(image.shape[0] / kernel_size))
@@ -34,6 +50,8 @@ def _downsample_2d(image, kernel_size,
                 valid_vectors = 0
                 roi_x = 0
                 roi_y = 0
+
+                _shell_sort(roi)
 
                 for idx in range(roi.size):
                     roi_x = idx % roi.shape[0]
