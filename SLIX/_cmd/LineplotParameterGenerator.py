@@ -167,7 +167,7 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
                                      # False
                                      profile[significant_peaks] +
                                      (profile[(significant_peaks + 1) %
-                                            len(profile)] -
+                                              len(profile)] -
                                       profile[significant_peaks]) *
                                      centroids)
 
@@ -177,10 +177,10 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
 
 
 def write_parameter_file(object, output_file):
-    with open(output_file+".csv", 'w') as file:
+    with open(output_file + ".csv", 'w') as file:
         for key, value in object.items():
             value = value.flatten()
-            file.write(key+",")
+            file.write(key + ",")
             file.write(",".join([f'{num}' for num in value]))
             file.write("\n")
 
@@ -198,25 +198,43 @@ def generate_filtered_profile(profile, algorithm, first_arg, second_arg):
         return profile
 
 
-def subprocess(input_file, detailed, low_prominence, with_angle, output_file, algorithm, first_arg, second_arg):
+def subprocess(input_file, detailed, low_prominence, with_angle,
+               output_file, algorithm, first_arg, second_arg):
     # Parameters than cannot be created without details and will be shown fully.
     output_parameters = {'profile': read_textfile(input_file, with_angle)}
-    output_parameters['filtered'] = generate_filtered_profile(output_parameters['profile'], algorithm, first_arg, second_arg)
-    sig_peaks = toolbox.significant_peaks(output_parameters['filtered'], use_gpu=False)
-    output_parameters['centroids'] = generate_centroids(output_parameters['filtered'], sig_peaks, low_prominence)
+    output_parameters['filtered'] = generate_filtered_profile(output_parameters['profile'],
+                                                              algorithm,
+                                                              first_arg,
+                                                              second_arg)
+    sig_peaks = toolbox.significant_peaks(output_parameters['filtered'],
+                                          use_gpu=False)
+    output_parameters['centroids'] = generate_centroids(output_parameters['filtered'],
+                                                        sig_peaks,
+                                                        low_prominence)
     # Parameters than can change their output depending on the detailed parameters
-    output_parameters['peaks'] = generate_all_peaks(output_parameters['filtered'], detailed)
-    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['filtered'], low_prominence, detailed)
-    output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],  sig_peaks, detailed)
-    output_parameters['width'] = generate_peakwidth(output_parameters['filtered'],  sig_peaks, detailed)
-    output_parameters['distance'] = generate_peakdistance(sig_peaks, output_parameters['centroids'], detailed)
+    output_parameters['peaks'] = generate_all_peaks(output_parameters['filtered'],
+                                                    detailed)
+    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['filtered'],
+                                                                        low_prominence,
+                                                                        detailed)
+    output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],
+                                                          sig_peaks,
+                                                          detailed)
+    output_parameters['width'] = generate_peakwidth(output_parameters['filtered'],
+                                                    sig_peaks,
+                                                    detailed)
+    output_parameters['distance'] = generate_peakdistance(sig_peaks,
+                                                          output_parameters['centroids'],
+                                                          detailed)
     # Direction
-    output_parameters['direction'] = generate_direction(sig_peaks, output_parameters['centroids'])
+    output_parameters['direction'] = generate_direction(sig_peaks,
+                                                        output_parameters['centroids'])
 
     write_parameter_file(output_parameters, output_file)
     create_plot(output_parameters['profile'], output_parameters['filtered'],
-                output_parameters['significant peaks'], output_parameters['centroids'])
-    plt.savefig(output_file+".png", dpi=300)
+                output_parameters['significant peaks'],
+                output_parameters['centroids'])
+    plt.savefig(output_file + ".png", dpi=300)
     plt.clf()
 
 

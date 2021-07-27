@@ -1,8 +1,10 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 from SLIX import io, toolbox, preparation
 import os
+import glob
 import numpy
 import tqdm
+import re
 if toolbox.gpu_available:
     import cupy
 
@@ -119,6 +121,18 @@ def create_argument_parser():
     return parser
 
 
+def get_file_pattern(path):
+    regex = io._fileregex
+    files_in_folder = glob.glob(path + '/*')
+    pattern = None
+    for file in files_in_folder:
+        if re.match(regex, file) is not None:
+            pattern = file
+            break
+    pattern = re.sub(r'_+p[0-9]+_?', '', pattern)
+    return pattern
+
+
 def main():
     parser = create_argument_parser()
     arguments = parser.parse_args()
@@ -183,9 +197,7 @@ def main():
     tqdm_step = tqdm.tqdm(total=number_of_param_maps)
     for path in tqdm_paths:
         if os.path.isdir(path):
-            while path[-1] == "/":
-                path = path[:-1]
-            filename_without_extension = path.split("/")[-1]
+            filename_without_extension = get_file_pattern(path)
         else:
             filename_without_extension = \
                 os.path.splitext(os.path.basename(path))[0]
@@ -196,6 +208,7 @@ def main():
         image = io.imread(path)
         if os.path.isdir(path):
             io.imwrite(output_path_name + "_Stack" + output_data_type, image)
+
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
@@ -215,7 +228,9 @@ def main():
                 smoothing_factor = 0.025
                 if len(args['smoothing']) > 2:
                     smoothing_factor = float(args['smoothing'][2])
-                output_path_name = output_path_name + f'_{algorithm}_{low_percentage}_{smoothing_factor}_smoothed'
+                output_path_name = output_path_name + \
+                                   f'_{algorithm}_{low_percentage}_' + \
+                                   f'{smoothing_factor}_smoothed'
 
                 image = preparation.low_pass_fourier_smoothing(image,
                                                                low_percentage,
@@ -228,7 +243,9 @@ def main():
                 poly_order = 2
                 if len(args['smoothing']) > 2:
                     poly_order = int(args['smoothing'][2])
-                output_path_name = output_path_name + f'_{algorithm}_{window_length}_{poly_order}'
+                output_path_name = output_path_name + f'_{algorithm}_' \
+                                                      f'{window_length}_' \
+                                                      f'{poly_order}'
 
                 image = preparation.savitzky_golay_smoothing(image,
                                                              window_length,
