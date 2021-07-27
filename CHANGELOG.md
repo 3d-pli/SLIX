@@ -19,6 +19,7 @@
 - Rework of `SLIXLineplotParameterGenerator`. The tool will now generate way more detailed parameters when called with default parameters. You can use the `--simple` option to reduce the information to average values (just like before). The CSV structure was also altered to make parsing the results easier. 
 - `SLIXLineplotParameterGenerator` now also supports the smoothing options from `SLIXParameterGenerator`
 - Multiple line profiles will be calculated in parallel when using `SLIXLineplotParameterGenerator`
+- When reading multiple files from a folder with `SLIXParameterGenerator` the filename will now not match the folder name but will instead use the file pattern in the read files instead.
 
 ### Fixed
 - Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
