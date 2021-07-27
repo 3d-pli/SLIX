@@ -129,6 +129,8 @@ def get_file_pattern(path):
         if re.match(regex, file) is not None:
             pattern = file
             break
+    # Remove folder
+    pattern = os.path.basename(pattern)
     pattern = re.sub(r'_+p[0-9]+_?', '', pattern)
     return pattern
 
