@@ -147,28 +147,31 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
     profile = profile.flatten()
     filtered_profile = filtered_profile.flatten()
 
+    profile = profile / profile.max()
     plt.plot(profile)
+
     if not numpy.all(profile == filtered_profile):
+        filtered_profile = filtered_profile / filtered_profile.max()
         plt.plot(filtered_profile)
 
     significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
         .flatten()
     centroids = centroids.flatten()[significant_peaks]
     plt.plot(significant_peaks,
-             profile[significant_peaks], 'x',
+             filtered_profile[significant_peaks], 'x',
              label='Peak position')
 
     centroid_positions = numpy.where(centroids < 0,
                                      # True
-                                     profile[significant_peaks] -
-                                     (profile[significant_peaks] -
-                                      profile[significant_peaks - 1]) *
+                                     filtered_profile[significant_peaks] -
+                                     (filtered_profile[significant_peaks] -
+                                      filtered_profile[significant_peaks - 1]) *
                                      numpy.abs(centroids),
                                      # False
-                                     profile[significant_peaks] +
-                                     (profile[(significant_peaks + 1) %
-                                              len(profile)] -
-                                      profile[significant_peaks]) *
+                                     filtered_profile[significant_peaks] +
+                                     (filtered_profile[(significant_peaks + 1) %
+                                              len(filtered_profile)] -
+                                      filtered_profile[significant_peaks]) *
                                      centroids)
 
     plt.plot(significant_peaks + centroids,
