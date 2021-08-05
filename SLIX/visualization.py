@@ -163,12 +163,12 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         del downscaled_unit_y
         del downscaled_unit_x
     for i in range(UnitX.shape[2]):
-        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, UnitX.shape[1],
+        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, UnitX.shape[1],
                                                      thinout),
-                                        numpy.arange(0, UnitX.shape[0],
+                                        numpy.arange(thinout // 2, UnitX.shape[0],
                                                      thinout))
-        mesh_u = UnitX[::thinout, ::thinout, i]
-        mesh_v = UnitY[::thinout, ::thinout, i]
+        mesh_u = UnitX[thinout // 2::thinout, thinout // 2::thinout, i]
+        mesh_v = UnitY[thinout // 2::thinout, thinout // 2::thinout, i]
 
         _plot_axes_unit_vectors(ax,
                                 mesh_x.flatten(),
