@@ -208,6 +208,9 @@ def main():
 
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        while len(image.shape) < 3:
+            image = image[numpy.newaxis, ...]
+
         if os.path.isdir(path):
             io.imwrite(output_path_name + "_Stack" + output_data_type, image)
 
