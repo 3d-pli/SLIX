@@ -20,9 +20,12 @@
 - `SLIXLineplotParameterGenerator` now also supports the smoothing options from `SLIXParameterGenerator`
 - Multiple line profiles will be calculated in parallel when using `SLIXLineplotParameterGenerator`
 - When reading multiple files from a folder with `SLIXParameterGenerator` the filename will now not match the folder name but will instead use the file pattern in the read files instead.
+- Disabled the GPU usage for unit vectors in SLIXVisualizeParameter until a better solution for large input files has been found.
 
 ### Fixed
 - Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
+- Fixed a bug where a 3D stack with the shape (1, 1, x) would not be processed correctly with SLIXParameterGenerator
+- Fixed a bug in SLIXVisualizeParameter which could occur when the thinout is exactly the image size
 
 ## v2.2.2
 ### Added
