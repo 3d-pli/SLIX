@@ -162,7 +162,7 @@ def main():
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
-        UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image)
+        UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
 
         if image.shape[:2] != UnitX.shape[:2]:
             image = numpy.swapaxes(image, 0, 1)
