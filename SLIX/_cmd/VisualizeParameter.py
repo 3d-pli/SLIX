@@ -164,8 +164,14 @@ def main():
         image = SLIX.io.imread(args['slimeasurement'])
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
 
+        # Try to fix image shape if the two axes are swapped
+        if image.shape[:2] != UnitX.shape[:2] and \
+           image.shape[:2][::-1] == UnitX.shape[:2]:
+            image = image.T
         if image.shape[:2] != UnitX.shape[:2]:
-            image = numpy.swapaxes(image, 0, 1)
+            print("[WARNING]: Direction and SLI measurement are not correctly aligned."
+                  " The program will still run but the results might not represent"
+                  " the expected result. Please check your input!")
 
         thinout = args['thinout']
         scale = args['scale']
