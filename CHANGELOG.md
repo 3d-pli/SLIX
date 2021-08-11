@@ -21,6 +21,8 @@
 - Multiple line profiles will be calculated in parallel when using `SLIXLineplotParameterGenerator`
 - When reading multiple files from a folder with `SLIXParameterGenerator` the filename will now not match the folder name but will instead use the file pattern in the read files instead.
 - Disabled the GPU usage for unit vectors in SLIXVisualizeParameter until a better solution for large input files has been found.
+- When using SLIXVisualizeParameter, a warning will now be shown when the background image dimensions do not match the image dimensions of the direction.
+- When using SLIXVisualizeParameter, the background image will only be rotated when it would match the orientation of the direction images
 
 ### Fixed
 - Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
