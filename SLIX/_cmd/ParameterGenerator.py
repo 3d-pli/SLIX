@@ -167,15 +167,15 @@ def main():
         toolbox.gpu_available = args['disable_gpu']
 
     print(
-        'SLI Feature Generator:\n' +
-        'Chosen feature maps:\n' +
-        'Direction maps: ' + str(DIRECTION) + '\n' +
-        'Peak maps: ' + str(PEAKS) + '\n' +
-        'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
-        'Peak width map: ' + str(PEAKWIDTH) + '\n' +
-        'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-        'Unit vector maps: ' + str(UNIT_VECTORS) + '\n' +
-        'Optional maps: ' + str(OPTIONAL) + '\n'
+        f'SLI Feature Generator:\n' +
+        f'Chosen feature maps:\n' +
+        f'Direction maps: {DIRECTION} \n' +
+        f'Peak maps: {PEAKS} \n' +
+        f'Peak prominence map: {PEAKPROMINENCE} \n' +
+        f'Peak width map: {PEAKWIDTH} \n' +
+        f'Peak distance map: {PEAKDISTANCE} \n' +
+        f'Unit vector maps: {UNIT_VECTORS} \n' +
+        f'Optional maps: {OPTIONAL} \n'
     )
 
     paths = args['input']
