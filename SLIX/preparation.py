@@ -1,4 +1,3 @@
-import multiprocessing
 from functools import partial
 import numpy
 from multiprocessing import Pool, current_process

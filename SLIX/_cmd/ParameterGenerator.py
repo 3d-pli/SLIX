@@ -131,7 +131,7 @@ def get_file_pattern(path):
             break
     # Remove folder
     pattern = os.path.splitext(os.path.basename(pattern))[0]
-    pattern = re.sub(r'_+p[0-9]+_?', '', pattern)
+    pattern = re.sub(r'_+p[0-9]+_?', '_', pattern)
     return pattern
 
 

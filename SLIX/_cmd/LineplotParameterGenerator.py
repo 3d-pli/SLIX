@@ -170,7 +170,7 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
                                      # False
                                      filtered_profile[significant_peaks] +
                                      (filtered_profile[(significant_peaks + 1) %
-                                              len(filtered_profile)] -
+                                                       len(filtered_profile)] -
                                       filtered_profile[significant_peaks]) *
                                      centroids)
 
@@ -295,7 +295,7 @@ def main():
         for path in tqdm_paths:
             filename_without_extension = \
                 os.path.splitext(os.path.basename(path))[0]
-            output_path_name = args['output'] + '/' + filename_without_extension
+            output_path_name = f'{args["output"]}/{filename_without_extension}'
             tqdm_paths.set_description(filename_without_extension)
             subprocess(path,
                        not args['simple'],
