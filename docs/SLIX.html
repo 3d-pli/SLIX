@@ -36,8 +36,6 @@
                             <li><a href="SLIX/visualization.html">SLIX.visualization</a></li>
                             <li><a href="SLIX/preparation.html">SLIX.preparation</a></li>
                             <li><a href="SLIX/attributemanager.html">SLIX.attributemanager</a></li>
-                            <li><a href="SLIX/CPU.html">SLIX.CPU</a></li>
-                            <li><a href="SLIX/GPU.html">SLIX.GPU</a></li>
                     </ul>
 
                     <h2>API Documentation</h2>
@@ -56,12 +54,6 @@
             </li>
             <li>
                     <a class="module" href="#attributemanager">attributemanager</a>
-            </li>
-            <li>
-                    <a class="module" href="#CPU">CPU</a>
-            </li>
-            <li>
-                    <a class="module" href="#GPU">GPU</a>
             </li>
     </ul>
 
@@ -86,9 +78,9 @@ SLIX    </h1>
             <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Scattered Light Imaging ToolboX (SLIX) – an open-source Python package that allows a fully automated evaluation of SLI measurements and the generation of different parameter maps</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.2.2&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;2.3.0-beta2&#39;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;toolbox&#39;</span><span class="p">,</span> <span class="s1">&#39;io&#39;</span><span class="p">,</span> <span class="s1">&#39;visualization&#39;</span><span class="p">,</span> <span class="s1">&#39;preparation&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;attributemanager&#39;</span><span class="p">,</span> <span class="s1">&#39;CPU&#39;</span><span class="p">,</span> <span class="s1">&#39;GPU&#39;</span><span class="p">]</span>
+           <span class="s1">&#39;attributemanager&#39;</span><span class="p">]</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">toolbox</span><span class="p">,</span> <span class="n">io</span><span class="p">,</span> <span class="n">visualization</span><span class="p">,</span> <span class="n">preparation</span><span class="p">,</span> <span class="n">attributemanager</span>
 </pre></div>
@@ -625,6 +617,7 @@ SLIX    </h1>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;H5FileReader&#39;</span><span class="p">,</span> <span class="s1">&#39;H5FileWriter&#39;</span><span class="p">,</span> <span class="s1">&#39;imread&#39;</span><span class="p">,</span> <span class="s1">&#39;imwrite&#39;</span><span class="p">,</span> <span class="s1">&#39;imwrite_rgb&#39;</span><span class="p">]</span>
 
 <span class="n">nibabel</span><span class="o">.</span><span class="n">openers</span><span class="o">.</span><span class="n">Opener</span><span class="o">.</span><span class="n">default_compresslevel</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">_fileregex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)&#39;</span>
 
 
 <span class="k">class</span> <span class="nc">H5FileReader</span><span class="p">:</span>
@@ -889,12 +882,10 @@ SLIX    </h1>
 <span class="sd">        numpy.array: Image with shape [x, y, z] where [x, y] is the size</span>
 <span class="sd">        of a single image and z specifies the number of measurements</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">fileregex</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)&#39;</span>
-
     <span class="n">files_in_folder</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;/*&#39;</span><span class="p">)</span>
     <span class="n">matching_files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_in_folder</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">fileregex</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">_fileregex</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">matching_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
     <span class="n">matching_files</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">__natural_sort_filenames_key</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1084,16 +1075,20 @@ SLIX    </h1>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">SLIX._visualization</span> <span class="kn">import</span> <span class="n">_downsample</span><span class="p">,</span> <span class="n">_downsample_2d</span><span class="p">,</span> <span class="n">_count_nonzero</span>
+<span class="kn">from</span> <span class="nn">SLIX._visualization</span> <span class="kn">import</span> <span class="n">_downsample</span><span class="p">,</span> <span class="n">_plot_axes_unit_vectors</span><span class="p">,</span> \
+    <span class="n">_visualize_multiple_direction</span><span class="p">,</span> \
+    <span class="n">_visualize_one_direction</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;visualize_parameter_map&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;visualize_unit_vectors&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;visualize_direction&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;parameter_map&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;unit_vectors&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;unit_vector_distribution&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;direction&#39;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">visualize_parameter_map</span><span class="p">(</span><span class="n">parameter_map</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                            <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">parameter_map</span><span class="p">(</span><span class="n">parameter_map</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                  <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on imshow to display the</span>
 <span class="sd">    given parameter map in different colors. The parameter map is plotted to</span>
@@ -1144,10 +1139,10 @@ SLIX    </h1>
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
 
 
-<span class="k">def</span> <span class="nf">visualize_unit_vectors</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-                           <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                           <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">background_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-                           <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                 <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">background_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                 <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
 <span class="sd">    given unit vectors as colored lines (vector map).</span>
@@ -1220,51 +1215,141 @@ SLIX    </h1>
                                         <span class="n">background_threshold</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
         <span class="n">downscaled_unit_y</span> <span class="o">=</span> <span class="n">_downsample</span><span class="p">(</span><span class="n">UnitY</span><span class="p">,</span> <span class="n">thinout</span><span class="p">,</span>
                                         <span class="n">background_threshold</span><span class="p">,</span> <span class="n">background_value</span><span class="p">)</span>
-        <span class="c1"># Rescale images to original dimensions</span>
 
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">downscaled_unit_x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">downscaled_unit_x</span> <span class="o">=</span> <span class="n">downscaled_unit_x</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">downscaled_unit_y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">downscaled_unit_y</span> <span class="o">=</span> <span class="n">downscaled_unit_y</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+        <span class="c1"># Rescale images to original dimensions</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
             <span class="n">UnitX</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_unit_x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">])</span> \
-                <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_unit_x</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">])</span>
+                     <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">UnitY</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_unit_y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">])</span> \
-                <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">UnitY</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_unit_y</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">])</span>
+                     <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">UnitY</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="k">del</span> <span class="n">downscaled_unit_y</span>
         <span class="k">del</span> <span class="n">downscaled_unit_x</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
-        <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">thinout</span><span class="p">),</span>
-                                        <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">thinout</span><span class="p">))</span>
-        <span class="n">mesh_u</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[::</span><span class="n">thinout</span><span class="p">,</span> <span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
-        <span class="n">mesh_v</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[::</span><span class="n">thinout</span><span class="p">,</span> <span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                     <span class="n">thinout</span><span class="p">),</span>
+                                        <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                     <span class="n">thinout</span><span class="p">))</span>
+        <span class="n">mesh_u</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">mesh_v</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
 
-        <span class="c1"># Normalize the arrows:</span>
-        <span class="n">mesh_u_normed</span> <span class="o">=</span> <span class="n">mesh_u</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">,</span>
-                                            <span class="n">mesh_u</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">mesh_v</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">mesh_v_normed</span> <span class="o">=</span> <span class="n">mesh_v</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">,</span>
-                                            <span class="n">mesh_u</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">mesh_v</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">mesh_u_normed</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">mesh_u</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span>
-                      <span class="n">numpy</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">mesh_v</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
-        <span class="n">mesh_v_normed</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">mesh_u</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span>
-                      <span class="n">numpy</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">mesh_v</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="n">normed_angle</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">mesh_v_normed</span><span class="p">,</span> <span class="o">-</span><span class="n">mesh_u_normed</span><span class="p">)</span>
-        <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">visualize_direction</span><span class="p">(</span><span class="n">normed_angle</span> <span class="o">*</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
-        <span class="n">color_rgb</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">color_rgb</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">color_rgb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span>
-                                                 <span class="n">color_rgb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="c1"># 1/scale to increase vector length for scale &gt; 1</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span><span class="p">,</span> <span class="n">mesh_u_normed</span><span class="p">,</span> <span class="n">mesh_v_normed</span><span class="p">,</span>
-                  <span class="n">color</span><span class="o">=</span><span class="n">color_rgb</span><span class="p">,</span> <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span>
-                  <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="n">scale</span><span class="p">,</span> <span class="n">headwidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">headlength</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">headaxislength</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                  <span class="n">minlength</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s1">&#39;mid&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
-                  <span class="n">width</span><span class="o">=</span><span class="n">vector_width</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="n">color_rgb</span><span class="p">)</span>
+        <span class="n">_plot_axes_unit_vectors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span>
+                                <span class="n">mesh_x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                <span class="n">mesh_y</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                <span class="n">mesh_u</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                <span class="n">mesh_v</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+                                <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span>
 
 
-<span class="k">def</span> <span class="nf">visualize_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">unit_vector_distribution</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                             <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
+<span class="sd">    given unit vectors as colored lines (vector map).</span>
+<span class="sd">    Instead of showing a single vector like in unit_vector, here each vector</span>
+<span class="sd">    will be shown in the resulting image. The thinout parameter will determine</span>
+<span class="sd">    how many vectors will be overlapping. It is recommended to use a very small</span>
+<span class="sd">    alpha value to see which directions in the resulting plot are dominant.</span>
+<span class="sd">    Here, the vectors will only be plotted</span>
+<span class="sd">    to the current axis. To show the results, please use pyplot.show(). The</span>
+<span class="sd">    result might need some time to show depending on the input image size.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        UnitX: Unit vector components along the x-axis (3D NumPy array).</span>
+
+<span class="sd">        UnitY: Unit vector components along the y-axis (3D NumPy array).</span>
+
+<span class="sd">        thinout: Downscaling parameter N (defines how many vectors N x N are</span>
+<span class="sd">        replaced by one vector).</span>
+<span class="sd">        Unit vectors will be thinned out using downscaling and thinning in</span>
+<span class="sd">        combination. This will increase the</span>
+<span class="sd">        vector size in the resulting image but will also reduce the information</span>
+<span class="sd">        density. Please use with caution.</span>
+
+<span class="sd">        scale: Increase the vector length by the given scale. Vectors will be</span>
+<span class="sd">               longer and might overlap if the scale is too high.</span>
+
+<span class="sd">        ax: Matplotlib axis. If None, the current context axis will be used.</span>
+
+<span class="sd">        vector_width: When choosing a high scale, the vectors might appear</span>
+<span class="sd">        quite thin which results in hard to read images. This option allows to</span>
+<span class="sd">        increase the vector thickness to improve visibility.</span>
+
+<span class="sd">        alpha: Apply alpha to Matplotlib plots to overlay them with some other</span>
+<span class="sd">        other image like the averaged transmitted light intensity.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        The current Matplotlib axis. The image can be shown with pyplot.show().</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">UnitX</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">UnitY</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">UnitY</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="c1"># The default scale is below zero to allow the user to define his own scale</span>
+    <span class="c1"># A scale below zero isn&#39;t valid for visualization. If the user</span>
+    <span class="c1"># defines no scale, we suspect that the user wants an image</span>
+    <span class="c1"># where each vector has a scale of one. Therefore we set the scale to</span>
+    <span class="c1"># the same as our thinout when we draw the image.</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">thinout</span>
+
+    <span class="n">mesh_x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mesh_u</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mesh_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">thinout</span><span class="o">*</span><span class="n">thinout</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Creating unit vectors.&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">offset_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">offset_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
+            <span class="n">progress_bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="n">mesh_x_it</span><span class="p">,</span> <span class="n">mesh_y_it</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+                    <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">offset_x</span><span class="p">,</span> <span class="n">thinout</span><span class="p">),</span>
+                    <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">offset_y</span><span class="p">,</span> <span class="n">thinout</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">mesh_x_it</span> <span class="o">=</span> <span class="n">mesh_x_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="n">mesh_y_it</span> <span class="o">=</span> <span class="n">mesh_y_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="n">mesh_u_it</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                    <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="n">mesh_v_it</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                    <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+                <span class="n">mesh_x</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_x_it</span>
+                <span class="n">mesh_y</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_y_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_y_it</span>
+                <span class="n">mesh_u</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_u_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_u_it</span>
+                <span class="n">mesh_v</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_v_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_v_it</span>
+
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)</span>
+
+    <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Finished. Plotting unit vectors.&#39;</span><span class="p">)</span>
+    <span class="n">_plot_axes_unit_vectors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span><span class="p">,</span> <span class="n">mesh_u</span><span class="p">,</span> <span class="n">mesh_v</span><span class="p">,</span>
+                            <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">)</span>
+    <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
+    <span class="n">progress_bar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">ax</span>
+
+
+<span class="k">def</span> <span class="nf">direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a 2D colorized direction image in the HSV color space based on</span>
 <span class="sd">    the original direction. Value and saturation of the color will always be</span>
@@ -1300,6 +1385,14 @@ SLIX    </h1>
 <span class="sd">        direction: 2D or 3D Numpy array containing the direction of the image</span>
 <span class="sd">                   stack</span>
 
+<span class="sd">        saturation: Weight image by using the saturation value. Use either a 2D image</span>
+<span class="sd">                    or a 3D image with the same shape as the direction. If no image</span>
+<span class="sd">                    is used, the saturation for all image pixels will be set to 1</span>
+
+<span class="sd">        value:  Weight image by using the value. Use either a 2D image</span>
+<span class="sd">                or a 3D image with the same shape as the direction. If no image</span>
+<span class="sd">                is used, the value for all image pixels will be set to 1</span>
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        numpy.ndarray: 2D image containing the resulting HSV orientation map</span>
@@ -1308,11 +1401,30 @@ SLIX    </h1>
     <span class="n">direction</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
     <span class="n">direction_shape</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">shape</span>
 
-    <span class="n">h</span> <span class="o">=</span> <span class="n">direction</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">hue</span> <span class="o">=</span> <span class="n">direction</span>
+    <span class="c1"># If no saturation is given, create an &quot;empty&quot; saturation image that will be used</span>
+    <span class="k">if</span> <span class="n">saturation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># Normalize saturation image</span>
+    <span class="n">saturation</span> <span class="o">=</span> <span class="n">saturation</span> <span class="o">/</span> <span class="n">saturation</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="c1"># If we have a saturation image, check if the shape matches (3D) and correct accordingly</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">saturation</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">saturation</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">saturation</span><span class="p">,</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">h</span> <span class="o">/</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="c1"># If no value is given, create an &quot;empty&quot; value image that will be used</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="c1"># Normalize value image</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="n">value</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="c1"># If we have a value image, check if the shape matches (3D) and correct accordingly</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">direction_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">hue</span> <span class="o">/</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
     <span class="n">hsv_stack</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">hsv_stack</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">rgb_stack</span> <span class="o">=</span> <span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">hsv_stack</span><span class="p">)</span>
 
@@ -1320,67 +1432,6 @@ SLIX    </h1>
         <span class="k">return</span> <span class="n">_visualize_multiple_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">rgb_stack</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_visualize_one_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">rgb_stack</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_visualize_one_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">rgb_stack</span><span class="p">):</span>
-    <span class="n">output_image</span> <span class="o">=</span> <span class="n">rgb_stack</span>
-    <span class="n">output_image</span><span class="p">[</span><span class="n">direction</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">return</span> <span class="n">output_image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_visualize_multiple_direction</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">rgb_stack</span><span class="p">):</span>
-    <span class="n">output_image</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-                                <span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
-                                <span class="mi">3</span><span class="p">))</span>
-    <span class="c1"># count valid directions</span>
-    <span class="n">valid_directions</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">direction</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="n">r</span> <span class="o">=</span> <span class="n">rgb_stack</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">g</span> <span class="o">=</span> <span class="n">rgb_stack</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">rgb_stack</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-
-    <span class="c1"># Now we need to place them in the right pixel on our output image</span>
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">direction</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">valid_directions</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">elif</span> <span class="n">valid_directions</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span><span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-                <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-
-                <span class="k">if</span> <span class="n">valid_directions</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-                    <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-
-                    <span class="k">if</span> <span class="n">valid_directions</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="k">if</span> <span class="n">valid_directions</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-                        <span class="n">output_image</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">output_image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1397,13 +1448,13 @@ SLIX    </h1>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">multiprocessing</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">current_process</span>
 <span class="kn">from</span> <span class="nn">multiprocessing.sharedctypes</span> <span class="kn">import</span> <span class="n">RawArray</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">scipy.signal</span> <span class="k">as</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">SLIX._preparation</span> <span class="kn">import</span> <span class="n">_thin_out_median</span><span class="p">,</span> <span class="n">_thin_out_plain</span><span class="p">,</span> \
     <span class="n">_thin_out_average</span><span class="p">,</span> <span class="n">_init_worker_fourier_smoothing</span><span class="p">,</span> \
-    <span class="n">_worker_function_fourier_smoothing</span>
+    <span class="n">_worker_function_fourier_smoothing</span><span class="p">,</span> <span class="n">_fourier_smoothing</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;thin_out&#39;</span><span class="p">,</span> <span class="s1">&#39;savitzky_golay_smoothing&#39;</span><span class="p">,</span>
            <span class="s1">&#39;low_pass_fourier_smoothing&#39;</span><span class="p">]</span>
@@ -1432,22 +1483,27 @@ SLIX    </h1>
 <span class="sd">        Complete SLI measurement image with applied Low Pass fourier filter</span>
 <span class="sd">        and the same shape as the original image.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">X_shape</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">RawArray</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="n">X_np</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;daemon&quot;</span> <span class="ow">in</span> <span class="n">current_process</span><span class="p">()</span><span class="o">.</span><span class="n">_config</span><span class="p">:</span>
+        <span class="n">X_shape</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">RawArray</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">X_np</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_shape</span><span class="p">)</span>
 
-    <span class="n">numpy</span><span class="o">.</span><span class="n">copyto</span><span class="p">(</span><span class="n">X_np</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">copyto</span><span class="p">(</span><span class="n">X_np</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
 
-    <span class="n">partial_worker_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_worker_function_fourier_smoothing</span><span class="p">,</span>
-                                      <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">smoothing_factor</span><span class="p">)</span>
+        <span class="n">partial_worker_function</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_worker_function_fourier_smoothing</span><span class="p">,</span>
+                                          <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">smoothing_factor</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
-              <span class="n">initializer</span><span class="o">=</span><span class="n">_init_worker_fourier_smoothing</span><span class="p">,</span>
-              <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X_shape</span><span class="p">))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
-        <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_worker_function</span><span class="p">,</span>
-                 <span class="nb">range</span><span class="p">(</span><span class="n">X_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(),</span>
+                  <span class="n">initializer</span><span class="o">=</span><span class="n">_init_worker_fourier_smoothing</span><span class="p">,</span>
+                  <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X_shape</span><span class="p">))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">partial_worker_function</span><span class="p">,</span>
+                     <span class="nb">range</span><span class="p">(</span><span class="n">X_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">X_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
-    <span class="k">return</span> <span class="n">X_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">X_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">_fourier_smoothing</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">smoothing_factor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">image</span>
+
 
 
 
@@ -1795,34 +1851,6 @@ SLIX    </h1>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dest</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">))</span>
-</pre></div>
-
-        </details>
-
-    
-
-                </section>
-                <section id="CPU">
-                                <div class="attr module"><a class="headerlink" href="#CPU">#&nbsp;&nbsp</a>
-<span class="name"><a href="SLIX/CPU.html">SLIX.CPU</a></span></div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">toolbox</span>
-</pre></div>
-
-        </details>
-
-    
-
-                </section>
-                <section id="GPU">
-                                <div class="attr module"><a class="headerlink" href="#GPU">#&nbsp;&nbsp</a>
-<span class="name"><a href="SLIX/GPU.html">SLIX.GPU</a></span></div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">toolbox</span>
 </pre></div>
 
         </details>
