@@ -125,7 +125,7 @@ def main():
 
         if flat:
             flat_name = basename.replace('basename', 'flat_mask')
-            io.imwrite(args['output']+'/'+flat_name+output_data_type,
+            io.imwrite(f'{args["output"]}/{flat_name}{output_data_type}',
                        loaded_parameter_maps['flat_mask'])
 
     if inclination:
@@ -136,7 +136,7 @@ def main():
             loaded_parameter_maps['flat_mask']
         )
         inclination_name = basename.replace('basename', 'inclination_mask')
-        io.imwrite(args['output'] + '/' + inclination_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{inclination_name}{output_data_type}',
                    inclination_mask)
 
     if crossing:
@@ -145,7 +145,7 @@ def main():
             loaded_parameter_maps['max'],
         )
         crossing_name = basename.replace('basename', 'crossing_mask')
-        io.imwrite(args['output'] + '/' + crossing_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{crossing_name}{output_data_type}',
                    crossing_mask)
 
     if inclination and flat and crossing:
@@ -153,7 +153,7 @@ def main():
         full_mask[crossing_mask == 1] = 4
         full_mask[crossing_mask == 2] = 5
         full_name = basename.replace('basename', 'classification_mask')
-        io.imwrite(args['output'] + '/' + full_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{full_name}{output_data_type}',
                    full_mask)
 
 
