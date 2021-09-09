@@ -14,6 +14,7 @@ from .attributemanager import AttributeHandler
 __all__ = ['H5FileReader', 'H5FileWriter', 'imread', 'imwrite', 'imwrite_rgb']
 
 nibabel.openers.Opener.default_compresslevel = 9
+_fileregex = r'.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
 
 
 class H5FileReader:
@@ -278,12 +279,10 @@ def read_folder(filepath):
         numpy.array: Image with shape [x, y, z] where [x, y] is the size
         of a single image and z specifies the number of measurements
     """
-    fileregex = r'.*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)'
-
     files_in_folder = glob.glob(filepath + '/*')
     matching_files = []
     for file in files_in_folder:
-        if re.match(fileregex, file) is not None:
+        if re.match(_fileregex, file) is not None:
             matching_files.append(file)
     matching_files.sort(key=__natural_sort_filenames_key)
     image = None

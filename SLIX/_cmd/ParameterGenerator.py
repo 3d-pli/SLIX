@@ -1,19 +1,15 @@
-#!/usr/bin/env python3
-import SLIX.io
-from SLIX import toolbox, io, preparation
-
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
+from SLIX import io, toolbox, preparation
+import os
+import glob
+import numpy
+import tqdm
+import re
 if toolbox.gpu_available:
     import cupy
 
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser, SUPPRESS
-import numpy
-from matplotlib import pyplot as plt
-import os
-import re
-import tqdm
 
-
-def create_argument_parser_full_image():
+def create_argument_parser():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                             description='Creation of feature set from '
                                         'scattering image.',
@@ -125,160 +121,22 @@ def create_argument_parser_full_image():
     return parser
 
 
-def create_argument_parser_line_profile():
-    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
-                            description='Creation of feature set from '
-                                        'scattering image.',
-                            add_help=False
-                            )
-    # Required parameters
-    required = parser.add_argument_group('required arguments')
-    required.add_argument('-i',
-                          '--input',
-                          nargs='*',
-                          help='Input files (.nii or .tiff/.tif).',
-                          required=True)
-    required.add_argument('-o',
-                          '--output',
-                          help='Output folder where images will be saved to',
-                          required=True)
-    # Optional parameters
-    optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('--prominence_threshold',
-                          type=float,
-                          default=0.08,
-                          help='Change the threshold for prominent peaks. '
-                               'Peaks with lower prominences will not be used'
-                               ' for further evaluation. (Default: 8%% of'
-                               ' total signal amplitude.) Only recommended for'
-                               ' experienced users!')
-    optional.add_argument('--with_plots',
-                          action='store_true',
-                          help='Generates plots (png-files) showing the SLI '
-                               'profiles and the determined peak positions '
-                               '(orange dots: before correction; '
-                               'green crosses: after correction).')
-    optional.add_argument(
-        '-h',
-        '--help',
-        action='help',
-        default=SUPPRESS,
-        help='show this help message and exit'
-    )
-    # Parameters to select which images will be generated
-    image = parser.add_argument_group('output choice (none = all except '
-                                      'optional)')
-    image.add_argument('--direction',
-                       action='store_true',
-                       help='Add crossing directions (dir_1, dir_2, dir_3)'
-                       )
-    image.add_argument('--peaks',
-                       action='store_true',
-                       help='Add number of peaks below prominence and above '
-                            'prominence')
-    image.add_argument('--peakprominence',
-                       action='store_true',
-                       help='Add average peak prominence for each pixel')
-    image.add_argument('--peakwidth',
-                       action='store_true',
-                       help='Add average width of all peaks detected')
-    image.add_argument('--peakdistance',
-                       action='store_true',
-                       help='Add distance between two peaks if two peaks are '
-                            'detected')
-    image.add_argument('--optional',
-                       action='store_true',
-                       help='Adds Max/Min/Non Crossing Direction to the output'
-                            ' images.')
-    image.add_argument('--no_centroids',
-                       action='store_false',
-                       help='Disable centroid calculation. Not recommended.')
-    # Return generated parser
-    return parser
+def get_file_pattern(path):
+    regex = io._fileregex
+    files_in_folder = glob.glob(path + '/*')
+    pattern = None
+    for file in files_in_folder:
+        if re.match(regex, file) is not None:
+            pattern = file
+            break
+    # Remove folder
+    pattern = os.path.splitext(os.path.basename(pattern))[0]
+    pattern = re.sub(r'_+p[0-9]+_?', '', pattern)
+    return pattern
 
 
-def create_argument_parser_visualization():
-    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
-                            description='Creation of feature set from '
-                                        'scattering image.',
-                            add_help=False
-                            )
-    # Required parameters
-    parser.add_argument('-i',
-                        '--input',
-                        nargs='*',
-                        help='Input direction (.tiff) images. '
-                             'Please put all directions in the right order.',
-                        required=True)
-    parser.add_argument('-o',
-                        '--output',
-                        help='Output folder where images will be saved to.',
-                        required=True)
-    parser.add_argument(
-        '-h',
-        '--help',
-        action='help',
-        default=SUPPRESS,
-        help='show this help message and exit'
-    )
-
-    subparser = parser.add_subparsers(dest='command')
-    fom_parser = subparser.add_parser('fom', help="Write approximate "
-                                                  "fiber orientation map from"
-                                                  " direction images.")
-    fom_parser.add_argument('--output_type',
-                            required=False,
-                            default='tiff',
-                            help='Define the output data type of the parameter'
-                                 ' images. Default = tiff. Supported types:'
-                                 ' h5, tiff.')
-    vector_parser = subparser.add_parser('vector', help="Write vector "
-                                                        "orientation "
-                                                        "map from direction"
-                                                        " images. Please add "
-                                                        "the corresponding "
-                                                        "measurement image for"
-                                                        " the background.")
-    vector_parser.add_argument('--slimeasurement', type=str, required=True,
-                               help='Add measurement to the background'
-                                    'of the visualized image.')
-    vector_parser.add_argument('--alpha', default=0.8, type=float,
-                               help='Factor for the vectors which will be used'
-                                    ' during visualization. A higher value'
-                                    ' means that the vectors will be more'
-                                    ' visible.')
-    vector_parser.add_argument('--scale', default=-1, type=float,
-                               help='Increase the vector length by the given '
-                                    'scale. Vectors will be longer and might '
-                                    'overlap if the scale is too high. If no'
-                                    'scale is used the scale will match the'
-                                    'thinout option.')
-    vector_parser.add_argument('--thinout', default=20, type=int,
-                               help='Thin out vectors by an integer value. '
-                                    'A thinout of 20 means that both the '
-                                    'x-axis and y-axis are thinned by '
-                                    'a value of 20.')
-    vector_parser.add_argument('--threshold', default=0.5, type=float,
-                               help='When using the thinout option, you might'
-                                    ' not want to get a vector for a lonely'
-                                    ' vector in the base image. This parameter'
-                                    ' defines a percentage which will be used '
-                                    ' to reduce the number of shown vectors.'
-                                    ' The percentage defines the number of '
-                                    ' vectors present in the area which are '
-                                    'not zero.')
-    vector_parser.add_argument('--vector_width', default=-1, type=float,
-                               help='Change the default width of the shown '
-                                    'vectors. A larger value might help'
-                                    ' to see the vectors better when using'
-                                    ' a large thinout.')
-
-    # Return generated parser
-    return parser
-
-
-def main_full_image():
-    parser = create_argument_parser_full_image()
+def main():
+    parser = create_argument_parser()
     arguments = parser.parse_args()
     args = vars(arguments)
 
@@ -341,9 +199,7 @@ def main_full_image():
     tqdm_step = tqdm.tqdm(total=number_of_param_maps)
     for path in tqdm_paths:
         if os.path.isdir(path):
-            while path[-1] == "/":
-                path = path[:-1]
-            filename_without_extension = path.split("/")[-1]
+            filename_without_extension = get_file_pattern(path)
         else:
             filename_without_extension = \
                 os.path.splitext(os.path.basename(path))[0]
@@ -352,13 +208,17 @@ def main_full_image():
 
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        while len(image.shape) < 3:
+            image = image[numpy.newaxis, ...]
+
         if os.path.isdir(path):
             io.imwrite(output_path_name + "_Stack" + output_data_type, image)
+
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
-            io.imwrite(output_path_name + '_thinout_' + str(args['thinout'])
-                       + output_data_type, image)
+            output_path_name = output_path_name + '_thinout_' + str(args['thinout'])
+            io.imwrite(output_path_name + output_data_type, image)
         tqdm_step.update(1)
 
         if args['smoothing']:
@@ -370,13 +230,16 @@ def main_full_image():
                 if len(args['smoothing']) > 1:
                     low_percentage = float(args['smoothing'][1])
 
-                high_percentage = 0.025
+                smoothing_factor = 0.025
                 if len(args['smoothing']) > 2:
-                    high_percentage = float(args['smoothing'][2])
+                    smoothing_factor = float(args['smoothing'][2])
+                output_path_name = output_path_name + \
+                                   f'_{algorithm}_{low_percentage}_' + \
+                                   f'{smoothing_factor}_smoothed'
 
                 image = preparation.low_pass_fourier_smoothing(image,
                                                                low_percentage,
-                                                               high_percentage)
+                                                               smoothing_factor)
             elif algorithm == "savgol":
                 window_length = 45
                 if len(args['smoothing']) > 1:
@@ -385,6 +248,9 @@ def main_full_image():
                 poly_order = 2
                 if len(args['smoothing']) > 2:
                     poly_order = int(args['smoothing'][2])
+                output_path_name = output_path_name + f'_{algorithm}_' \
+                                                      f'{window_length}_' \
+                                                      f'{poly_order}'
 
                 image = preparation.savitzky_golay_smoothing(image,
                                                              window_length,
@@ -395,8 +261,7 @@ def main_full_image():
                       "'fourier' or 'savgol'!")
 
             tqdm_step.update(1)
-            io.imwrite(output_path_name + '_' + algorithm + '_smoothed'
-                       + output_data_type, image)
+            io.imwrite(output_path_name + output_data_type, image)
 
         if toolbox.gpu_available:
             image = cupy.array(image)
@@ -585,222 +450,5 @@ def main_full_image():
     tqdm_step.close()
 
 
-def main_line_profile():
-    parser = create_argument_parser_line_profile()
-    arguments = parser.parse_args()
-    args = vars(arguments)
-
-    DIRECTION = True
-    PEAKS = True
-    PEAKWIDTH = True
-    PEAKPROMINENCE = True
-    PEAKDISTANCE = True
-
-    if args['direction'] or args['peaks'] or args['peakprominence'] or \
-            args['peakwidth'] or args['peakdistance']:
-        DIRECTION = args['direction']
-        PEAKS = args['peaks']
-        PEAKPROMINENCE = args['peakprominence']
-        PEAKWIDTH = args['peakwidth']
-        PEAKDISTANCE = args['peakdistance']
-    OPTIONAL = args['optional']
-
-    print(
-        'SLI Feature Generator:\n' +
-        'Chosen feature maps:\n' +
-        'Direction maps: ' + str(DIRECTION) + '\n' +
-        'Peak maps: ' + str(PEAKS) + '\n' +
-        'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
-        'Peak width map: ' + str(PEAKWIDTH) + '\n' +
-        'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-        'Optional maps: ' + str(OPTIONAL) + '\n'
-    )
-
-    paths = args['input']
-    if not isinstance(paths, list):
-        paths = [paths]
-
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-
-    tqdm_paths = tqdm.tqdm(paths)
-    for path in tqdm_paths:
-        filename_without_extension = \
-            os.path.splitext(os.path.basename(path))[0]
-        output_path_name = args['output'] + '/' + filename_without_extension
-        tqdm_paths.set_description(filename_without_extension)
-
-        output_string = ""
-
-        image = numpy.fromfile(path, sep='\n')
-        image = image[numpy.newaxis, numpy.newaxis, ...]
-        significant_peaks = toolbox. \
-            significant_peaks(image,
-                              low_prominence=args['prominence_threshold'],
-                              use_gpu=False)
-
-        if PEAKS:
-            peaks = toolbox.peaks(image, use_gpu=False)
-            output_string += 'High Prominence Peaks,' + \
-                             str(int(numpy.sum(significant_peaks, axis=-1))) \
-                             + '\n'
-            output_string += 'Low Prominence Peaks,' + \
-                             str(int(numpy.sum(peaks, axis=-1) -
-                                     numpy.sum(significant_peaks, axis=-1))) \
-                             + '\n'
-
-        if PEAKPROMINENCE:
-            mean_prominence = toolbox.mean_peak_prominence(image,
-                                                           significant_peaks,
-                                                           use_gpu=False)
-
-            output_string += 'Mean Prominence,' \
-                             + str(float(mean_prominence.flatten())) + '\n'
-
-        if PEAKWIDTH:
-            mean_peak_width = toolbox.mean_peak_width(image,
-                                                      significant_peaks,
-                                                      use_gpu=False)
-            output_string += 'Mean peak width,' \
-                             + str(float(mean_peak_width)) \
-                             + '\n'
-
-        if args['no_centroids']:
-            centroids = toolbox. \
-                centroid_correction(image, significant_peaks,
-                                    use_gpu=False)
-        else:
-            centroids = numpy.zeros(image.shape)
-
-        if PEAKDISTANCE:
-            mean_peak_distance = toolbox.mean_peak_distance(significant_peaks,
-                                                            centroids,
-                                                            use_gpu=False)
-            output_string += 'Mean peak distance,' \
-                             + str(float(mean_peak_distance)) + '\n'
-
-        if DIRECTION:
-            direction = toolbox.direction(significant_peaks, centroids,
-                                          use_gpu=False)
-            output_string += 'Direction,' + str(direction.flatten()) + '\n'
-
-        if OPTIONAL:
-            min_img = numpy.min(image, axis=-1)
-            output_string += 'Min,' + str(float(min_img.flatten())) + '\n'
-            del min_img
-
-            max_img = numpy.max(image, axis=-1)
-            output_string += 'Max,' + str(float(max_img.flatten())) + '\n'
-            del max_img
-
-            avg_img = numpy.average(image, axis=-1)
-            output_string += 'Avg,' + str(float(avg_img.flatten())) + '\n'
-            del avg_img
-
-        if args['with_plots']:
-            image = image.flatten()
-            plt.plot(image)
-            significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
-                .flatten()
-            centroids = centroids.flatten()[significant_peaks]
-            plt.plot(significant_peaks,
-                     image[significant_peaks], 'x',
-                     label='Peak position')
-
-            centroid_positions = numpy.where(centroids < 0,
-                                             # True
-                                             image[significant_peaks] -
-                                             (image[significant_peaks] -
-                                              image[significant_peaks - 1]) *
-                                             numpy.abs(centroids),
-                                             # False
-                                             image[significant_peaks] +
-                                             (image[(significant_peaks + 1) %
-                                                    len(image)] -
-                                              image[significant_peaks]) *
-                                             centroids)
-
-            plt.plot(significant_peaks + centroids,
-                     centroid_positions, 'o', label='Corrected peak position')
-            plt.legend()
-            plt.savefig(output_path_name + '.png', dpi=100)
-            plt.close()
-
-        with open(output_path_name + '.csv', mode='w') as f:
-            f.write(output_string)
-            f.flush()
-
-
-def main_visualize():
-    parser = create_argument_parser_visualization()
-    arguments = parser.parse_args()
-    args = vars(arguments)
-
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-
-    filename_without_extension = \
-        os.path.splitext(os.path.basename(args['input'][0]))[0]
-    filename_without_extension = re.sub(r"dir_[0-9]+", "",
-                                        filename_without_extension)
-    output_path_name = args['output'] + '/' + filename_without_extension
-
-    direction_image = None
-    for direction_file in args['input']:
-        single_direction_image = SLIX.io.imread(direction_file)
-        if direction_image is None:
-            direction_image = single_direction_image
-        else:
-            if len(direction_image.shape) == 2:
-                direction_image = numpy.stack((direction_image,
-                                               single_direction_image),
-                                              axis=-1)
-            else:
-                direction_image = numpy.concatenate((direction_image,
-                                                     single_direction_image
-                                                     [:, :, numpy.newaxis]),
-                                                    axis=-1)
-
-    if args['command'] == "fom":
-        output_data_type = '.' + args['output_type']
-
-        if output_data_type not in ['.h5', '.tiff', '.tif']:
-            print('Output data type is not supported. Please choose a valid '
-                  'datatype!')
-            exit(1)
-
-        rgb_fom = SLIX.visualization.visualize_direction(direction_image)
-        rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        io.imwrite_rgb(output_path_name + 'fom'+output_data_type, rgb_fom)
-
-    if args['command'] == "vector":
-        image = SLIX.io.imread(args['slimeasurement'])
-        UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image)
-
-        if image.shape[:2] != UnitX.shape[:2]:
-            image = numpy.swapaxes(image, 0, 1)
-
-        thinout = args['thinout']
-        scale = args['scale']
-        alpha = args['alpha']
-        background_threshold = args['threshold']
-        vector_width = args['vector_width']
-        if vector_width < 0:
-            vector_width = numpy.ceil(thinout / 3)
-
-        if len(image.shape) == 2:
-            plt.imshow(image, cmap='gray')
-        else:
-            plt.imshow(numpy.max(image, axis=-1), cmap='gray')
-
-        SLIX.visualization.visualize_unit_vectors(UnitX, UnitY,
-                                                  thinout=thinout,
-                                                  scale=scale,
-                                                  alpha=alpha,
-                                                  vector_width=vector_width,
-                                                  background_threshold=
-                                                  background_threshold)
-        plt.axis('off')
-        plt.savefig(output_path_name + 'vector.tiff', dpi=1000,
-                    bbox_inches='tight')
-        plt.clf()
+if __name__ == "__main__":
+    main()

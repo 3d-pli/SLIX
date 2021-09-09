@@ -1,5 +1,43 @@
 # Changelog
 
+
+## v2.3.0
+### Added
+- Added `SLIXCluster`, a tool which can be used to separate regions based on classification data through SLI measurements. The parameters aren't final yet and might change in the future.
+- Added `SLIX.classification` which includes the classification methods of generated parameter maps.
+- Added a new parameter to `SLIXVisualizeParameter [...] vector` named `--distribution` which allows to plot all vectors in a selected threshold region. This allows to see which regions have a high confidence in their reported orientation and which regions might not give any information. Please note that the performance for full measurements isn't that high in the current state.
+- Added `SLIX.visualization.unit_vector_distribution` which is used for the creating of the image described in the last bullet point.
+- Added DPI option to SLIXVisualizeParameter. The default was 1000 dpi but images with a lower dpi value might be interesting when presenting the image for a paper or presentation.
+- Added `--value` and `--saturation` to `SLIXVisualizeParameter [...] fom` which allows the user to set two images to weight the FOM. 
+
+### Changed
+- Restructured some of the hidden methods to other Python files to make the basic package infrastructure easier to read.
+- Renamed methods in `SLIX.visualization` to prevent the repetition of `visualize`
+- The README.md will now use GitHub asset links instead of the old repository used during the first implementation of SLIX.
+- Changed the structure for the command line programs from `_cmd.py` to a package named `_cmd` containing all programs in separate files. Both solutions work but the new solution allows SLIX to scale more easily in the future.
+- When using the smoothing parameter in `SLIXParameterGenerator`, the resulting files will include the chosen algorithm as well as their respective parameters. 
+- Rework of `SLIXLineplotParameterGenerator`. The tool will now generate way more detailed parameters when called with default parameters. You can use the `--simple` option to reduce the information to average values (just like before). The CSV structure was also altered to make parsing the results easier. 
+- `SLIXLineplotParameterGenerator` now also supports the smoothing options from `SLIXParameterGenerator`
+- Multiple line profiles will be calculated in parallel when using `SLIXLineplotParameterGenerator`
+- When reading multiple files from a folder with `SLIXParameterGenerator` the filename will now not match the folder name but will instead use the file pattern in the read files instead.
+- Disabled the GPU usage for unit vectors in SLIXVisualizeParameter until a better solution for large input files has been found.
+- When using SLIXVisualizeParameter, a warning will now be shown when the background image dimensions do not match the image dimensions of the direction.
+- When using SLIXVisualizeParameter, the background image will only be rotated when it would match the orientation of the direction images
+
+### Fixed
+- Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
+- Fixed a bug where a 3D stack with the shape (1, 1, x) would not be processed correctly with SLIXParameterGenerator
+- Fixed a bug in SLIXVisualizeParameter which could occur when the thinout is exactly the image size
+
+## v2.2.2
+### Added
+
+### Changed
+
+### Fixed
+- Fixed a visualization issue which could result in a wrong vector because the median of all vectors within that region was not chosen correctly.
+
+
 ## v2.2.1
 ### Added
 
