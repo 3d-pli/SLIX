@@ -147,7 +147,7 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
     profile = profile.flatten()
     filtered_profile = filtered_profile.flatten()
 
-    profile = profile / profile.max()
+    profile = (profile - profile.min()) / (profile.max() - profile.min())
     plt.plot(profile)
 
     if not numpy.all(profile == filtered_profile):
