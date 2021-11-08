@@ -54,7 +54,7 @@ def create_argument_parser():
                           nargs="*",
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
-                               ' with less than 5 degree between each image.'
+                               ' with less than 5 degree between each image. '
                                'Available options: "fourier" or "savgol"'
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'

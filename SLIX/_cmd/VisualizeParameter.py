@@ -78,8 +78,8 @@ def create_argument_parser():
     vector_parser.add_argument('--scale', default=-1, type=float,
                                help='Increase the vector length by the given '
                                     'scale. Vectors will be longer and might '
-                                    'overlap if the scale is too high. If no'
-                                    'scale is used the scale will match the'
+                                    'overlap if the scale is too high. If no '
+                                    'scale is used the scale will match the '
                                     'thinout option.')
     vector_parser.add_argument('--thinout', default=20, type=int,
                                help='Thin out vectors by an integer value. '
