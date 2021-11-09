@@ -70,7 +70,8 @@ def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
 def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
-                 background_value=0):
+                 background_value=0,
+                 weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -115,6 +116,9 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         (N x N) area for which the image pixels are set to background_value.
         If the fraction of background pixels lies above this defined threshold,
         background pixels will not be considered for computing the median.
+
+        weighting: Weighting of the vectors. If None, the vectors will be
+        weighted by a value of one, resulting in normal unit vectors.
 
 
     Returns:
@@ -162,6 +166,17 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
         del downscaled_unit_y
         del downscaled_unit_x
+
+        if weighting is not None:
+            while len(weighting.shape) < 3:
+                weighting = weighting[..., numpy.newaxis]
+            downscaled_weighting = _downsample(weighting, thinout, 0, 0)
+            weighting = numpy.array(
+                Image.fromarray(downscaled_weighting)
+                     .resize(weighting.shape[:2][::-1], Image.NEAREST)
+            )
+            weighting = weighting[thinout // 2::thinout, thinout // 2::thinout]
+
     for i in range(UnitX.shape[2]):
         mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, UnitX.shape[1],
                                                      thinout),
@@ -175,13 +190,14 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                                 mesh_y.flatten(),
                                 mesh_u.flatten(),
                                 mesh_v.flatten(),
-                                scale, alpha, vector_width)
+                                scale, alpha, vector_width,
+                                weighting.flatten())
     return ax
 
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.01):
+                             alpha=0.01, weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -218,6 +234,9 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
         alpha: Apply alpha to Matplotlib plots to overlay them with some other
         other image like the averaged transmitted light intensity.
 
+        weighting: Weighting of the vectors. If None, the vectors will be
+        weighted by a value of one, resulting in normal unit vectors.
+
     Returns:
 
         The current Matplotlib axis. The image can be shown with pyplot.show().
@@ -225,6 +244,13 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     """
     if ax is None:
         ax = plt.gca()
+
+    if weighting is not None:
+        if len(weighting.shape) < len(UnitX.shape):
+            weighting = numpy.repeat(weighting[..., numpy.newaxis],
+                                     UnitX.shape[-1],
+                                     axis=-1)
+            weighting = weighting.flatten()
 
     while len(UnitX.shape) < 3:
         UnitX = UnitX[..., numpy.newaxis]
@@ -245,7 +271,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     mesh_v = numpy.empty(UnitX.size)
     idx = 0
 
-    progress_bar = tqdm.tqdm(total=thinout*thinout,
+    progress_bar = tqdm.tqdm(total=thinout * thinout,
                              desc='Creating unit vectors.')
     for offset_x in range(thinout):
         for offset_y in range(thinout):
@@ -257,9 +283,9 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                 )
                 mesh_x_it = mesh_x_it.flatten()
                 mesh_y_it = mesh_y_it.flatten()
-                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i]\
+                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i] \
                     .flatten()
-                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i]\
+                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i] \
                     .flatten()
 
                 mesh_x[idx:idx + len(mesh_x_it)] = mesh_x_it
@@ -271,7 +297,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
 
     progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width)
+                            scale, alpha, vector_width, weighting)
     progress_bar.set_description('Done')
     progress_bar.close()
     return ax

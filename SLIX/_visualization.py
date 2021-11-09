@@ -129,7 +129,7 @@ def _visualize_multiple_direction(direction, rgb_stack):
 
 
 def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width):
+                            scale, alpha, vector_width, weighting):
     # Normalize the arrows:
     mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
                                                       mesh_u ** 2 +
@@ -145,6 +145,10 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
                              numpy.ones(normed_angle.shape)))
     hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
     color_rgb = hsv_to_rgb(hsv_stack)
+
+    if weighting is not None:
+        mesh_v_normed = weighting * mesh_v_normed
+        mesh_u_normed = weighting * mesh_u_normed
 
     mesh_u_normed[numpy.isclose(mesh_u, 0) &
                   numpy.isclose(mesh_v, 0)] = numpy.nan

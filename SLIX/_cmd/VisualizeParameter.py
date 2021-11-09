@@ -100,6 +100,11 @@ def create_argument_parser():
                                     'vectors. A larger value might help'
                                     ' to see the vectors better when using'
                                     ' a large thinout.')
+    vector_parser.add_argument('--weight_map', type=str, required=False,
+                               help="Weight the unit vectors shown by the "
+                                    "given parameter map. Lower values "
+                                    "will reduce the length of the vectors.",
+                               default=None)
     vector_parser.add_argument('--dpi',
                                default=1000,
                                type=int,
@@ -164,6 +169,13 @@ def main():
         image = SLIX.io.imread(args['slimeasurement'])
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
 
+        if args['weight_map'] is not None:
+            weight_map = SLIX.io.imread(args['weight_map'])
+            weight_map = (weight_map.astype('float32') - weight_map.min()) / \
+                         (weight_map.max() - weight_map.min())
+        else:
+            weight_map = None
+
         # Try to fix image shape if the two axes are swapped
         if image.shape[:2] != UnitX.shape[:2] and \
            image.shape[:2][::-1] == UnitX.shape[:2]:
@@ -193,7 +205,8 @@ def main():
                                                         scale=scale,
                                                         alpha=alpha,
                                                         vector_width=
-                                                        vector_width)
+                                                        vector_width,
+                                                        weighting=weight_map)
             plt.savefig(output_path_name + 'vector_distribution.tiff',
                         dpi=args['dpi'],
                         bbox_inches='tight')
@@ -204,7 +217,8 @@ def main():
                                             alpha=alpha,
                                             vector_width=vector_width,
                                             background_threshold=
-                                            background_threshold)
+                                            background_threshold,
+                                            weighting=weight_map)
 
             plt.savefig(output_path_name + 'vector.tiff', dpi=args['dpi'],
                         bbox_inches='tight')
