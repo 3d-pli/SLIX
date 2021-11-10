@@ -176,6 +176,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                      .resize(weighting.shape[:2][::-1], Image.NEAREST)
             )
             weighting = weighting[thinout // 2::thinout, thinout // 2::thinout]
+            weighting = weighting.flatten()
 
     for i in range(UnitX.shape[2]):
         mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, UnitX.shape[1],
@@ -191,7 +192,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                                 mesh_u.flatten(),
                                 mesh_v.flatten(),
                                 scale, alpha, vector_width,
-                                weighting.flatten())
+                                weighting)
     return ax
 
 
@@ -245,13 +246,6 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     if ax is None:
         ax = plt.gca()
 
-    if weighting is not None:
-        if len(weighting.shape) < len(UnitX.shape):
-            weighting = numpy.repeat(weighting[..., numpy.newaxis],
-                                     UnitX.shape[-1],
-                                     axis=-1)
-            weighting = weighting.flatten()
-
     while len(UnitX.shape) < 3:
         UnitX = UnitX[..., numpy.newaxis]
     while len(UnitY.shape) < 3:
@@ -269,6 +263,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     mesh_y = numpy.empty(UnitX.size)
     mesh_u = numpy.empty(UnitX.size)
     mesh_v = numpy.empty(UnitX.size)
+    mesh_weighting = numpy.empty(UnitX.size)
     idx = 0
 
     progress_bar = tqdm.tqdm(total=thinout * thinout,
@@ -288,16 +283,24 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                 mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i] \
                     .flatten()
 
+                if weighting is not None:
+                    mesh_weighting_it = weighting[offset_y::thinout,
+                                                  offset_x::thinout] \
+                        .flatten()
+                else:
+                    mesh_weighting_it = numpy.ones(mesh_u_it.size)
+
                 mesh_x[idx:idx + len(mesh_x_it)] = mesh_x_it
                 mesh_y[idx:idx + len(mesh_y_it)] = mesh_y_it
                 mesh_u[idx:idx + len(mesh_u_it)] = mesh_u_it
                 mesh_v[idx:idx + len(mesh_v_it)] = mesh_v_it
+                mesh_weighting[idx:idx + len(mesh_weighting_it)] = mesh_weighting_it
 
                 idx = idx + len(mesh_x_it)
 
     progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width, weighting)
+                            scale, alpha, vector_width, mesh_weighting)
     progress_bar.set_description('Done')
     progress_bar.close()
     return ax

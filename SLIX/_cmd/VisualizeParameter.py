@@ -170,8 +170,8 @@ def main():
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
 
         if args['weight_map'] is not None:
-            weight_map = SLIX.io.imread(args['weight_map'])
-            weight_map = (weight_map.astype('float32') - weight_map.min()) / \
+            weight_map = SLIX.io.imread(args['weight_map']).astype(float)
+            weight_map = (weight_map - weight_map.min()) / \
                          (weight_map.max() - weight_map.min())
         else:
             weight_map = None
