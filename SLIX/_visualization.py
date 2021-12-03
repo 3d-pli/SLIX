@@ -67,6 +67,7 @@ def _downsample(image, kernel_size, background_threshold=0,
     return result_image
 
 
+@numba.njit()
 def _visualize_one_direction(direction, rgb_stack):
     output_image = rgb_stack
     output_image[direction == -1] = 0
@@ -74,6 +75,7 @@ def _visualize_one_direction(direction, rgb_stack):
     return output_image.astype('float32')
 
 
+@numba.njit()
 def _visualize_multiple_direction(direction, rgb_stack):
     output_image = numpy.zeros((direction.shape[0] * 2,
                                 direction.shape[1] * 2,
@@ -129,7 +131,7 @@ def _visualize_multiple_direction(direction, rgb_stack):
 
 
 def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width):
+                            scale, alpha, vector_width, colormap):
     # Normalize the arrows:
     mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
                                                       mesh_u ** 2 +
@@ -140,11 +142,7 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
 
     # Convert to RGB colors
     normed_angle = numpy.abs(numpy.arctan2(mesh_v_normed, -mesh_u_normed))
-    hsv_stack = numpy.stack((normed_angle / numpy.pi,
-                             numpy.ones(normed_angle.shape),
-                             numpy.ones(normed_angle.shape)))
-    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-    color_rgb = hsv_to_rgb(hsv_stack)
+    color_rgb = colormap(normed_angle, numpy.full(normed_angle.shape, numpy.pi / 2))
 
     mesh_u_normed[numpy.isclose(mesh_u, 0) &
                   numpy.isclose(mesh_v, 0)] = numpy.nan
