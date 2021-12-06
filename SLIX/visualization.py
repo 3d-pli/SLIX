@@ -50,6 +50,7 @@ class Colormap:
         if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
 
+        direction[direction > numpy.pi / 2] = numpy.pi - direction[direction > numpy.pi / 2]
         rgb_stack = numpy.stack((
             numpy.cos(inclination) * numpy.cos(direction),
             numpy.cos(inclination) * numpy.sin(direction),
@@ -143,7 +144,7 @@ def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
     return fig, ax
 
 
-def color_bubble(colormap: Colormap, shape=(200, 200, 3)) -> numpy.ndarray:
+def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     """
     Based on the chosen colormap in methods like unit_vectors or
     direction, the user might want to see the actual color bubble to understand
@@ -173,9 +174,11 @@ def color_bubble(colormap: Colormap, shape=(200, 200, 3)) -> numpy.ndarray:
     # normalize the inclination to a range of 0 to 90 degrees where 0 degree is at a distance of radius
     # and 90 degree is at a distance of 0
     inclination = 90 - inclination / radius * 90
-    inclination[inclination < 0] = 90
 
+    # create the color bubble
     color_bubble = colormap(direction, inclination)
+    color_bubble[inclination < 0] = 0
+
     return color_bubble
 
 
