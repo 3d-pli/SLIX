@@ -474,3 +474,30 @@ def unit_vectors(direction):
     UnitY[numpy.isclose(direction, -1)] = 0
 
     return UnitX, UnitY
+
+
+def unit_vectors(direction, inclination):
+    """
+    Calculate the unit vectors (UnitX, UnitY, UnitZ) from a given direction angle.
+
+    Args:
+
+        direction: 3D NumPy array - direction angles in degrees
+
+        inclination: 3D NumPy array - inclination angles in degrees
+
+    Returns:
+
+        UnitX, UnitY, UnitZ: 3D NumPy array, 3D NumPy array
+            x- and y-vector component in arrays
+    """
+    directions_rad = numpy.deg2rad(direction)
+    UnitX = -numpy.sin(0.5 * numpy.pi) * numpy.cos(directions_rad)
+    UnitY = numpy.sin(0.5 * numpy.pi) * numpy.sin(directions_rad)
+    UnitZ = numpy.sin(inclination)
+
+    UnitX[numpy.isclose(direction, -1)] = 0
+    UnitY[numpy.isclose(direction, -1)] = 0
+    UnitZ[numpy.isclose(direction, -1)] = 0
+
+    return UnitX, UnitY, UnitZ

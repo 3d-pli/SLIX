@@ -492,3 +492,29 @@ def unit_vectors(direction, use_gpu=gpu_available, return_numpy=True):
         return gpu_toolbox.unit_vectors(direction, return_numpy=return_numpy)
     else:
         return cpu_toolbox.unit_vectors(direction)
+
+
+def unit_vectors(direction, inclination, use_gpu=gpu_available, return_numpy=True):
+    """
+    Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
+
+    Args:
+
+        direction: 3D NumPy array - direction angles in degrees
+
+        inclination: 3D NumPy array - inclination angles in degrees
+
+        use_gpu: If available use the GPU for calculation
+
+        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
+        NumPy array will be returned.
+
+    Returns:
+
+        UnitX, UnitY: 3D NumPy array, 3D NumPy array
+            x- and y-vector component in arrays
+    """
+    if use_gpu:
+        return gpu_toolbox.unit_vectors(direction, inclination, return_numpy=return_numpy)
+    else:
+        return cpu_toolbox.unit_vectors(direction, inclination)
