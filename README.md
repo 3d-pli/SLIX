@@ -340,10 +340,17 @@ SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] {fom, vector}
 
 ### Required Arguments
 
-| Argument          | Function                                                |
-| ----------------- | ------------------------------------------------------- |
-| `-i, --input`     | Input file: SLI direction stack (as .tif(f) or .nii).      |
-| `-o, --output`    | Output folder where resulting parameter maps (.tiff) will be stored. |
+| Argument                   | Function                                                |
+|----------------------------| ------------------------------------------------------- |
+| `-i, --input, --direction` | Input file: SLI direction stack (as .tif(f) or .nii).      |
+| `-o, --output`             | Output folder where resulting parameter maps (.tiff) will be stored. |
+
+### Optional Arguments
+| Argument         | Function                                                                                                                                                                                             |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--inclination`  | Input file: Inclination (for example registered from 3D-PLI). The inclination file will only influence the color of the shown vectors / FOM and does not change the shown vector orientation itself. |
+| `-c, --colormap` | Changes the color map used for the visualization. Available options: rgb, hsvBlack, hsvWhite, rgb_r (reverse), hsvBlack_r, hsvWhite_r                                                                |
+
 
 ### Subarguments
 `SLIXVisualizeParameter` supports both the creation of FOMs of direction images, and the visualization

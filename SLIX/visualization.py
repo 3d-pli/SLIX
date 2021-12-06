@@ -28,7 +28,7 @@ class colormap:
                                  1.0 - (2 * inclination / numpy.pi),
                                  numpy.ones(direction.shape)))
         hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-        return hsv_to_rgb(hsv_stack)
+        return numpy.clip(hsv_to_rgb(hsv_stack), 0, 1)
 
     @staticmethod
     def hsv_black(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
@@ -41,7 +41,7 @@ class colormap:
                                  numpy.ones(direction.shape),
                                  1.0 - (2 * inclination / numpy.pi)))
         hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-        return hsv_to_rgb(hsv_stack)
+        return numpy.clip(hsv_to_rgb(hsv_stack), 0, 1)
 
     @staticmethod
     def rgb(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
@@ -58,7 +58,7 @@ class colormap:
 
         rgb_stack = numpy.moveaxis(rgb_stack, 0, -1)
 
-        return rgb_stack
+        return numpy.clip(rgb_stack, 0, 1)
 
     @staticmethod
     def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
