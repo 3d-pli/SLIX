@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import copy
 import tqdm
-import numba
 
 from SLIX._visualization import _downsample, _plot_axes_unit_vectors, \
     _visualize_multiple_direction, \
@@ -13,15 +12,16 @@ from SLIX._visualization import _downsample, _plot_axes_unit_vectors, \
 __all__ = ['parameter_map',
            'unit_vectors',
            'unit_vector_distribution',
-           'direction']
+           'direction',
+           'colormap']
 
 
-class ColorMap:
+class colormap:
     @staticmethod
     def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
@@ -32,9 +32,9 @@ class ColorMap:
 
     @staticmethod
     def hsv_black(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
@@ -45,9 +45,9 @@ class ColorMap:
 
     @staticmethod
     def rgb(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
 
         rgb_stack = numpy.stack((
@@ -57,37 +57,38 @@ class ColorMap:
         ))
 
         rgb_stack = numpy.moveaxis(rgb_stack, 0, -1)
+
         return rgb_stack
 
     @staticmethod
     def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
-        direction = numpy.abs(-numpy.pi + direction)
+        direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return ColorMap.hsv_black(direction, inclination)
+        return colormap.hsv_black(direction, inclination)
 
     @staticmethod
     def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
-        direction = numpy.abs(-numpy.pi + direction)
+        direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return ColorMap.hsv_white(direction, inclination)
+        return colormap.hsv_white(direction, inclination)
 
     @staticmethod
     def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if not inclination.max() <= numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
-        direction = numpy.abs(-numpy.pi + direction)
+        direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return ColorMap.rgb(direction, inclination)
+        return colormap.rgb(direction, inclination)
 
 
 def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
@@ -145,7 +146,7 @@ def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
 def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
-                 background_value=0, colormap=ColorMap.hsv_black):
+                 background_value=0, colormap=colormap.hsv_black):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -192,7 +193,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         background pixels will not be considered for computing the median.
 
         colormap: The colormap to use. Default is HSV black. The available color maps
-                  can be found in the ColorMap class.
+                  can be found in the colormap class.
 
     Returns:
 
@@ -259,7 +260,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.01, colormap=ColorMap.hsv_black):
+                             alpha=0.01, colormap=colormap.hsv_black):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -297,7 +298,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
         other image like the averaged transmitted light intensity.
 
         colormap: The colormap to use. Default is HSV black. The available color maps
-                  can be found in the ColorMap class.
+                  can be found in the colormap class.
 
     Returns:
 
@@ -358,7 +359,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction, inclination=None, saturation=None, value=None, colormap=ColorMap.hsv_black):
+def direction(direction, inclination=None, saturation=None, value=None, colormap=colormap.hsv_black):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -405,7 +406,7 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
                 is used, the value for all image pixels will be set to 1
 
         colormap: The colormap to use. Default is HSV black. The available color maps
-                  can be found in the ColorMap class.
+                  can be found in the colormap class.
 
     Returns:
 

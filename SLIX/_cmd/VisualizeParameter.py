@@ -5,6 +5,15 @@ import SLIX
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
+available_colormaps = {
+    'rgb': SLIX.visualization.colormap.rgb,
+    'hsvBlack': SLIX.visualization.colormap.hsv_black,
+    'hsvWhite': SLIX.visualization.colormap.hsv_white,
+    'rgb_r': SLIX.visualization.colormap.rgb_reverse,
+    'hsvBlack_r': SLIX.visualization.colormap.hsv_black_reverse,
+    'hsvWhite_r': SLIX.visualization.colormap.hsv_white_reverse
+}
+
 
 def create_argument_parser():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
@@ -15,7 +24,7 @@ def create_argument_parser():
     # Required parameters
     parser.add_argument('-i', '--input',
                         '--direction',
-                        name='input',
+                        dest='input',
                         nargs='*',
                         help='Input direction (.tiff) images. '
                              'Please put all directions in the right order.',
@@ -29,6 +38,12 @@ def create_argument_parser():
                         '--output',
                         help='Output folder where images will be saved to.',
                         required=True)
+    parser.add_argument('-c', '--colormap',
+                        dest='colormap',
+                        required=False,
+                        choices=available_colormaps.keys(),
+                        default='hsvBlack',
+                        help='Colormap to use for the images.')
     parser.add_argument(
         '-h',
         '--help',
@@ -180,7 +195,8 @@ def main():
         if args['value']:
             value = SLIX.io.imread(args['value'])
 
-        rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value)
+        rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value,
+                                               available_colormaps[args['colormap']])
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
         SLIX.io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
 
@@ -217,7 +233,8 @@ def main():
                                                         scale=scale,
                                                         alpha=alpha,
                                                         vector_width=
-                                                        vector_width)
+                                                        vector_width,
+                                                        colormap=available_colormaps[args['colormap']])
             plt.savefig(output_path_name + 'vector_distribution.tiff',
                         dpi=args['dpi'],
                         bbox_inches='tight')
@@ -228,7 +245,8 @@ def main():
                                             alpha=alpha,
                                             vector_width=vector_width,
                                             background_threshold=
-                                            background_threshold)
+                                            background_threshold,
+                                            colormap=available_colormaps[args['colormap']])
 
             plt.savefig(output_path_name + 'vector.tiff', dpi=args['dpi'],
                         bbox_inches='tight')
