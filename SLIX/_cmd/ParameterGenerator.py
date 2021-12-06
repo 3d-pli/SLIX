@@ -131,7 +131,7 @@ def get_file_pattern(path):
             break
     # Remove folder
     pattern = os.path.splitext(os.path.basename(pattern))[0]
-    pattern = re.sub(r'_+p[0-9]+_?', '', pattern)
+    pattern = re.sub(r'_+p[0-9]+_?', '_', pattern)
     return pattern
 
 
@@ -167,15 +167,15 @@ def main():
         toolbox.gpu_available = args['disable_gpu']
 
     print(
-        'SLI Feature Generator:\n' +
-        'Chosen feature maps:\n' +
-        'Direction maps: ' + str(DIRECTION) + '\n' +
-        'Peak maps: ' + str(PEAKS) + '\n' +
-        'Peak prominence map: ' + str(PEAKPROMINENCE) + '\n' +
-        'Peak width map: ' + str(PEAKWIDTH) + '\n' +
-        'Peak distance map: ' + str(PEAKDISTANCE) + '\n' +
-        'Unit vector maps: ' + str(UNIT_VECTORS) + '\n' +
-        'Optional maps: ' + str(OPTIONAL) + '\n'
+        f'SLI Feature Generator:\n' +
+        f'Chosen feature maps:\n' +
+        f'Direction maps: {DIRECTION} \n' +
+        f'Peak maps: {PEAKS} \n' +
+        f'Peak prominence map: {PEAKPROMINENCE} \n' +
+        f'Peak width map: {PEAKWIDTH} \n' +
+        f'Peak distance map: {PEAKDISTANCE} \n' +
+        f'Unit vector maps: {UNIT_VECTORS} \n' +
+        f'Optional maps: {OPTIONAL} \n'
     )
 
     paths = args['input']
@@ -203,7 +203,7 @@ def main():
         else:
             filename_without_extension = \
                 os.path.splitext(os.path.basename(path))[0]
-        output_path_name = args['output'] + '/' + filename_without_extension
+        output_path_name = f'{args["output"]}/{filename_without_extension}'
         tqdm_paths.set_description(filename_without_extension)
 
         tqdm_step.set_description('Reading image')
@@ -212,12 +212,12 @@ def main():
             image = image[numpy.newaxis, ...]
 
         if os.path.isdir(path):
-            io.imwrite(output_path_name + "_Stack" + output_data_type, image)
+            io.imwrite(f'{output_path_name}_Stack' + output_data_type, image)
 
         if args['thinout'] > 1:
             image = preparation.thin_out(image, args['thinout'],
                                          strategy='average')
-            output_path_name = output_path_name + '_thinout_' + str(args['thinout'])
+            output_path_name = f'{output_path_name}_thinout_{args["thinout"]}'
             io.imwrite(output_path_name + output_data_type, image)
         tqdm_step.update(1)
 
@@ -233,8 +233,8 @@ def main():
                 smoothing_factor = 0.025
                 if len(args['smoothing']) > 2:
                     smoothing_factor = float(args['smoothing'][2])
-                output_path_name = output_path_name + \
-                                   f'_{algorithm}_{low_percentage}_' + \
+                output_path_name = f'{output_path_name}' \
+                                   f'_{algorithm}_{low_percentage}_' \
                                    f'{smoothing_factor}_smoothed'
 
                 image = preparation.low_pass_fourier_smoothing(image,
@@ -257,8 +257,9 @@ def main():
                                                              poly_order)
 
             else:
-                print("Unknown option. Please use either "
-                      "'fourier' or 'savgol'!")
+                print(f"Unknown smoothing option {algorithm}. "
+                      f"Please use either 'fourier' or 'savgol'!")
+                exit(1)
 
             tqdm_step.update(1)
             io.imwrite(output_path_name + output_data_type, image)
@@ -270,8 +271,8 @@ def main():
             tqdm_step.set_description('Creating mask')
             mask = toolbox.background_mask(image, use_gpu=toolbox.gpu_available)
             image[mask, :] = 0
-            io.imwrite(output_path_name + '_background_mask'
-                       + output_data_type, mask)
+            io.imwrite(f'{output_path_name}_background_mask'
+                       f'{output_data_type}', mask)
             tqdm_step.update(1)
 
         tqdm_step.set_description('Generating peaks')
@@ -288,31 +289,32 @@ def main():
         if PEAKS:
             peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
 
-            io.imwrite(output_path_name + '_high_prominence_peaks'
-                       + output_data_type,
+            io.imwrite(f'{output_path_name}_high_prominence_peaks'
+                       f'{output_data_type}',
                        numpy.sum(significant_peaks_cpu, axis=-1,
                                  dtype=numpy.uint16))
-            io.imwrite(output_path_name + '_low_prominence_peaks'
-                       + output_data_type,
+            io.imwrite(f'{output_path_name}_low_prominence_peaks'
+                       f'{output_data_type}',
                        numpy.sum(peaks, axis=-1, dtype=numpy.uint16) -
                        numpy.sum(significant_peaks_cpu, axis=-1,
                                  dtype=numpy.uint16))
 
             if args['detailed']:
-                io.imwrite(output_path_name + '_all_peaks_detailed'
-                           + output_data_type, peaks)
+                io.imwrite(f'{output_path_name}_all_peaks_detailed'
+                           f'{output_data_type}', peaks)
                 io.imwrite(
-                    output_path_name + '_high_prominence_peaks_detailed'
-                    + output_data_type,
-                    significant_peaks_cpu)
+                    f'{output_path_name}_high_prominence_peaks_detailed'
+                    f'{output_data_type}',
+                    significant_peaks_cpu
+                )
 
             tqdm_step.update(1)
 
         if PEAKPROMINENCE:
             tqdm_step.set_description('Generating peak prominence')
 
-            io.imwrite(output_path_name + '_peakprominence'
-                       + output_data_type,
+            io.imwrite(f'{output_path_name}_peakprominence'
+                       f'{output_data_type}',
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
                                             use_gpu=toolbox.gpu_available))
@@ -323,9 +325,10 @@ def main():
                                             peak_image=significant_peaks,
                                             kind_of_normalization=1,
                                             use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_peakprominence_detailed'
-                           + output_data_type,
-                           peak_prominence_full)
+                io.imwrite(f'{output_path_name}_peakprominence_detailed'
+                           f'{output_data_type}',
+                           peak_prominence_full
+                )
                 del peak_prominence_full
 
             tqdm_step.update(1)
@@ -333,8 +336,8 @@ def main():
         if PEAKWIDTH:
             tqdm_step.set_description('Generating peak width')
 
-            io.imwrite(output_path_name + '_peakwidth'
-                       + output_data_type,
+            io.imwrite(f'{output_path_name}_peakwidth'
+                       f'{output_data_type}',
                        toolbox.mean_peak_width(image, significant_peaks,
                                                use_gpu=toolbox.gpu_available))
 
@@ -342,8 +345,8 @@ def main():
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
                                        use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_peakwidth_detailed'
-                           + output_data_type,
+                io.imwrite(f'{output_path_name}_peakwidth_detailed'
+                           f'{output_data_type}',
                            peak_width_full)
                 del peak_width_full
 
@@ -362,8 +365,8 @@ def main():
                     centroids_cpu = centroids.get()
                 else:
                     centroids_cpu = centroids
-                io.imwrite(output_path_name + '_centroid_correction'
-                           + output_data_type,
+                io.imwrite(f'{output_path_name}_centroid_correction'
+                           f'{output_data_type}',
                            centroids_cpu)
                 tqdm_step.update(1)
         else:
@@ -376,8 +379,8 @@ def main():
         if PEAKDISTANCE:
             tqdm_step.set_description('Generating peak distance')
 
-            io.imwrite(output_path_name + '_peakdistance'
-                       + output_data_type, toolbox.
+            io.imwrite(f'{output_path_name}_peakdistance'
+                       f'{output_data_type}', toolbox.
                        mean_peak_distance(significant_peaks, centroids,
                                           use_gpu=toolbox.gpu_available))
 
@@ -385,8 +388,8 @@ def main():
                 peak_distance_full = toolbox. \
                     peak_distance(significant_peaks, centroids,
                                   use_gpu=toolbox.gpu_available)
-                io.imwrite(output_path_name + '_peakdistance_detailed'
-                           + output_data_type, peak_distance_full)
+                io.imwrite(f'{output_path_name}_peakdistance_detailed'
+                           f'{output_data_type}', peak_distance_full)
                 del peak_distance_full
 
             tqdm_step.update(1)
@@ -398,8 +401,9 @@ def main():
                                           use_gpu=toolbox.gpu_available)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):
-                    io.imwrite(output_path_name + '_dir_' + str(dim + 1) +
-                               output_data_type, direction[:, :, dim])
+                    io.imwrite(f'{output_path_name}_dir_{dim + 1}'
+                               f'{output_data_type}',
+                               direction[:, :, dim])
                 tqdm_step.update(1)
 
             if UNIT_VECTORS:
@@ -409,14 +413,14 @@ def main():
                                                     toolbox.gpu_available)
                 UnitZ = numpy.zeros(UnitX.shape)
                 for dim in range(UnitX.shape[-1]):
-                    io.imwrite(output_path_name +
-                               '_dir_' + str(dim + 1) + '_UnitX.nii',
+                    io.imwrite(f'{output_path_name}'
+                               f'_dir_{dim + 1}_UnitX.nii',
                                UnitX[:, :, dim])
-                    io.imwrite(output_path_name +
-                               '_dir_' + str(dim + 1) + '_UnitY.nii',
+                    io.imwrite(f'{output_path_name}'
+                               f'_dir_{dim + 1}_UnitY.nii',
                                UnitY[:, :, dim])
-                    io.imwrite(output_path_name +
-                               '_dir_' + str(dim + 1) + '_UnitZ.nii',
+                    io.imwrite(f'{output_path_name}'
+                               f'_dir_{dim + 1}_UnitZ.nii',
                                UnitZ[:, :, dim])
 
                 tqdm_step.update(1)
@@ -426,15 +430,15 @@ def main():
             if toolbox.gpu_available:
                 image = image.get()
             min_img = numpy.min(image, axis=-1)
-            io.imwrite(output_path_name + '_min' + output_data_type, min_img)
+            io.imwrite(f'{output_path_name}_min{output_data_type}', min_img)
             del min_img
 
             max_img = numpy.max(image, axis=-1)
-            io.imwrite(output_path_name + '_max' + output_data_type, max_img)
+            io.imwrite(f'{output_path_name}_max{output_data_type}', max_img)
             del max_img
 
             avg_img = numpy.average(image, axis=-1)
-            io.imwrite(output_path_name + '_avg' + output_data_type, avg_img)
+            io.imwrite(f'{output_path_name}_avg{output_data_type}', avg_img)
             del avg_img
 
             non_crossing_direction = toolbox. \
@@ -442,7 +446,7 @@ def main():
                           number_of_directions=1,
                           correction_angle=args['correctdir'],
                           use_gpu=toolbox.gpu_available)
-            io.imwrite(output_path_name + '_dir' + output_data_type,
+            io.imwrite(f'{output_path_name}_dir{output_data_type}',
                        non_crossing_direction)
             tqdm_step.update(1)
 
