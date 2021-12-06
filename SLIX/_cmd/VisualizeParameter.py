@@ -187,10 +187,10 @@ def main():
     if args['command'] == "fom":
         write_fom(args, direction_image, inclination_image, output_path_name)
     if args['command'] == "vector":
-        write_vector(args, direction_image, output_path_name)
+        write_vector(args, direction_image, inclination_image, output_path_name)
 
 
-def write_vector(args, direction_image, output_path_name):
+def write_vector(args, direction_image, inclination_image, output_path_name):
     image = SLIX.io.imread(args['slimeasurement'])
     UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
     # Try to fix image shape if the two axes are swapped
