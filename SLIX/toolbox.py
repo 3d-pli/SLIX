@@ -494,7 +494,7 @@ def unit_vectors(direction, use_gpu=gpu_available, return_numpy=True):
         return cpu_toolbox.unit_vectors(direction)
 
 
-def unit_vectors(direction, inclination, use_gpu=gpu_available, return_numpy=True):
+def unit_vectors_3d(direction, inclination, use_gpu=gpu_available, return_numpy=True):
     """
     Calculate the unit vectors (UnitX, UnitY) from a given direction angle.
 

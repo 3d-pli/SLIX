@@ -658,7 +658,7 @@ def unit_vectors(direction, return_numpy=True):
     return UnitX, UnitY
 
 
-def unit_vectors(direction, inclination, return_numpy=True):
+def unit_vectors_3d(direction, inclination, return_numpy=True):
     """
     Calculate the unit vectors (UnitX, UnitY, UnitZ) from a given direction angle.
 

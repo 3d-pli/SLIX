@@ -64,12 +64,12 @@ class TestVisualization:
     def test_visualize_direction_one_dir(self):
         image = numpy.arange(0, 180)
         hsv_image = visualization.direction(image)
-        assert numpy.all(hsv_image[0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[30, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[60, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[90, :] == [0, 1, 1])
-        assert numpy.all(hsv_image[120, :] == [0, 0, 1])
-        assert numpy.all(hsv_image[150, :] == [1, 0, 1])
+        assert numpy.all(hsv_image[0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[30, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[60, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[90, :] == [0, 255, 255])
+        assert numpy.all(hsv_image[120, :] == [0, 0, 255])
+        assert numpy.all(hsv_image[150, :] == [255, 0, 255])
 
     def test_visualize_direction_multiple_dir(self):
         first_dir = numpy.arange(0, 180)[..., numpy.newaxis, numpy.newaxis]
@@ -89,33 +89,33 @@ class TestVisualization:
         print(hsv_image)
 
         # Check first direction
-        assert numpy.all(hsv_image[0, 0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[1, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[0, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[1, 0, :] == [1, 0, 0])
+        assert numpy.all(hsv_image[0, 0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[1, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[0, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[1, 0, :] == [255, 0, 0])
 
-        assert numpy.all(hsv_image[60, 0, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[61, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[60, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[61, 0, :] == [1, 1, 0])
+        assert numpy.all(hsv_image[60, 0, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[61, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[60, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[61, 0, :] == [255, 255, 0])
 
         # Probe check second direction
-        assert numpy.all(hsv_image[120, 0, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[121, 1, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[120, 1, :] == [0, 1, 1])
-        assert numpy.all(hsv_image[121, 0, :] == [0, 1, 1])
+        assert numpy.all(hsv_image[120, 0, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[121, 1, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[120, 1, :] == [0, 255, 255])
+        assert numpy.all(hsv_image[121, 0, :] == [0, 255, 255])
 
         # Probe check third direction
-        assert numpy.all(hsv_image[240, 0, :] == [0, 0, 1])
-        assert numpy.all(hsv_image[240, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[241, 0, :] == [1, 0, 1])
+        assert numpy.all(hsv_image[240, 0, :] == [0, 0, 255])
+        assert numpy.all(hsv_image[240, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[241, 0, :] == [255, 0, 255])
         assert numpy.all(hsv_image[241, 1, :] == [0, 0, 0])
 
         # Probe check fourth direction
-        assert numpy.all(hsv_image[300, 0, :] == [1, 0, 1])
-        assert numpy.all(hsv_image[300, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[301, 0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[301, 1, :] == [0, 1, 0])
+        assert numpy.all(hsv_image[300, 0, :] == [255, 0, 255])
+        assert numpy.all(hsv_image[300, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[301, 0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[301, 1, :] == [0, 255, 0])
 
 
 @pytest.fixture(scope="session", autouse=True)
