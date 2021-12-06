@@ -198,7 +198,7 @@ def main():
         rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value,
                                                available_colormaps[args['colormap']])
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        SLIX.io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
+        SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
 
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
@@ -235,7 +235,7 @@ def main():
                                                         vector_width=
                                                         vector_width,
                                                         colormap=available_colormaps[args['colormap']])
-            plt.savefig(output_path_name + 'vector_distribution.tiff',
+            plt.savefig(f"{output_path_name}vector_distribution_{args['colormap']}.tiff",
                         dpi=args['dpi'],
                         bbox_inches='tight')
         else:
@@ -248,7 +248,7 @@ def main():
                                             background_threshold,
                                             colormap=available_colormaps[args['colormap']])
 
-            plt.savefig(output_path_name + 'vector.tiff', dpi=args['dpi'],
+            plt.savefig(f"{output_path_name}vector_{args['colormap']}.tiff", dpi=args['dpi'],
                         bbox_inches='tight')
         plt.clf()
 
