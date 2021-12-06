@@ -1,5 +1,5 @@
 import numpy
-from matplotlib.colors import hsv_to_rgb
+from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
 from matplotlib import pyplot as plt
 from PIL import Image
 import copy
@@ -353,7 +353,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction, saturation=None, value=None):
+def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_black):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -404,8 +404,11 @@ def direction(direction, saturation=None, value=None):
     """
     direction = numpy.array(direction)
     direction_shape = direction.shape
+    inclination = numpy.zeros(direction.shape)
 
-    hue = direction
+    colors = colormap(direction, inclination)
+    hsv_colors = rgb_to_hsv(colors)
+
     # If no saturation is given, create an "empty" saturation image that will be used
     if saturation is None:
         saturation = numpy.ones(direction.shape)
@@ -428,11 +431,12 @@ def direction(direction, saturation=None, value=None):
     if not value.shape[-1] == direction_shape[-1]:
         value = numpy.repeat(value, direction_shape[-1], axis=-1)
 
-    hsv_stack = numpy.stack((hue / 180.0, saturation, value))
-    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-    rgb_stack = hsv_to_rgb(hsv_stack)
+    hsv_colors[..., 1] *= saturation
+    hsv_colors[..., 2] *= value
+    colors = hsv_to_rgb(hsv_colors)
+    print(colors.shape)
 
     if len(direction_shape) > 2:
-        return _visualize_multiple_direction(direction, rgb_stack)
+        return _visualize_multiple_direction(direction, colors)
     else:
-        return _visualize_one_direction(direction, rgb_stack)
+        return _visualize_one_direction(direction, colors)

@@ -67,7 +67,6 @@ def _downsample(image, kernel_size, background_threshold=0,
     return result_image
 
 
-@numba.njit()
 def _visualize_one_direction(direction, rgb_stack):
     output_image = rgb_stack
     output_image[direction == -1] = 0
@@ -75,7 +74,6 @@ def _visualize_one_direction(direction, rgb_stack):
     return output_image.astype('float32')
 
 
-@numba.njit()
 def _visualize_multiple_direction(direction, rgb_stack):
     output_image = numpy.zeros((direction.shape[0] * 2,
                                 direction.shape[1] * 2,
