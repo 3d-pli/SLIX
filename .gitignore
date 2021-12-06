@@ -4,10 +4,14 @@ SLIX.egg-info/
 venv/
 .idea/
 /*/__pycache__/
-.vscode/settings.json
+.vscode/
 */__pycache__
 */*/__pycache__
 .coverage
 htmlcov/
 .pytest_cache
 notebooks/
+.vs
+*/*-checkpoint*
+*/.ipynb_checkpoints
+tools/
