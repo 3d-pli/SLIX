@@ -25,7 +25,7 @@ class ColorMap:
             inclination = numpy.deg2rad(inclination)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
-                                 2 * inclination / numpy.pi,
+                                 1.0 - (2 * inclination / numpy.pi),
                                  numpy.ones(direction.shape)))
         hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
         return hsv_to_rgb(hsv_stack)
@@ -39,12 +39,11 @@ class ColorMap:
 
         hsv_stack = numpy.stack((direction / numpy.pi,
                                  numpy.ones(direction.shape),
-                                 2 * inclination / numpy.pi))
+                                 1.0 - (2 * inclination / numpy.pi)))
         hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
         return hsv_to_rgb(hsv_stack)
 
     @staticmethod
-    @numba.njit()
     def rgb(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
         if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
@@ -56,6 +55,8 @@ class ColorMap:
             numpy.cos(inclination) * numpy.sin(direction),
             numpy.sin(inclination)
         ))
+
+        rgb_stack = numpy.moveaxis(rgb_stack, 0, -1)
         return rgb_stack
 
     @staticmethod
@@ -79,7 +80,6 @@ class ColorMap:
         return ColorMap.hsv_white(direction, inclination)
 
     @staticmethod
-    @numba.njit()
     def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
         if not direction.max() <= numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
@@ -353,7 +353,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_black):
+def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_white):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -434,7 +434,6 @@ def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_blac
     hsv_colors[..., 1] *= saturation
     hsv_colors[..., 2] *= value
     colors = hsv_to_rgb(hsv_colors)
-    print(colors.shape)
 
     if len(direction_shape) > 2:
         return _visualize_multiple_direction(direction, colors)

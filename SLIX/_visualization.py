@@ -140,7 +140,7 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
 
     # Convert to RGB colors
     normed_angle = numpy.abs(numpy.arctan2(mesh_v_normed, -mesh_u_normed))
-    color_rgb = colormap(normed_angle, numpy.full(normed_angle.shape, numpy.pi / 2))
+    color_rgb = colormap(normed_angle, numpy.zeros_like(normed_angle))
 
     mesh_u_normed[numpy.isclose(mesh_u, 0) &
                   numpy.isclose(mesh_v, 0)] = numpy.nan
