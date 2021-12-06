@@ -29,11 +29,6 @@ def create_argument_parser():
                         help='Input direction (.tiff) images. '
                              'Please put all directions in the right order.',
                         required=True)
-    parser.add_argument('--inclination',
-                        nargs='*',
-                        help='Input inclination (.tiff) images. '
-                             'Please put all inclinations in the right order.',
-                        required=False)
     parser.add_argument('-o',
                         '--output',
                         help='Output folder where images will be saved to.',
@@ -60,6 +55,11 @@ def create_argument_parser():
     fom_parser = subparser.add_parser('fom', help="Write approximate "
                                                   "fiber orientation map from"
                                                   " direction images.")
+    fom_parser.add_argument('--inclination',
+                            nargs='*',
+                            help='Input inclination (.tiff) images. '
+                                 'Please put all inclinations in the right order.',
+                            required=False)
     fom_parser.add_argument('--output_type',
                             required=False,
                             default='tiff',
@@ -165,32 +165,13 @@ def main():
                                                      single_direction_image
                                                      [:, :, numpy.newaxis]),
                                                     axis=-1)
-    if args['inclination'] is not None:
-        inclination_image = None
-        for inclination_file in args['inclination']:
-            single_inclination_image = SLIX.io.imread(inclination_file)
-            if inclination_image is None:
-                inclination_image = single_inclination_image
-            else:
-                if len(inclination_image.shape) == 2:
-                    inclination_image = numpy.stack((inclination_image,
-                                                     single_inclination_image),
-                                                    axis=-1)
-                else:
-                    inclination_image = numpy.concatenate((inclination_image,
-                                                           single_inclination_image
-                                                           [:, :, numpy.newaxis]),
-                                                          axis=-1)
-    else:
-        inclination_image = numpy.zeros_like(direction_image)
-
     if args['command'] == "fom":
-        write_fom(args, direction_image, inclination_image, output_path_name)
+        write_fom(args, direction_image, output_path_name)
     if args['command'] == "vector":
-        write_vector(args, direction_image, inclination_image, output_path_name)
+        write_vector(args, direction_image, output_path_name)
 
 
-def write_vector(args, direction_image, inclination_image, output_path_name):
+def write_vector(args, direction_image, output_path_name):
     image = SLIX.io.imread(args['slimeasurement'])
     UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
     # Try to fix image shape if the two axes are swapped
@@ -253,7 +234,26 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
 
-def write_fom(args, direction_image, inclination_image, output_path_name):
+def write_fom(args, direction_image, output_path_name):
+    if args['inclination'] is not None:
+        inclination_image = None
+        for inclination_file in args['inclination']:
+            single_inclination_image = SLIX.io.imread(inclination_file)
+            if inclination_image is None:
+                inclination_image = single_inclination_image
+            else:
+                if len(inclination_image.shape) == 2:
+                    inclination_image = numpy.stack((inclination_image,
+                                                     single_inclination_image),
+                                                    axis=-1)
+                else:
+                    inclination_image = numpy.concatenate((inclination_image,
+                                                           single_inclination_image
+                                                           [:, :, numpy.newaxis]),
+                                                          axis=-1)
+    else:
+        inclination_image = numpy.zeros_like(direction_image)
+
     output_data_type = '.' + args['output_type']
     if output_data_type not in ['.h5', '.tiff', '.tif']:
         print('Output data type is not supported. Please choose a valid '
@@ -267,7 +267,6 @@ def write_fom(args, direction_image, inclination_image, output_path_name):
         value = SLIX.io.imread(args['value'])
     rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value,
                                            available_colormaps[args['colormap']])
-    rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
     SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",

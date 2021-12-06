@@ -454,7 +454,8 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
     """
     direction = numpy.array(direction)
     direction_shape = direction.shape
-    inclination = numpy.zeros(direction.shape)
+    if inclination is None:
+        inclination = numpy.zeros_like(direction)
 
     colors = colormap(direction, inclination)
     hsv_colors = rgb_to_hsv(colors)
@@ -486,6 +487,6 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
     colors = hsv_to_rgb(hsv_colors)
 
     if len(direction_shape) > 2:
-        return _visualize_multiple_direction(direction, colors)
+        return (255.0 * _visualize_multiple_direction(direction, colors)).astype(numpy.uint8)
     else:
-        return _visualize_one_direction(direction, colors)
+        return (255.0 * _visualize_one_direction(direction, colors)).astype(numpy.uint8)

@@ -502,6 +502,8 @@ def unit_vectors(direction, inclination, use_gpu=gpu_available, return_numpy=Tru
 
         direction: 3D NumPy array - direction angles in degrees
 
+        inclination: 3D NumPy array - inclination angles in degrees
+
         use_gpu: If available use the GPU for calculation
 
         return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
