@@ -13,12 +13,18 @@ def create_argument_parser():
                             add_help=False
                             )
     # Required parameters
-    parser.add_argument('-i',
-                        '--input',
+    parser.add_argument('-i', '--input',
+                        '--direction',
+                        name='input',
                         nargs='*',
                         help='Input direction (.tiff) images. '
                              'Please put all directions in the right order.',
                         required=True)
+    parser.add_argument('--inclination',
+                        nargs='*',
+                        help='Input inclination (.tiff) images. '
+                             'Please put all inclinations in the right order.',
+                        required=False)
     parser.add_argument('-o',
                         '--output',
                         help='Output folder where images will be saved to.',
@@ -140,6 +146,24 @@ def main():
                                                      single_direction_image
                                                      [:, :, numpy.newaxis]),
                                                     axis=-1)
+    if args['inclination'] is not None:
+        inclination_image = None
+        for inclination_file in args['inclination']:
+            single_inclination_image = SLIX.io.imread(inclination_file)
+            if inclination_image is None:
+                inclination_image = single_inclination_image
+            else:
+                if len(inclination_image.shape) == 2:
+                    inclination_image = numpy.stack((inclination_image,
+                                                     single_inclination_image),
+                                                    axis=-1)
+                else:
+                    inclination_image = numpy.concatenate((inclination_image,
+                                                           single_inclination_image
+                                                           [:, :, numpy.newaxis]),
+                                                          axis=-1)
+    else:
+        inclination_image = numpy.zeros_like(direction_image)
 
     if args['command'] == "fom":
         output_data_type = '.' + args['output_type']
@@ -156,7 +180,7 @@ def main():
         if args['value']:
             value = SLIX.io.imread(args['value'])
 
-        rgb_fom = SLIX.visualization.direction(direction_image, saturation, value)
+        rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value)
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
         SLIX.io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
 
@@ -166,7 +190,7 @@ def main():
 
         # Try to fix image shape if the two axes are swapped
         if image.shape[:2] != UnitX.shape[:2] and \
-           image.shape[:2][::-1] == UnitX.shape[:2]:
+                image.shape[:2][::-1] == UnitX.shape[:2]:
             image = image.T
         if image.shape[:2] != UnitX.shape[:2]:
             print("[WARNING]: Direction and SLI measurement are not correctly aligned."

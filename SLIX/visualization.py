@@ -191,6 +191,8 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         If the fraction of background pixels lies above this defined threshold,
         background pixels will not be considered for computing the median.
 
+        colormap: The colormap to use. Default is HSV black. The available color maps
+                  can be found in the ColorMap class.
 
     Returns:
 
@@ -294,6 +296,9 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
         alpha: Apply alpha to Matplotlib plots to overlay them with some other
         other image like the averaged transmitted light intensity.
 
+        colormap: The colormap to use. Default is HSV black. The available color maps
+                  can be found in the ColorMap class.
+
     Returns:
 
         The current Matplotlib axis. The image can be shown with pyplot.show().
@@ -353,7 +358,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_white):
+def direction(direction, inclination=None, saturation=None, value=None, colormap=ColorMap.hsv_black):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -389,6 +394,8 @@ def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_whit
         direction: 2D or 3D Numpy array containing the direction of the image
                    stack
 
+        inclination: Optional inclination of the image in degrees. If none is set, an inclination of 0° is assumed.
+
         saturation: Weight image by using the saturation value. Use either a 2D image
                     or a 3D image with the same shape as the direction. If no image
                     is used, the saturation for all image pixels will be set to 1
@@ -396,6 +403,9 @@ def direction(direction, saturation=None, value=None, colormap=ColorMap.hsv_whit
         value:  Weight image by using the value. Use either a 2D image
                 or a 3D image with the same shape as the direction. If no image
                 is used, the value for all image pixels will be set to 1
+
+        colormap: The colormap to use. Default is HSV black. The available color maps
+                  can be found in the ColorMap class.
 
     Returns:
 
