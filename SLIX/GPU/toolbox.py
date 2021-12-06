@@ -656,3 +656,44 @@ def unit_vectors(direction, return_numpy=True):
     if return_numpy:
         return UnitX.get(), UnitY.get()
     return UnitX, UnitY
+
+
+def unit_vectors(direction, inclination, return_numpy=True):
+    """
+    Calculate the unit vectors (UnitX, UnitY, UnitZ) from a given direction angle.
+
+    Args:
+
+        direction: 3D NumPy array - direction angles in degrees
+
+        inclination: 3D NumPy array - inclination angles in degrees
+
+        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
+        array will be returned.
+
+    Returns:
+
+        UnitX, UnitY, UnitZ: 3D NumPy array, 3D NumPy array
+            x- and y-vector component in arrays
+    """
+    direction_gpu = cupy.array(direction)
+    direction_gpu_rad = cupy.deg2rad(direction_gpu)
+    UnitX = -cupy.sin(0.5 * cupy.pi) * cupy.cos(direction_gpu_rad)
+    UnitY = cupy.sin(0.5 * cupy.pi) * cupy.sin(direction_gpu_rad)
+    del direction_gpu_rad
+
+    UnitX[cupy.isclose(direction_gpu, -1)] = 0
+    UnitY[cupy.isclose(direction_gpu, -1)] = 0
+
+    inclination_gpu = cupy.array(inclination)
+    inclination_gpu_rad = cupy.deg2rad(inclination_gpu)
+    UnitZ = cupy.sin(inclination_gpu_rad)
+    del inclination_gpu_rad
+
+    UnitZ[cupy.isclose(direction_gpu, -1)] = 0
+    del direction_gpu
+    del inclination_gpu
+
+    if return_numpy:
+        return UnitX.get(), UnitY.get(), UnitZ.get()
+    return UnitX, UnitY, UnitZ

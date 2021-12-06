@@ -54,7 +54,7 @@ def create_argument_parser():
                           nargs="*",
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
-                               ' with less than 5 degree between each image.'
+                               ' with less than 5 degree between each image. '
                                'Available options: "fourier" or "savgol"'
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'
@@ -208,6 +208,9 @@ def main():
 
         tqdm_step.set_description('Reading image')
         image = io.imread(path)
+        while len(image.shape) < 3:
+            image = image[numpy.newaxis, ...]
+
         if os.path.isdir(path):
             io.imwrite(output_path_name + "_Stack" + output_data_type, image)
 

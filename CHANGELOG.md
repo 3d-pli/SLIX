@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.4.0
+### Added
+- Added new options to SLIXVisualizeParameter to allow the user to customize the appearance of the resulting parameter maps such as the vector maps and the FOM.
+- Added a new interface to SLIX.visualize called Colormaps. This class contains basic colormaps that can be used to visualize the results of the SLIX.visualize methods.
+- Currently this class holds the following color maps:
+  - Colomaps.rgb
+  - Colormaps.hsv_black
+  - Colormaps.hsv_white
+  - Colormaps.hsv_black_reverse
+  - Colormaps.hsv_white_reverse
+  - Colormaps.rgb_reverse
+- Added command line parameters for the user to choose the color maps when calling SLIXVisualizeParameter (`-c, --colormap`).
+- Added a new color_bubble method to SLIX.visualize.
+- Added an inclination parameter to SLIXVisualizeParameter [...] fom to allow the user to choose the inclination of the FOM.
+- 
+### Changed
+- When calling SLIXVisualizeParameter, a color bubble associated with the written image will be written as well. This can be disabled by using the `--disable_colorbubble` option.
+- Added a new method to SLIX.toolbox to get unit vectors from both direction and inclination images (3D instead of 2D only).
+- Added the name of the color map to the filename.
+- Added optional paramer name for the directions in SLIXVisualizeParameter (`--direction`).
+- 
+### Fixed
+- N/A
 
 ## v2.3.0
 ### Added
@@ -20,9 +43,14 @@
 - `SLIXLineplotParameterGenerator` now also supports the smoothing options from `SLIXParameterGenerator`
 - Multiple line profiles will be calculated in parallel when using `SLIXLineplotParameterGenerator`
 - When reading multiple files from a folder with `SLIXParameterGenerator` the filename will now not match the folder name but will instead use the file pattern in the read files instead.
+- Disabled the GPU usage for unit vectors in SLIXVisualizeParameter until a better solution for large input files has been found.
+- When using SLIXVisualizeParameter, a warning will now be shown when the background image dimensions do not match the image dimensions of the direction.
+- When using SLIXVisualizeParameter, the background image will only be rotated when it would match the orientation of the direction images
 
 ### Fixed
 - Fixed a bug in the tests of the visualization images where the Matplotlib figure wasn't cleared as expected. The tests did check the right things though. It only resulted in a problem when adding another test for the new parameter.
+- Fixed a bug where a 3D stack with the shape (1, 1, x) would not be processed correctly with SLIXParameterGenerator
+- Fixed a bug in SLIXVisualizeParameter which could occur when the thinout is exactly the image size
 
 ## v2.2.2
 ### Added

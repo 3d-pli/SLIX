@@ -49,7 +49,7 @@ def create_argument_parser():
                           default="",
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
-                               ' with less than 5 degree between each image.'
+                               ' with less than 5 degree between each image. '
                                'Available options: "fourier" or "savgol"'
                                '. The parameters of those algorithms can be '
                                'set with additional parameters. For example'
@@ -147,7 +147,7 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
     profile = profile.flatten()
     filtered_profile = filtered_profile.flatten()
 
-    profile = profile / profile.max()
+    profile = (profile - profile.min()) / (profile.max() - profile.min())
     plt.plot(profile)
 
     if not numpy.all(profile == filtered_profile):
