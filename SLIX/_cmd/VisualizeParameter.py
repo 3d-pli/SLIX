@@ -6,12 +6,12 @@ from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
 available_colormaps = {
-    'rgb': SLIX.visualization.colormap.rgb,
-    'hsvBlack': SLIX.visualization.colormap.hsv_black,
-    'hsvWhite': SLIX.visualization.colormap.hsv_white,
-    'rgb_r': SLIX.visualization.colormap.rgb_reverse,
-    'hsvBlack_r': SLIX.visualization.colormap.hsv_black_reverse,
-    'hsvWhite_r': SLIX.visualization.colormap.hsv_white_reverse
+    'rgb': SLIX.visualization.Colormap.rgb,
+    'hsvBlack': SLIX.visualization.Colormap.hsv_black,
+    'hsvWhite': SLIX.visualization.Colormap.hsv_white,
+    'rgb_r': SLIX.visualization.Colormap.rgb_reverse,
+    'hsvBlack_r': SLIX.visualization.Colormap.hsv_black_reverse,
+    'hsvWhite_r': SLIX.visualization.Colormap.hsv_white_reverse
 }
 
 

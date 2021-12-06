@@ -13,10 +13,10 @@ __all__ = ['parameter_map',
            'unit_vectors',
            'unit_vector_distribution',
            'direction',
-           'colormap']
+           'Colormap']
 
 
-class colormap:
+class Colormap:
     @staticmethod
     def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
         if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
@@ -68,7 +68,7 @@ class colormap:
             inclination = numpy.deg2rad(inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return colormap.hsv_black(direction, inclination)
+        return Colormap.hsv_black(direction, inclination)
 
     @staticmethod
     def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
@@ -78,7 +78,7 @@ class colormap:
             inclination = numpy.deg2rad(inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return colormap.hsv_white(direction, inclination)
+        return Colormap.hsv_white(direction, inclination)
 
     @staticmethod
     def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
@@ -88,7 +88,7 @@ class colormap:
             inclination = numpy.deg2rad(inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return colormap.rgb(direction, inclination)
+        return Colormap.rgb(direction, inclination)
 
 
 def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
@@ -143,10 +143,46 @@ def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
     return fig, ax
 
 
+def color_bubble(colormap: Colormap, shape=(200, 200, 3)) -> numpy.ndarray:
+    """
+    Based on the chosen colormap in methods like unit_vectors or
+    direction, the user might want to see the actual color bubble to understand
+    the shown orientations. This method creates an empty numpy array and fills
+    it with values based on the circular orientation from the middle point.
+    The color can be directed from the colormap argument
+    Args:
+        colormap: Colormap which will be used to create the color bubble
+        shape: Shape of the resulting color bubble.
+
+    Returns: NumPy array containing the color bubble
+
+    """
+
+    # create a meshgrid of the shape with the position of each pixel
+    x, y = numpy.meshgrid(numpy.arange(shape[0]), numpy.arange(shape[1]))
+    # center of our color_bubble
+    center = numpy.array([shape[0]/2, shape[1]/2])
+    # radius where a full circle is still visible
+    radius = numpy.minimum(numpy.minimum(center[0], center[1]),
+                           numpy.minimum(shape[0] - center[0], shape[1] - center[1]))
+    # calculate the direction as the angle between the center and the pixel
+    direction = numpy.pi - numpy.arctan2(y - center[0], x - center[1]) % numpy.pi
+
+    # calculate the inclination as the distance between the center and the pixel
+    inclination = numpy.sqrt((y - center[0])**2 + (x - center[1])**2)
+    # normalize the inclination to a range of 0 to 90 degrees where 0 degree is at a distance of radius
+    # and 90 degree is at a distance of 0
+    inclination = 90 - inclination / radius * 90
+    inclination[inclination < 0] = 90
+
+    color_bubble = colormap(direction, inclination)
+    return color_bubble
+
+
 def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
-                 background_value=0, colormap=colormap.hsv_black):
+                 background_value=0, colormap=Colormap.hsv_black):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -260,7 +296,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.01, colormap=colormap.hsv_black):
+                             alpha=0.01, colormap=Colormap.hsv_black):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -359,7 +395,7 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def direction(direction, inclination=None, saturation=None, value=None, colormap=colormap.hsv_black):
+def direction(direction, inclination=None, saturation=None, value=None, colormap=Colormap.hsv_black):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
