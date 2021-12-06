@@ -199,7 +199,8 @@ def main():
                                                available_colormaps[args['colormap']])
         rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
         SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
-
+        SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}{output_data_type}",
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
     if args['command'] == "vector":
         image = SLIX.io.imread(args['slimeasurement'])
         UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
@@ -238,6 +239,8 @@ def main():
             plt.savefig(f"{output_path_name}vector_distribution_{args['colormap']}.tiff",
                         dpi=args['dpi'],
                         bbox_inches='tight')
+            SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
+                                SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
         else:
             SLIX.visualization.unit_vectors(UnitX, UnitY,
                                             thinout=thinout,
@@ -250,6 +253,8 @@ def main():
 
             plt.savefig(f"{output_path_name}vector_{args['colormap']}.tiff", dpi=args['dpi'],
                         bbox_inches='tight')
+            SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
+                                SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
         plt.clf()
 
 

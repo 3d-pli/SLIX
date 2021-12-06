@@ -179,7 +179,7 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     color_bubble = colormap(direction, inclination)
     color_bubble[inclination < 0] = 0
 
-    return color_bubble
+    return (255.0 * color_bubble).astype('uint8')
 
 
 def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
