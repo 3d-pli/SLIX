@@ -172,7 +172,7 @@ def main():
         if args['weight_map'] is not None:
             weight_map = SLIX.io.imread(args['weight_map']).astype(float)
             weight_map = (weight_map - weight_map.min()) / \
-                         (weight_map.max() - weight_map.min())
+                         (numpy.percentile(weight_map, 95) - weight_map.min())
         else:
             weight_map = None
 
