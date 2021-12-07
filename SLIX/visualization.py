@@ -185,7 +185,8 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
 def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
-                 background_value=0, weighting=None, colormap=Colormap.hsv_black):
+                 background_value=0, colormap=Colormap.hsv_black,
+                 weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -231,11 +232,20 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         If the fraction of background pixels lies above this defined threshold,
         background pixels will not be considered for computing the median.
 
+<<<<<<< HEAD
         weighting: Weighting of the vectors. If None, the vectors will be
         weighted by a value of one, resulting in normal unit vectors.
 
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
+=======
+        colormap: The colormap to use. Default is HSV black. The available color maps
+                  can be found in the colormap class.
+
+        weighting: Weighting of the vectors. If None, the vectors will be
+                   weighted by a value of one, resulting in normal unit vectors.
+
+>>>>>>> 2.4.0
 
     Returns:
 
@@ -308,14 +318,14 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                                 mesh_u.flatten(),
                                 mesh_v.flatten(),
                                 scale, alpha, vector_width,
-                                weighting,
-                                colormap)
+                                weighting, colormap)
     return ax
 
 
 def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
                              scale=-1, vector_width=1,
-                             alpha=0.01, colormap=Colormap.hsv_black, weighting=None):
+                             alpha=0.01, colormap=Colormap.hsv_black,
+                             weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -352,11 +362,11 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
         alpha: Apply alpha to Matplotlib plots to overlay them with some other
         other image like the averaged transmitted light intensity.
 
-        weighting: Weighting of the vectors. If None, the vectors will be
-        weighted by a value of one, resulting in normal unit vectors.
-        
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
+
+        weighting: Weighting of the vectors. If None, the vectors will be
+        weighted by a value of one, resulting in normal unit vectors.
 
     Returns:
 

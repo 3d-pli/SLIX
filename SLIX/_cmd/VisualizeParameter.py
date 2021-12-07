@@ -175,9 +175,16 @@ def main():
     if args['command'] == "vector":
         write_vector(args, direction_image, output_path_name)
 
+
 def write_vector(args, direction_image, output_path_name):
     image = SLIX.io.imread(args['slimeasurement'])
     UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
+    if args['weight_map'] is not None:
+        weight_map = SLIX.io.imread(args['weight_map']).astype(float)
+        weight_map = (weight_map - weight_map.min()) / \
+                     (numpy.percentile(weight_map, 95) - weight_map.min())
+    else:
+        weight_map = None
     # Try to fix image shape if the two axes are swapped
     if image.shape[:2] != UnitX.shape[:2] and \
             image.shape[:2][::-1] == UnitX.shape[:2]:

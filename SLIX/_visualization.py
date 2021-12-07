@@ -144,8 +144,9 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
 
     # Apply weighting
     if weighting is not None:
-        mesh_u_normed = numpy.sqrt(weighting) * mesh_u_normed
-        mesh_v_normed = numpy.sqrt(weighting) * mesh_v_normed
+        mesh_u_normed = weighting * mesh_u_normed
+        mesh_v_normed = weighting * mesh_v_normed
+
     # Apply scaling
     mesh_u_normed *= scale
     mesh_v_normed *= scale

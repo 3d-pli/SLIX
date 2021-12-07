@@ -2,6 +2,7 @@
 
 ## v2.4.0
 ### Added
+- Added vector weighting option available for SLIXVisualizeParameter with the parameter `--weight_map`. This parameter is used to weight the length of the shown vectors in both the unit vector visualization as well as the vector distribution.
 - Added new options to SLIXVisualizeParameter to allow the user to customize the appearance of the resulting parameter maps such as the vector maps and the FOM.
 - Added a new interface to SLIX.visualize called Colormaps. This class contains basic colormaps that can be used to visualize the results of the SLIX.visualize methods.
 - Currently this class holds the following color maps:
