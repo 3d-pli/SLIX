@@ -125,6 +125,11 @@ def create_argument_parser():
                                     'vectors. A larger value might help'
                                     ' to see the vectors better when using'
                                     ' a large thinout.')
+    vector_parser.add_argument('--weight_map', type=str, required=False,
+                               help="Weight the unit vectors shown by the "
+                                    "given parameter map. Lower values "
+                                    "will reduce the length of the vectors.",
+                               default=None)
     vector_parser.add_argument('--dpi',
                                default=1000,
                                type=int,
@@ -174,6 +179,12 @@ def main():
 def write_vector(args, direction_image, output_path_name):
     image = SLIX.io.imread(args['slimeasurement'])
     UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
+    if args['weight_map'] is not None:
+        weight_map = SLIX.io.imread(args['weight_map']).astype(float)
+        weight_map = (weight_map - weight_map.min()) / \
+                     (numpy.percentile(weight_map, 95) - weight_map.min())
+    else:
+        weight_map = None
     # Try to fix image shape if the two axes are swapped
     if image.shape[:2] != UnitX.shape[:2] and \
             image.shape[:2][::-1] == UnitX.shape[:2]:
@@ -195,14 +206,15 @@ def write_vector(args, direction_image, output_path_name):
         plt.imshow(numpy.max(image, axis=-1), cmap='gray')
     plt.axis('off')
     if args['distribution']:
-        write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width)
+        write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map)
     else:
         write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout,
-                           vector_width)
+                           vector_width, weight_map)
     plt.clf()
 
 
-def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout, vector_width):
+def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout, vector_width,
+                       weight_map):
     SLIX.visualization.unit_vectors(UnitX, UnitY,
                                     thinout=thinout,
                                     scale=scale,
@@ -210,6 +222,7 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                                     vector_width=vector_width,
                                     background_threshold=
                                     background_threshold,
+                                    weighting=weight_map,
                                     colormap=available_colormaps[args['colormap']])
     plt.savefig(f"{output_path_name}vector_{args['colormap']}.tiff", dpi=args['dpi'],
                 bbox_inches='tight')
@@ -218,13 +231,14 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
 
-def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width):
+def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map):
     SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
                                                 thinout=thinout,
                                                 scale=scale,
                                                 alpha=alpha,
                                                 vector_width=
                                                 vector_width,
+                                                weighting=weight_map,
                                                 colormap=available_colormaps[args['colormap']])
     plt.savefig(f"{output_path_name}vector_distribution_{args['colormap']}.tiff",
                 dpi=args['dpi'],
