@@ -8,45 +8,63 @@ import os
 
 matplotlib.use('agg')
 
+available_colormaps = [
+    {'rgb': visualization.Colormap.rgb},
+    {'hsvBlack': visualization.Colormap.hsv_black},
+    {'hsvWhite': visualization.Colormap.hsv_white},
+    {'rgb_r': visualization.Colormap.rgb_reverse},
+    {'hsvBlack_r': visualization.Colormap.hsv_black_reverse},
+    {'hsvWhite_r': visualization.Colormap.hsv_white_reverse}
+]
+
 
 class TestVisualization:
-    def test_visualize_unit_vectors(self):
+    @pytest.mark.parametrize('colormap', available_colormaps)
+    def test_visualize_unit_vectors(self, colormap):
+        colormap_name = list(colormap.keys())[0]
+        colormap_function = list(colormap.values())[0]
+
         example = io.imread('tests/files/demo.nii')
         peaks = toolbox.significant_peaks(example, use_gpu=False)
         centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
         direction = toolbox.direction(peaks, centroid, use_gpu=False)
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
-        visualization.unit_vectors(unit_x, unit_y, thinout=10)
-        plt.savefig('tests/output/vis/unit_vectors.tiff', dpi=100,
+        visualization.unit_vectors(unit_x, unit_y, thinout=10, colormap=colormap_function)
+        plt.savefig(f'tests/output/vis/unit_vectors_{colormap_name}.tiff', dpi=100,
                     bbox_inches='tight')
 
-        orig = io.imread('tests/files/vis/unit_vectors.tiff')
-        to_compare = io.imread('tests/output/vis/unit_vectors.tiff')
+        orig = io.imread(f'tests/files/vis/unit_vectors_{colormap_name}.tiff')
+        to_compare = io.imread(f'tests/output/vis/unit_vectors_{colormap_name}.tiff')
 
         if numpy.all(numpy.isclose(orig - to_compare, 0)):
             assert True
         else:
-            io.imwrite('tests/output/vis/unit_vectors-diff.tiff', orig - to_compare)
+            io.imwrite(f'tests/output/vis/unit_vectors_{colormap_name}-diff.tiff', orig - to_compare)
             assert False
 
-    def test_visualize_unit_vector_distribution(self):
+    @pytest.mark.parametrize('colormap', available_colormaps)
+    def test_visualize_unit_vector_distribution(self, colormap):
+        colormap_name = list(colormap.keys())[0]
+        colormap_function = list(colormap.values())[0]
+
         example = io.imread('tests/files/demo.nii')
         peaks = toolbox.significant_peaks(example, use_gpu=False)
         centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
         direction = toolbox.direction(peaks, centroid, use_gpu=False)
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
-        visualization.unit_vector_distribution(unit_x, unit_y, thinout=15, vector_width=5, alpha=0.01)
+        visualization.unit_vector_distribution(unit_x, unit_y, thinout=15, vector_width=5,
+                                               alpha=0.01, colormap=colormap_function)
 
-        plt.savefig('tests/output/vis/unit_vector_distribution.tiff', dpi=100,
+        plt.savefig(f'tests/output/vis/unit_vector_distribution_{colormap_name}.tiff', dpi=100,
                     bbox_inches='tight')
 
-        orig = io.imread('tests/files/vis/unit_vector_distribution.tiff')
-        to_compare = io.imread('tests/output/vis/unit_vector_distribution.tiff')
+        orig = io.imread(f'tests/files/vis/unit_vector_distribution_{colormap_name}.tiff')
+        to_compare = io.imread(f'tests/output/vis/unit_vector_distribution_{colormap_name}.tiff')
 
         if numpy.all(numpy.isclose(orig - to_compare, 0)):
             assert True
         else:
-            io.imwrite('tests/output/vis/unit_vector_distribution-diff.tiff', orig - to_compare)
+            io.imwrite(f'tests/output/vis/unit_vector_distribution_{colormap_name}-diff.tiff', orig - to_compare)
             assert False
 
     def test_visualize_parameter_map(self):
@@ -85,8 +103,6 @@ class TestVisualization:
                                              fourth_dir),
                                             axis=-1)
         hsv_image = visualization.direction(stack_direction)
-
-        print(hsv_image)
 
         # Check first direction
         assert numpy.all(hsv_image[0, 0, :] == [255, 0, 0])
@@ -128,7 +144,7 @@ def run_around_tests(request):
 
     def remove_test_dir():
         if os.path.isdir('tests/output/vis'):
-            # shutil.rmtree('tests/output/vis')
+            shutil.rmtree('tests/output/vis')
             pass
 
     request.addfinalizer(remove_test_dir)
