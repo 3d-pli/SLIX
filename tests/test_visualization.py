@@ -49,6 +49,50 @@ class TestVisualization:
             io.imwrite('tests/output/vis/unit_vector_distribution-diff.tiff', orig - to_compare)
             assert False
 
+    def test_weight_unit_vector(self):
+        example = io.imread('tests/files/demo.nii')
+        peaks = toolbox.significant_peaks(example, use_gpu=False)
+        centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
+        direction = toolbox.direction(peaks, centroid, use_gpu=False)
+        avg = numpy.average(example, axis=-1)
+        avg = (avg - avg.min()) / (numpy.percentile(avg, 95) - avg.min())
+        unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
+        visualization.unit_vectors(unit_x, unit_y, weighting=avg, thinout=10, scale=10)
+        plt.savefig('tests/output/vis/unit_vectors_weighted.tiff', dpi=100,
+                    bbox_inches='tight')
+
+        orig = io.imread('tests/files/vis/unit_vectors_weighted.tiff')
+        to_compare = io.imread('tests/output/vis/unit_vectors_weighted.tiff')
+
+        if numpy.all(numpy.isclose(orig - to_compare, 0)):
+            assert True
+        else:
+            io.imwrite('tests/output/vis/unit_vectors_weighted-diff.tiff', orig - to_compare)
+            assert False
+
+    def test_weight_unit_vector_distribution(self):
+        example = io.imread('tests/files/demo.nii')
+        peaks = toolbox.significant_peaks(example, use_gpu=False)
+        centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
+        direction = toolbox.direction(peaks, centroid, use_gpu=False)
+        avg = numpy.average(example, axis=-1)
+        avg = (avg - avg.min()) / (numpy.percentile(avg, 95) - avg.min())
+        unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
+        visualization.unit_vector_distribution(unit_x, unit_y, weighting=avg, thinout=15,
+                                               scale=15, vector_width=5, alpha=0.01)
+
+        plt.savefig('tests/output/vis/unit_vectors_distribution_weighted.tiff', dpi=100,
+                    bbox_inches='tight')
+
+        orig = io.imread('tests/files/vis/unit_vectors_distribution_weighted.tiff')
+        to_compare = io.imread('tests/output/vis/unit_vectors_distribution_weighted.tiff')
+
+        if numpy.all(numpy.isclose(orig - to_compare, 0)):
+            assert True
+        else:
+            io.imwrite('tests/output/vis/unit_vectors_distribution_weighted-diff.tiff', orig - to_compare)
+            assert False
+
     def test_visualize_parameter_map(self):
         example = io.imread('tests/files/demo.nii')
         prominence = toolbox.mean_peak_prominence(example, kind_of_normalization=1, use_gpu=False)
@@ -85,8 +129,6 @@ class TestVisualization:
                                              fourth_dir),
                                             axis=-1)
         hsv_image = visualization.direction(stack_direction)
-
-        print(hsv_image)
 
         # Check first direction
         assert numpy.all(hsv_image[0, 0, :] == [1, 0, 0])

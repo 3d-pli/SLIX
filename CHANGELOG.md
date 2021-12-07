@@ -1,5 +1,10 @@
 # Changelog
+## v2.4.0
+### Added
+- Added vector weighting option available for SLIXVisualizeParameter with the parameter `--weight_map`. This parameter is used to weight the length of the shown vectors in both the unit vector visualization as well as the vector distribution.
+### Changed
 
+### Fixed
 
 ## v2.3.0
 ### Added
