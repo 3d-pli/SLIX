@@ -37,8 +37,17 @@ def full_mask(high_prominence_peaks, low_prominence_peaks, peakdistance,
 
     """
     crossing = crossing_mask(high_prominence_peaks, max_image)
-    flat = flat_mask(flat_mask, max_image)
-    inclined = inclinated_mask(low_prominence_peaks, peakdistance, max_image, flat)
+    flat = flat_mask(high_prominence_peaks, low_prominence_peaks, peakdistance)
+    inclined = inclinated_mask(high_prominence_peaks, peakdistance, max_image, flat)
+
+    return_mask = flat.astype(numpy.uint8)
+    return_mask[crossing == 1] = 2
+    return_mask[crossing == 2] = 3
+    return_mask[inclined == 2] = 4
+    return_mask[inclined == 3] = 5
+    return_mask[inclined == 4] = 6
+
+    return return_mask
 
 
 def crossing_mask(high_prominence_peaks, max_image):
@@ -132,7 +141,7 @@ def inclinated_mask(high_prominence_peaks, peakdistance,
                      (peakdistance > 120) &
                      (peakdistance < 150)] = 2
     inclinated_areas[two_peak_mask & (peakdistance < 120)] = 3
-    inclinated_areas[high_prominence_peaks == 1] = 3
+    inclinated_areas[high_prominence_peaks == 1] = 4
 
     return inclinated_areas
 
