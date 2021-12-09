@@ -96,7 +96,7 @@ def main():
         flat = True
 
     # If no parameter map needs to be generated
-    if not inclination and not crossing and not flat:
+    if not all and not inclination and not crossing and not flat:
         parser.print_help()
         sys.exit(0)
 
