@@ -80,15 +80,14 @@ def main():
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
+    all = False
     inclination = False
     crossing = False
     flat = False
     basename = None
 
     if args['all']:
-        inclination = True
-        crossing = True
-        flat = True
+        all = True
     if args['inclination']:
         inclination = True
     if args['crossing']:
@@ -148,10 +147,13 @@ def main():
         io.imwrite(f'{args["output"]}/{crossing_name}{output_data_type}',
                    crossing_mask)
 
-    if inclination and flat and crossing:
-        full_mask = inclination_mask.copy()
-        full_mask[crossing_mask == 1] = 4
-        full_mask[crossing_mask == 2] = 5
+    if all:
+        full_mask = classification.full_mask(
+            loaded_parameter_maps['high_prominence_peaks'],
+            loaded_parameter_maps['low_prominence_peaks'],
+            loaded_parameter_maps['peakdistance'],
+            loaded_parameter_maps['max']
+        )
         full_name = basename.replace('basename', 'classification_mask')
         io.imwrite(f'{args["output"]}/{full_name}{output_data_type}',
                    full_mask)
