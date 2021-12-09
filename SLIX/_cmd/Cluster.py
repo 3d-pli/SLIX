@@ -5,6 +5,51 @@ import sys
 from SLIX import io, classification
 
 
+def load_parameter_maps(input_folder) -> {}:
+    """
+    Loads all parameter maps in the input folder.
+
+    Args:
+        input_folder: Folder containing the parameter maps.
+
+    Returns:
+        parameter_maps: Dictionary containing all parameter maps.
+
+    """
+    valid_parameter_map_names = [
+        'high_prominence_peaks',
+        'low_prominence_peaks',
+        'peakprominence',
+        'peakdistance',
+        'peakwidth',
+        'dir_1',
+        'dir_2',
+        'dir_3',
+        'avg',
+        'min',
+        'max'
+    ]
+
+    basename = None
+
+    loaded_parameter_maps = {}
+    list_of_files = glob.glob(input_folder + "/*")
+    for file in list_of_files:
+        for param in valid_parameter_map_names:
+            if param not in file:
+                continue
+            if basename is None:
+                basename = os.path.splitext(os.path.basename(file))[0]
+                basename = basename.replace(param, 'basename')
+            try:
+                image_in_file = io.imread(file)
+                loaded_parameter_maps[param] = image_in_file
+            except ...:
+                pass
+
+    return loaded_parameter_maps, basename
+
+
 def create_argparse():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                             description='Creation of feature set from '
@@ -56,20 +101,6 @@ def main():
     arguments = parser.parse_args()
     args = vars(arguments)
 
-    valid_parameter_map_names = [
-        'high_prominence_peaks',
-        'low_prominence_peaks',
-        'peakprominence',
-        'peakdistance',
-        'peakwidth',
-        'dir_1',
-        'dir_2',
-        'dir_3',
-        'avg',
-        'min',
-        'max'
-    ]
-
     output_data_type = '.' + args['output_type']
 
     if output_data_type not in ['.nii', '.nii.gz', '.h5', '.tiff', '.tif']:
@@ -100,20 +131,8 @@ def main():
         parser.print_help()
         sys.exit(0)
 
-    loaded_parameter_maps = {}
-    list_of_files = glob.glob(args['input']+"/*")
-    for file in list_of_files:
-        for param in valid_parameter_map_names:
-            if param not in file:
-                continue
-            if basename is None:
-                basename = os.path.splitext(os.path.basename(file))[0]
-                basename = basename.replace(param, 'basename')
-            try:
-                image_in_file = io.imread(file)
-                loaded_parameter_maps[param] = image_in_file
-            except ...:
-                pass
+    # Load all parameter maps from the user given folder
+    loaded_parameter_maps, basename = load_parameter_maps(args['input'])
 
     if flat or inclination or crossing:
         loaded_parameter_maps['flat_mask'] = classification.flat_mask(
