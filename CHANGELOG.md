@@ -23,7 +23,7 @@
 - Added optional paramer name for the directions in SLIXVisualizeParameter (`--direction`).
 - 
 ### Fixed
-- N/A
+- Fixed a bug in SLIXVisualizeParameter and SLIX.visualize.unit_vectors which caused the unit vectors to be drawn in the wrong direction.
 
 ## v2.3.0
 ### Added
