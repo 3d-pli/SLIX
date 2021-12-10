@@ -133,7 +133,7 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
                 elif number_of_peaks[idx] % 2 == 0:
                     left = (i + sub_centroid_array[i]) * 360.0 / \
                            len(sub_peak_array)
-                    right_side_peak = number_of_peaks[idx]//2
+                    right_side_peak = number_of_peaks[idx] // 2
                     current_position = i
                     while right_side_peak > 0 and \
                             current_position < len(sub_peak_array):
@@ -152,7 +152,7 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
 
                     current_pair += 1
 
-                if current_pair == number_of_peaks[idx]//2:
+                if current_pair == number_of_peaks[idx] // 2:
                     break
     return result_image
 
@@ -204,8 +204,8 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                         if right_side_peak == 0:
                             right = (current_position +
                                      sub_centroid_array[current_position]) * \
-                                     360.0 / len(sub_peak_array) + \
-                                     numpy.float32(correctdir)
+                                    360.0 / len(sub_peak_array) + \
+                                    numpy.float32(correctdir)
                             # If our peaks are around 180° ± 35° apart,
                             # we can calculate the direction.
                             if number_of_peaks[idx] > 2 and \
@@ -217,7 +217,7 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                                 (270.0 - ((left + right) / 2.0)) % 180
                             current_direction += 1
 
-                    if current_direction == number_of_peaks[idx]//2:
+                    if current_direction == number_of_peaks[idx] // 2:
                         break
     return result_image
 

@@ -340,10 +340,17 @@ SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] {fom, vector}
 
 ### Required Arguments
 
-| Argument          | Function                                                |
-| ----------------- | ------------------------------------------------------- |
-| `-i, --input`     | Input file: SLI direction stack (as .tif(f) or .nii).      |
-| `-o, --output`    | Output folder where resulting parameter maps (.tiff) will be stored. |
+| Argument                   | Function                                                |
+|----------------------------| ------------------------------------------------------- |
+| `-i, --input, --direction` | Input file: SLI direction stack (as .tif(f) or .nii).      |
+| `-o, --output`             | Output folder where resulting parameter maps (.tiff) will be stored. |
+
+### Optional Arguments
+| Argument         | Function                                                                                                                                                                                             |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--inclination`  | Input file: Inclination (for example registered from 3D-PLI). The inclination file will only influence the color of the shown vectors / FOM and does not change the shown vector orientation itself. |
+| `-c, --colormap` | Changes the color map used for the visualization. Available options: rgb, hsvBlack, hsvWhite, rgb_r (reverse), hsvBlack_r, hsvWhite_r                                                                |
+
 
 ### Subarguments
 `SLIXVisualizeParameter` supports both the creation of FOMs of direction images, and the visualization
@@ -358,17 +365,17 @@ The arguments are either `fom` for the creation of a FOM, or `vector` for the cr
 | `--saturation`         | Set another mask image which will be used to weight the image through the HSV saturation operator. The image will be normalized to 0-1. If this option isn't used, the value will be one.|
 
 #### Argument `vector`
-| Argument               | Function                                                      |
-| ---------------------- | ------------------------------------------------------------- |
-| `--slimeasurement`     | SLI measurement used for the generation of the direction. Required.      |
-| `--alpha`              | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1) |
-| `--thinout`            | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20 |
-| `--scale`              | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option.               |
-| `--vector_width`       | Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout) |
-| `--threshold`          | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1) |
-| `--dpi`                | Set the image DPI value for Matplotlib. Smaller values will result in a lower resolution image which will be written faster. Larger values will need more computation time but will result in clearer images. Default = 1000dpi|
-| `--distribution`       | Instead of using each n-th vector for the visualization (determined by the median vector), instead show all vectors on top of each other. Note: Low alpha values (around 1/alpha) are recommended. The threshold parameter won't do anything when using this parameter |
-
+| Argument        | Function                                                                                                                                                                                                                                                                                                                |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--slimeasurement` | SLI measurement used for the generation of the direction. Required.                                                                                                                                                                                                                                                     |
+| `--alpha`       | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1)                                                                                                                                                                       |
+| `--thinout`     | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20                                                                                                                                                                                  |
+| `--scale`       | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option. |
+| `--vector_width`| Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout)                                                                                                                                               |
+| `--threshold`   | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1)      |
+| `--dpi`         | Set the image DPI value for Matplotlib. Smaller values will result in a lower resolution image which will be written faster. Larger values will need more computation time but will result in clearer images. Default = 1000dpi                                                                                         |
+| `--distribution`| Instead of using each n-th vector for the visualization (determined by the median vector), instead show all vectors on top of each other. Note: Low alpha values (around 1/alpha) are recommended. The threshold parameter won't do anything when using this parameter                                                  |
+| `--weight_map`  | Weight the length of all vectors by the given weight map (normalized to the range 0 -- 1)                                                                                                                                                                                                                               |
 ### Example
 ```bash
 # Download the image

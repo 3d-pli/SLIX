@@ -5,6 +5,15 @@ import SLIX
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
+available_colormaps = {
+    'rgb': SLIX.visualization.Colormap.rgb,
+    'hsvBlack': SLIX.visualization.Colormap.hsv_black,
+    'hsvWhite': SLIX.visualization.Colormap.hsv_white,
+    'rgb_r': SLIX.visualization.Colormap.rgb_reverse,
+    'hsvBlack_r': SLIX.visualization.Colormap.hsv_black_reverse,
+    'hsvWhite_r': SLIX.visualization.Colormap.hsv_white_reverse
+}
+
 
 def create_argument_parser():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
@@ -13,8 +22,9 @@ def create_argument_parser():
                             add_help=False
                             )
     # Required parameters
-    parser.add_argument('-i',
-                        '--input',
+    parser.add_argument('-i', '--input',
+                        '--direction',
+                        dest='input',
                         nargs='*',
                         help='Input direction (.tiff) images. '
                              'Please put all directions in the right order.',
@@ -23,6 +33,16 @@ def create_argument_parser():
                         '--output',
                         help='Output folder where images will be saved to.',
                         required=True)
+    parser.add_argument('-c', '--colormap',
+                        dest='colormap',
+                        required=False,
+                        choices=available_colormaps.keys(),
+                        default='hsvBlack',
+                        help='Colormap to use for the images.')
+    parser.add_argument('--disable_colorbubble',
+                        required=False,
+                        action='store_true',
+                        help='Disable the colorbubble and only write the visualization image.')
     parser.add_argument(
         '-h',
         '--help',
@@ -35,6 +55,11 @@ def create_argument_parser():
     fom_parser = subparser.add_parser('fom', help="Write approximate "
                                                   "fiber orientation map from"
                                                   " direction images.")
+    fom_parser.add_argument('--inclination',
+                            nargs='*',
+                            help='Input inclination (.tiff) images. '
+                                 'Please put all inclinations in the right order.',
+                            required=False)
     fom_parser.add_argument('--output_type',
                             required=False,
                             default='tiff',
@@ -100,6 +125,11 @@ def create_argument_parser():
                                     'vectors. A larger value might help'
                                     ' to see the vectors better when using'
                                     ' a large thinout.')
+    vector_parser.add_argument('--weight_map', type=str, required=False,
+                               help="Weight the unit vectors shown by the "
+                                    "given parameter map. Lower values "
+                                    "will reduce the length of the vectors.",
+                               default=None)
     vector_parser.add_argument('--dpi',
                                default=1000,
                                type=int,
@@ -140,75 +170,121 @@ def main():
                                                      single_direction_image
                                                      [:, :, numpy.newaxis]),
                                                     axis=-1)
-
     if args['command'] == "fom":
-        output_data_type = '.' + args['output_type']
-
-        if output_data_type not in ['.h5', '.tiff', '.tif']:
-            print('Output data type is not supported. Please choose a valid '
-                  'datatype!')
-            exit(1)
-
-        saturation = None
-        value = None
-        if args['saturation']:
-            saturation = SLIX.io.imread(args['saturation'])
-        if args['value']:
-            value = SLIX.io.imread(args['value'])
-
-        rgb_fom = SLIX.visualization.direction(direction_image, saturation, value)
-        rgb_fom = (255 * rgb_fom).astype(numpy.uint8)
-        SLIX.io.imwrite_rgb(output_path_name + 'fom' + output_data_type, rgb_fom)
-
+        write_fom(args, direction_image, output_path_name)
     if args['command'] == "vector":
-        image = SLIX.io.imread(args['slimeasurement'])
-        UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
+        write_vector(args, direction_image, output_path_name)
 
-        # Try to fix image shape if the two axes are swapped
-        if image.shape[:2] != UnitX.shape[:2] and \
-           image.shape[:2][::-1] == UnitX.shape[:2]:
-            image = image.T
-        if image.shape[:2] != UnitX.shape[:2]:
-            print("[WARNING]: Direction and SLI measurement are not correctly aligned."
-                  " The program will still run but the results might not represent"
-                  " the expected result. Please check your input!")
 
-        thinout = args['thinout']
-        scale = args['scale']
-        alpha = args['alpha']
-        background_threshold = args['threshold']
-        vector_width = args['vector_width']
-        if vector_width < 0:
-            vector_width = numpy.ceil(thinout / 3)
+def write_vector(args, direction_image, output_path_name):
+    image = SLIX.io.imread(args['slimeasurement'])
+    UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
+    if args['weight_map'] is not None:
+        weight_map = SLIX.io.imread(args['weight_map']).astype(float)
+        weight_map = (weight_map - weight_map.min()) / \
+                     (numpy.percentile(weight_map, 95) - weight_map.min())
+    else:
+        weight_map = None
+    # Try to fix image shape if the two axes are swapped
+    if image.shape[:2] != UnitX.shape[:2] and \
+            image.shape[:2][::-1] == UnitX.shape[:2]:
+        image = image.T
+    if image.shape[:2] != UnitX.shape[:2]:
+        print("[WARNING]: Direction and SLI measurement are not correctly aligned."
+              " The program will still run but the results might not represent"
+              " the expected result. Please check your input!")
+    thinout = args['thinout']
+    scale = args['scale']
+    alpha = args['alpha']
+    background_threshold = args['threshold']
+    vector_width = args['vector_width']
+    if vector_width < 0:
+        vector_width = numpy.ceil(thinout / 3)
+    if len(image.shape) == 2:
+        plt.imshow(image, cmap='gray')
+    else:
+        plt.imshow(numpy.max(image, axis=-1), cmap='gray')
+    plt.axis('off')
+    if args['distribution']:
+        write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map)
+    else:
+        write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout,
+                           vector_width, weight_map)
+    plt.clf()
 
-        if len(image.shape) == 2:
-            plt.imshow(image, cmap='gray')
-        else:
-            plt.imshow(numpy.max(image, axis=-1), cmap='gray')
-        plt.axis('off')
 
-        if args['distribution']:
-            SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
-                                                        thinout=thinout,
-                                                        scale=scale,
-                                                        alpha=alpha,
-                                                        vector_width=
-                                                        vector_width)
-            plt.savefig(output_path_name + 'vector_distribution.tiff',
-                        dpi=args['dpi'],
-                        bbox_inches='tight')
-        else:
-            SLIX.visualization.unit_vectors(UnitX, UnitY,
-                                            thinout=thinout,
-                                            scale=scale,
-                                            alpha=alpha,
-                                            vector_width=vector_width,
-                                            background_threshold=
-                                            background_threshold)
+def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout, vector_width,
+                       weight_map):
+    SLIX.visualization.unit_vectors(UnitX, UnitY,
+                                    thinout=thinout,
+                                    scale=scale,
+                                    alpha=alpha,
+                                    vector_width=vector_width,
+                                    background_threshold=
+                                    background_threshold,
+                                    weighting=weight_map,
+                                    colormap=available_colormaps[args['colormap']])
+    plt.savefig(f"{output_path_name}vector_{args['colormap']}.tiff", dpi=args['dpi'],
+                bbox_inches='tight')
+    if not args['disable_colorbubble']:
+        SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
-            plt.savefig(output_path_name + 'vector.tiff', dpi=args['dpi'],
-                        bbox_inches='tight')
-        plt.clf()
+
+def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map):
+    SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
+                                                thinout=thinout,
+                                                scale=scale,
+                                                alpha=alpha,
+                                                vector_width=
+                                                vector_width,
+                                                weighting=weight_map,
+                                                colormap=available_colormaps[args['colormap']])
+    plt.savefig(f"{output_path_name}vector_distribution_{args['colormap']}.tiff",
+                dpi=args['dpi'],
+                bbox_inches='tight')
+    if not args['disable_colorbubble']:
+        SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
+
+
+def write_fom(args, direction_image, output_path_name):
+    if args['inclination'] is not None:
+        inclination_image = None
+        for inclination_file in args['inclination']:
+            single_inclination_image = SLIX.io.imread(inclination_file)
+            if inclination_image is None:
+                inclination_image = single_inclination_image
+            else:
+                if len(inclination_image.shape) == 2:
+                    inclination_image = numpy.stack((inclination_image,
+                                                     single_inclination_image),
+                                                    axis=-1)
+                else:
+                    inclination_image = numpy.concatenate((inclination_image,
+                                                           single_inclination_image
+                                                           [:, :, numpy.newaxis]),
+                                                          axis=-1)
+    else:
+        inclination_image = numpy.zeros_like(direction_image)
+
+    output_data_type = '.' + args['output_type']
+    if output_data_type not in ['.h5', '.tiff', '.tif']:
+        print('Output data type is not supported. Please choose a valid '
+              'datatype!')
+        exit(1)
+    saturation = None
+    value = None
+    if args['saturation']:
+        saturation = SLIX.io.imread(args['saturation'])
+    if args['value']:
+        value = SLIX.io.imread(args['value'])
+    rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value,
+                                           available_colormaps[args['colormap']])
+    SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
+    if not args['disable_colorbubble']:
+        SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
 
 if __name__ == "__main__":

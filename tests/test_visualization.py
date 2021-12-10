@@ -8,25 +8,38 @@ import os
 
 matplotlib.use('agg')
 
+available_colormaps = [
+    {'rgb': visualization.Colormap.rgb},
+    {'hsvBlack': visualization.Colormap.hsv_black},
+    {'hsvWhite': visualization.Colormap.hsv_white},
+    {'rgb_r': visualization.Colormap.rgb_reverse},
+    {'hsvBlack_r': visualization.Colormap.hsv_black_reverse},
+    {'hsvWhite_r': visualization.Colormap.hsv_white_reverse}
+]
+
 
 class TestVisualization:
-    def test_visualize_unit_vectors(self):
+    @pytest.mark.parametrize('colormap', available_colormaps)
+    def test_visualize_unit_vectors(self, colormap):
+        colormap_name = list(colormap.keys())[0]
+        colormap_function = list(colormap.values())[0]
+
         example = io.imread('tests/files/demo.nii')
         peaks = toolbox.significant_peaks(example, use_gpu=False)
         centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
         direction = toolbox.direction(peaks, centroid, use_gpu=False)
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
-        visualization.unit_vectors(unit_x, unit_y, thinout=10)
-        plt.savefig('tests/output/vis/unit_vectors.tiff', dpi=100,
+        visualization.unit_vectors(unit_x, unit_y, thinout=10, colormap=colormap_function)
+        plt.savefig(f'tests/output/vis/unit_vectors_{colormap_name}.tiff', dpi=100,
                     bbox_inches='tight')
 
-        orig = io.imread('tests/files/vis/unit_vectors.tiff')
-        to_compare = io.imread('tests/output/vis/unit_vectors.tiff')
+        orig = io.imread(f'tests/files/vis/unit_vectors_{colormap_name}.tiff')
+        to_compare = io.imread(f'tests/output/vis/unit_vectors_{colormap_name}.tiff')
 
         if numpy.all(numpy.isclose(orig - to_compare, 0)):
             assert True
         else:
-            io.imwrite('tests/output/vis/unit_vectors-diff.tiff', orig - to_compare)
+            io.imwrite(f'tests/output/vis/unit_vectors_{colormap_name}-diff.tiff', orig - to_compare)
             assert False
 
     def test_unit_vectors_single_direction(self):
@@ -48,24 +61,73 @@ class TestVisualization:
             io.imwrite('tests/output/vis/unit_vectors_single_dir-diff.tiff', orig - to_compare)
             assert False
 
-    def test_visualize_unit_vector_distribution(self):
+    @pytest.mark.parametrize('colormap', available_colormaps)
+    def test_visualize_unit_vector_distribution(self, colormap):
+        colormap_name = list(colormap.keys())[0]
+        colormap_function = list(colormap.values())[0]
+
         example = io.imread('tests/files/demo.nii')
         peaks = toolbox.significant_peaks(example, use_gpu=False)
         centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
         direction = toolbox.direction(peaks, centroid, use_gpu=False)
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
-        visualization.unit_vector_distribution(unit_x, unit_y, thinout=15, vector_width=5, alpha=0.01)
+        visualization.unit_vector_distribution(unit_x, unit_y, thinout=15, vector_width=5,
+                                               alpha=0.01, colormap=colormap_function)
 
-        plt.savefig('tests/output/vis/unit_vector_distribution.tiff', dpi=100,
+        plt.savefig(f'tests/output/vis/unit_vector_distribution_{colormap_name}.tiff', dpi=100,
                     bbox_inches='tight')
 
-        orig = io.imread('tests/files/vis/unit_vector_distribution.tiff')
-        to_compare = io.imread('tests/output/vis/unit_vector_distribution.tiff')
+        orig = io.imread(f'tests/files/vis/unit_vector_distribution_{colormap_name}.tiff')
+        to_compare = io.imread(f'tests/output/vis/unit_vector_distribution_{colormap_name}.tiff')
 
         if numpy.all(numpy.isclose(orig - to_compare, 0)):
             assert True
         else:
-            io.imwrite('tests/output/vis/unit_vector_distribution-diff.tiff', orig - to_compare)
+            io.imwrite(f'tests/output/vis/unit_vector_distribution_{colormap_name}-diff.tiff', orig - to_compare)
+            assert False
+
+    def test_weight_unit_vector(self):
+        example = io.imread('tests/files/demo.nii')
+        peaks = toolbox.significant_peaks(example, use_gpu=False)
+        centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
+        direction = toolbox.direction(peaks, centroid, use_gpu=False)
+        avg = numpy.average(example, axis=-1)
+        avg = (avg - avg.min()) / (numpy.percentile(avg, 95) - avg.min())
+        unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
+        visualization.unit_vectors(unit_x, unit_y, weighting=avg, thinout=10, scale=10)
+        plt.savefig('tests/output/vis/unit_vectors_weighted.tiff', dpi=100,
+                    bbox_inches='tight')
+
+        orig = io.imread('tests/files/vis/unit_vectors_weighted.tiff')
+        to_compare = io.imread('tests/output/vis/unit_vectors_weighted.tiff')
+
+        if numpy.all(numpy.isclose(orig - to_compare, 0)):
+            assert True
+        else:
+            io.imwrite('tests/output/vis/unit_vectors_weighted-diff.tiff', orig - to_compare)
+            assert False
+
+    def test_weight_unit_vector_distribution(self):
+        example = io.imread('tests/files/demo.nii')
+        peaks = toolbox.significant_peaks(example, use_gpu=False)
+        centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
+        direction = toolbox.direction(peaks, centroid, use_gpu=False)
+        avg = numpy.average(example, axis=-1)
+        avg = (avg - avg.min()) / (numpy.percentile(avg, 95) - avg.min())
+        unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
+        visualization.unit_vector_distribution(unit_x, unit_y, weighting=avg, thinout=15,
+                                               scale=15, vector_width=5, alpha=0.01)
+
+        plt.savefig('tests/output/vis/unit_vectors_distribution_weighted.tiff', dpi=100,
+                    bbox_inches='tight')
+
+        orig = io.imread('tests/files/vis/unit_vectors_distribution_weighted.tiff')
+        to_compare = io.imread('tests/output/vis/unit_vectors_distribution_weighted.tiff')
+
+        if numpy.all(numpy.isclose(orig - to_compare, 0)):
+            assert True
+        else:
+            io.imwrite('tests/output/vis/unit_vectors_distribution_weighted-diff.tiff', orig - to_compare)
             assert False
 
     def test_visualize_parameter_map(self):
@@ -83,12 +145,12 @@ class TestVisualization:
     def test_visualize_direction_one_dir(self):
         image = numpy.arange(0, 180)
         hsv_image = visualization.direction(image)
-        assert numpy.all(hsv_image[0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[30, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[60, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[90, :] == [0, 1, 1])
-        assert numpy.all(hsv_image[120, :] == [0, 0, 1])
-        assert numpy.all(hsv_image[150, :] == [1, 0, 1])
+        assert numpy.all(hsv_image[0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[30, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[60, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[90, :] == [0, 255, 255])
+        assert numpy.all(hsv_image[120, :] == [0, 0, 255])
+        assert numpy.all(hsv_image[150, :] == [255, 0, 255])
 
     def test_visualize_direction_multiple_dir(self):
         first_dir = numpy.arange(0, 180)[..., numpy.newaxis, numpy.newaxis]
@@ -105,36 +167,34 @@ class TestVisualization:
                                             axis=-1)
         hsv_image = visualization.direction(stack_direction)
 
-        print(hsv_image)
-
         # Check first direction
-        assert numpy.all(hsv_image[0, 0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[1, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[0, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[1, 0, :] == [1, 0, 0])
+        assert numpy.all(hsv_image[0, 0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[1, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[0, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[1, 0, :] == [255, 0, 0])
 
-        assert numpy.all(hsv_image[60, 0, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[61, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[60, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[61, 0, :] == [1, 1, 0])
+        assert numpy.all(hsv_image[60, 0, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[61, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[60, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[61, 0, :] == [255, 255, 0])
 
         # Probe check second direction
-        assert numpy.all(hsv_image[120, 0, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[121, 1, :] == [0, 1, 0])
-        assert numpy.all(hsv_image[120, 1, :] == [0, 1, 1])
-        assert numpy.all(hsv_image[121, 0, :] == [0, 1, 1])
+        assert numpy.all(hsv_image[120, 0, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[121, 1, :] == [0, 255, 0])
+        assert numpy.all(hsv_image[120, 1, :] == [0, 255, 255])
+        assert numpy.all(hsv_image[121, 0, :] == [0, 255, 255])
 
         # Probe check third direction
-        assert numpy.all(hsv_image[240, 0, :] == [0, 0, 1])
-        assert numpy.all(hsv_image[240, 1, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[241, 0, :] == [1, 0, 1])
+        assert numpy.all(hsv_image[240, 0, :] == [0, 0, 255])
+        assert numpy.all(hsv_image[240, 1, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[241, 0, :] == [255, 0, 255])
         assert numpy.all(hsv_image[241, 1, :] == [0, 0, 0])
 
         # Probe check fourth direction
-        assert numpy.all(hsv_image[300, 0, :] == [1, 0, 1])
-        assert numpy.all(hsv_image[300, 1, :] == [1, 1, 0])
-        assert numpy.all(hsv_image[301, 0, :] == [1, 0, 0])
-        assert numpy.all(hsv_image[301, 1, :] == [0, 1, 0])
+        assert numpy.all(hsv_image[300, 0, :] == [255, 0, 255])
+        assert numpy.all(hsv_image[300, 1, :] == [255, 255, 0])
+        assert numpy.all(hsv_image[301, 0, :] == [255, 0, 0])
+        assert numpy.all(hsv_image[301, 1, :] == [0, 255, 0])
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -147,7 +207,7 @@ def run_around_tests(request):
 
     def remove_test_dir():
         if os.path.isdir('tests/output/vis'):
-            # shutil.rmtree('tests/output/vis')
+            shutil.rmtree('tests/output/vis')
             pass
 
     request.addfinalizer(remove_test_dir)

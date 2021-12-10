@@ -129,7 +129,7 @@ def _visualize_multiple_direction(direction, rgb_stack):
 
 
 def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width):
+                            scale, alpha, vector_width, weighting, colormap):
     # Normalize the arrows:
     mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
                                                       mesh_u ** 2 +
@@ -140,11 +140,16 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
 
     # Convert to RGB colors
     normed_angle = numpy.abs(numpy.arctan2(mesh_v_normed, -mesh_u_normed))
-    hsv_stack = numpy.stack((normed_angle / numpy.pi,
-                             numpy.ones(normed_angle.shape),
-                             numpy.ones(normed_angle.shape)))
-    hsv_stack = numpy.moveaxis(hsv_stack, 0, -1)
-    color_rgb = hsv_to_rgb(hsv_stack)
+    color_rgb = colormap(normed_angle, numpy.zeros_like(normed_angle))
+
+    # Apply weighting
+    if weighting is not None:
+        mesh_u_normed = weighting * mesh_u_normed
+        mesh_v_normed = weighting * mesh_v_normed
+
+    # Apply scaling
+    mesh_u_normed *= scale
+    mesh_v_normed *= scale
 
     mesh_u_normed[numpy.isclose(mesh_u, 0) &
                   numpy.isclose(mesh_v, 0)] = numpy.nan
@@ -153,7 +158,9 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
 
     # 1/scale to increase vector length for scale > 1
     ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
-              color=color_rgb, angles='xy', scale_units='xy',
-              scale=1.0 / scale, headwidth=0, headlength=0, headaxislength=0,
-              minlength=0, pivot='mid', alpha=alpha,
-              width=vector_width, units='xy', edgecolors=color_rgb)
+              color=color_rgb, units='xy',
+              angles='xy', scale_units='xy',
+              scale=1, headwidth=0, headlength=0,
+              headaxislength=0, minlength=0, pivot='mid',
+              alpha=alpha, width=vector_width,
+              edgecolors=color_rgb)

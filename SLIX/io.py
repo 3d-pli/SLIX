@@ -207,7 +207,9 @@ class H5FileWriter:
             if len(content.shape) == 3:
                 self.file.create_dataset(dataset, content.shape,
                                          dtype=content.dtype, data=content,
-                                         compression='lzf', shuffle=True)
+                                         compression='gzip',
+                                         compression_opts=5,
+                                         shuffle=True)
             else:
                 self.file.create_dataset(dataset, content.shape,
                                          dtype=content.dtype, data=content,
