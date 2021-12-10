@@ -255,7 +255,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
     # The default scale is below zero to allow the user to define his own scale
     # A scale below zero isn't valid for visualization. If the user
     # defines no scale, we suspect that the user wants an image
-    # where each vector has a scale of one. Therefore we set the scale to
+    # where each vector has a scale of one. Therefor we set the scale to
     # the same as our thinout when we draw the image.
     if scale < 0:
         scale = thinout
@@ -267,9 +267,9 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
                                         background_threshold, background_value)
 
         while len(downscaled_unit_x.shape) < 3:
-            downscaled_unit_x = downscaled_unit_x[numpy.newaxis, ...]
+            downscaled_unit_x = downscaled_unit_x[..., numpy.newaxis]
         while len(downscaled_unit_y.shape) < 3:
-            downscaled_unit_y = downscaled_unit_y[numpy.newaxis, ...]
+            downscaled_unit_y = downscaled_unit_y[..., numpy.newaxis]
 
         # Rescale images to original dimensions
         for i in range(UnitX.shape[2]):
