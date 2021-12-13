@@ -422,6 +422,23 @@ When three directions are present, the first three pixel will have the HSV color
 #### Vector distribution
 <img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vectordistribution.jpg" width="327">
 
+## Cluster parameters
+With the last tool `SLIXCluster`, using the parameters of the previous tools, you can generate a cluster map separating flat, crossing and inclinated fibers.
+### Required parameters
+| Argument | Function |
+| --- | --- |
+| `-i, --input` | Input folder with all (including optional) parameter maps of SLIXParameterGenerator |
+| `-o, --output` | Output directory |
+
+### Optional parameters
+| Argument | Function |
+| --- | --- |
+| `--all` | Generate a parameter map combining all other classification maps into one. |
+| `--flat` | Generate a mask containing only flat fibers. |
+| `--crossing` | Generate a mask containing only crossing fibers. |
+| `--inclination` | Generate a unsigned character image differentiating between flat, lightly inclined and strong inclined fibers. |
+
+
 ## Tutorial
 The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. 
 For example, it allows to display the generated parameter maps in different colors, and to show the orientations of (crossing) nerve fibers as colored lines (vector maps) by computing unit vector maps from the direction maps. 
