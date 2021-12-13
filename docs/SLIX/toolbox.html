@@ -583,7 +583,7 @@
         <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">unit_vectors_3d</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the unit vectors (UnitX, UnitY) from a given direction angle.</span>
 
@@ -887,20 +887,18 @@ or missing, the array entry will be BACKGROUND_COLOR instead.
 
         
             <span class="def">def</span>
-            <span class="name">unit_vectors</span><span class="signature">(direction, inclination, use_gpu=True, return_numpy=True)</span>:
+            <span class="name">unit_vectors</span><span class="signature">(direction, use_gpu=True, return_numpy=True)</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the unit vectors (UnitX, UnitY) from a given direction angle.</span>
 
 <span class="sd">    Args:</span>
 
 <span class="sd">        direction: 3D NumPy array - direction angles in degrees</span>
-
-<span class="sd">        inclination: 3D NumPy array - inclination angles in degrees</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
@@ -913,9 +911,9 @@ or missing, the array entry will be BACKGROUND_COLOR instead.
 <span class="sd">            x- and y-vector component in arrays</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -925,8 +923,6 @@ or missing, the array entry will be BACKGROUND_COLOR instead.
 <p>Args:</p>
 
 <pre><code>direction: 3D NumPy array - direction angles in degrees
-
-inclination: 3D NumPy array - inclination angles in degrees
 
 use_gpu: If available use the GPU for calculation
 

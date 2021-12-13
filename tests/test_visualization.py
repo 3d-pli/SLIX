@@ -42,6 +42,25 @@ class TestVisualization:
             io.imwrite(f'tests/output/vis/unit_vectors_{colormap_name}-diff.tiff', orig - to_compare)
             assert False
 
+    def test_unit_vectors_single_direction(self):
+        example = io.imread('tests/files/demo.nii')
+        peaks = toolbox.significant_peaks(example, use_gpu=False)
+        centroid = toolbox.centroid_correction(example, peaks, use_gpu=False)
+        direction = toolbox.direction(peaks, centroid, number_of_directions=1, use_gpu=False)
+        unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=False)
+        visualization.unit_vectors(unit_x, unit_y, thinout=10)
+        plt.savefig('tests/output/vis/unit_vectors_single_dir.tiff', dpi=100,
+                    bbox_inches='tight')
+
+        orig = io.imread('tests/files/vis/unit_vectors_single_dir.tiff')
+        to_compare = io.imread('tests/output/vis/unit_vectors_single_dir.tiff')
+
+        if numpy.all(numpy.isclose(orig - to_compare, 0)):
+            assert True
+        else:
+            io.imwrite('tests/output/vis/unit_vectors_single_dir-diff.tiff', orig - to_compare)
+            assert False
+
     @pytest.mark.parametrize('colormap', available_colormaps)
     def test_visualize_unit_vector_distribution(self, colormap):
         colormap_name = list(colormap.keys())[0]

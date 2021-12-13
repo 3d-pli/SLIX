@@ -274,7 +274,8 @@
 <span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
                  <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">background_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-                 <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">):</span>
+                 <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">,</span>
+                 <span class="n">weighting</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
 <span class="sd">    given unit vectors as colored lines (vector map).</span>
@@ -323,6 +324,10 @@
 <span class="sd">        colormap: The colormap to use. Default is HSV black. The available color maps</span>
 <span class="sd">                  can be found in the colormap class.</span>
 
+<span class="sd">        weighting: Weighting of the vectors. If None, the vectors will be</span>
+<span class="sd">                   weighted by a value of one, resulting in normal unit vectors.</span>
+
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        The current Matplotlib axis. The image can be shown with pyplot.show().</span>
@@ -368,6 +373,18 @@
 
         <span class="k">del</span> <span class="n">downscaled_unit_y</span>
         <span class="k">del</span> <span class="n">downscaled_unit_x</span>
+
+        <span class="k">if</span> <span class="n">weighting</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">weighting</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">downscaled_weighting</span> <span class="o">=</span> <span class="n">_downsample</span><span class="p">(</span><span class="n">weighting</span><span class="p">,</span> <span class="n">thinout</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_weighting</span><span class="p">)</span>
+                     <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">weighting</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">]</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
         <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                                      <span class="n">thinout</span><span class="p">),</span>
@@ -382,13 +399,14 @@
                                 <span class="n">mesh_u</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
                                 <span class="n">mesh_v</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
                                 <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span>
-                                <span class="n">colormap</span><span class="p">)</span>
+                                <span class="n">weighting</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span>
 
 
 <span class="k">def</span> <span class="nf">unit_vector_distribution</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
                              <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">):</span>
+                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">,</span>
+                             <span class="n">weighting</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
 <span class="sd">    given unit vectors as colored lines (vector map).</span>
@@ -428,6 +446,9 @@
 <span class="sd">        colormap: The colormap to use. Default is HSV black. The available color maps</span>
 <span class="sd">                  can be found in the colormap class.</span>
 
+<span class="sd">        weighting: Weighting of the vectors. If None, the vectors will be</span>
+<span class="sd">        weighted by a value of one, resulting in normal unit vectors.</span>
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        The current Matplotlib axis. The image can be shown with pyplot.show().</span>
@@ -453,9 +474,10 @@
     <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">mesh_u</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">mesh_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mesh_weighting</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">thinout</span><span class="o">*</span><span class="n">thinout</span><span class="p">,</span>
+    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">thinout</span> <span class="o">*</span> <span class="n">thinout</span><span class="p">,</span>
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Creating unit vectors.&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">offset_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">offset_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
@@ -467,21 +489,29 @@
                 <span class="p">)</span>
                 <span class="n">mesh_x_it</span> <span class="o">=</span> <span class="n">mesh_x_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="n">mesh_y_it</span> <span class="o">=</span> <span class="n">mesh_y_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-                <span class="n">mesh_u_it</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                <span class="n">mesh_u_it</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> \
                     <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-                <span class="n">mesh_v_it</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                <span class="n">mesh_v_it</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> \
                     <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">weighting</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">mesh_weighting_it</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span>
+                                                  <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">]</span> \
+                        <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mesh_weighting_it</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">mesh_u_it</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
                 <span class="n">mesh_x</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_x_it</span>
                 <span class="n">mesh_y</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_y_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_y_it</span>
                 <span class="n">mesh_u</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_u_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_u_it</span>
                 <span class="n">mesh_v</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_v_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_v_it</span>
+                <span class="n">mesh_weighting</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_weighting_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_weighting_it</span>
 
                 <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)</span>
 
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Finished. Plotting unit vectors.&#39;</span><span class="p">)</span>
     <span class="n">_plot_axes_unit_vectors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span><span class="p">,</span> <span class="n">mesh_u</span><span class="p">,</span> <span class="n">mesh_v</span><span class="p">,</span>
-                            <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
+                            <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span> <span class="n">mesh_weighting</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ax</span>
@@ -711,7 +741,8 @@ pyplot.show().
     alpha=0.8,
     background_threshold=0.5,
     background_value=0,
-    colormap=&lt;function <a href="#Colormap.hsv_black">Colormap.hsv_black</a>&gt;
+    colormap=&lt;function <a href="#Colormap.hsv_black">Colormap.hsv_black</a>&gt;,
+    weighting=None
 )</span>:
     </div>
 
@@ -720,7 +751,8 @@ pyplot.show().
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">unit_vectors</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
                  <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">alpha</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">background_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-                 <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">):</span>
+                 <span class="n">background_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">,</span>
+                 <span class="n">weighting</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
 <span class="sd">    given unit vectors as colored lines (vector map).</span>
@@ -769,6 +801,10 @@ pyplot.show().
 <span class="sd">        colormap: The colormap to use. Default is HSV black. The available color maps</span>
 <span class="sd">                  can be found in the colormap class.</span>
 
+<span class="sd">        weighting: Weighting of the vectors. If None, the vectors will be</span>
+<span class="sd">                   weighted by a value of one, resulting in normal unit vectors.</span>
+
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        The current Matplotlib axis. The image can be shown with pyplot.show().</span>
@@ -814,6 +850,18 @@ pyplot.show().
 
         <span class="k">del</span> <span class="n">downscaled_unit_y</span>
         <span class="k">del</span> <span class="n">downscaled_unit_x</span>
+
+        <span class="k">if</span> <span class="n">weighting</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">weighting</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+            <span class="n">downscaled_weighting</span> <span class="o">=</span> <span class="n">_downsample</span><span class="p">(</span><span class="n">weighting</span><span class="p">,</span> <span class="n">thinout</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">downscaled_weighting</span><span class="p">)</span>
+                     <span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">weighting</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">::</span><span class="n">thinout</span><span class="p">]</span>
+            <span class="n">weighting</span> <span class="o">=</span> <span class="n">weighting</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
         <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">thinout</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">UnitX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                                      <span class="n">thinout</span><span class="p">),</span>
@@ -828,7 +876,7 @@ pyplot.show().
                                 <span class="n">mesh_u</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
                                 <span class="n">mesh_v</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
                                 <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span>
-                                <span class="n">colormap</span><span class="p">)</span>
+                                <span class="n">weighting</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ax</span>
 </pre></div>
 
@@ -880,6 +928,9 @@ background pixels will not be considered for computing the median.
 
 colormap: The colormap to use. Default is HSV black. The available color maps
           can be found in the colormap class.
+
+weighting: Weighting of the vectors. If None, the vectors will be
+           weighted by a value of one, resulting in normal unit vectors.
 </code></pre>
 
 <p>Returns:</p>
@@ -903,7 +954,8 @@ colormap: The colormap to use. Default is HSV black. The available color maps
     scale=-1,
     vector_width=1,
     alpha=0.01,
-    colormap=&lt;function <a href="#Colormap.hsv_black">Colormap.hsv_black</a>&gt;
+    colormap=&lt;function <a href="#Colormap.hsv_black">Colormap.hsv_black</a>&gt;,
+    weighting=None
 )</span>:
     </div>
 
@@ -911,7 +963,8 @@ colormap: The colormap to use. Default is HSV black. The available color maps
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">unit_vector_distribution</span><span class="p">(</span><span class="n">UnitX</span><span class="p">,</span> <span class="n">UnitY</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thinout</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
                              <span class="n">scale</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">vector_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">):</span>
+                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">Colormap</span><span class="o">.</span><span class="n">hsv_black</span><span class="p">,</span>
+                             <span class="n">weighting</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method will create a Matplotlib plot based on quiver to represent the</span>
 <span class="sd">    given unit vectors as colored lines (vector map).</span>
@@ -951,6 +1004,9 @@ colormap: The colormap to use. Default is HSV black. The available color maps
 <span class="sd">        colormap: The colormap to use. Default is HSV black. The available color maps</span>
 <span class="sd">                  can be found in the colormap class.</span>
 
+<span class="sd">        weighting: Weighting of the vectors. If None, the vectors will be</span>
+<span class="sd">        weighted by a value of one, resulting in normal unit vectors.</span>
+
 <span class="sd">    Returns:</span>
 
 <span class="sd">        The current Matplotlib axis. The image can be shown with pyplot.show().</span>
@@ -976,9 +1032,10 @@ colormap: The colormap to use. Default is HSV black. The available color maps
     <span class="n">mesh_y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">mesh_u</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">mesh_v</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">mesh_weighting</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">UnitX</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">thinout</span><span class="o">*</span><span class="n">thinout</span><span class="p">,</span>
+    <span class="n">progress_bar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">thinout</span> <span class="o">*</span> <span class="n">thinout</span><span class="p">,</span>
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Creating unit vectors.&#39;</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">offset_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">offset_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">thinout</span><span class="p">):</span>
@@ -990,21 +1047,29 @@ colormap: The colormap to use. Default is HSV black. The available color maps
                 <span class="p">)</span>
                 <span class="n">mesh_x_it</span> <span class="o">=</span> <span class="n">mesh_x_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
                 <span class="n">mesh_y_it</span> <span class="o">=</span> <span class="n">mesh_y_it</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-                <span class="n">mesh_u_it</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                <span class="n">mesh_u_it</span> <span class="o">=</span> <span class="n">UnitX</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> \
                     <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-                <span class="n">mesh_v_it</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>\
+                <span class="n">mesh_v_it</span> <span class="o">=</span> <span class="n">UnitY</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> \
                     <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">weighting</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">mesh_weighting_it</span> <span class="o">=</span> <span class="n">weighting</span><span class="p">[</span><span class="n">offset_y</span><span class="p">::</span><span class="n">thinout</span><span class="p">,</span>
+                                                  <span class="n">offset_x</span><span class="p">::</span><span class="n">thinout</span><span class="p">]</span> \
+                        <span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mesh_weighting_it</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">mesh_u_it</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
 
                 <span class="n">mesh_x</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_x_it</span>
                 <span class="n">mesh_y</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_y_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_y_it</span>
                 <span class="n">mesh_u</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_u_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_u_it</span>
                 <span class="n">mesh_v</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_v_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_v_it</span>
+                <span class="n">mesh_weighting</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_weighting_it</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mesh_weighting_it</span>
 
                 <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh_x_it</span><span class="p">)</span>
 
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Finished. Plotting unit vectors.&#39;</span><span class="p">)</span>
     <span class="n">_plot_axes_unit_vectors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">mesh_x</span><span class="p">,</span> <span class="n">mesh_y</span><span class="p">,</span> <span class="n">mesh_u</span><span class="p">,</span> <span class="n">mesh_v</span><span class="p">,</span>
-                            <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
+                            <span class="n">scale</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">vector_width</span><span class="p">,</span> <span class="n">mesh_weighting</span><span class="p">,</span> <span class="n">colormap</span><span class="p">)</span>
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
     <span class="n">progress_bar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ax</span>
@@ -1049,6 +1114,9 @@ other image like the averaged transmitted light intensity.
 
 colormap: The colormap to use. Default is HSV black. The available color maps
           can be found in the colormap class.
+
+weighting: Weighting of the vectors. If None, the vectors will be
+weighted by a value of one, resulting in normal unit vectors.
 </code></pre>
 
 <p>Returns:</p>
