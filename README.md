@@ -126,18 +126,18 @@ SLIXLineplotParameterGenerator [options]
 SLIXLineplotParameterGenerator -i [INPUT-TXT-FILES] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 ### Required Arguments
-| Argument      | Function                                                                    |
-| ------------------- | --------------------------------------------------------------------------- |
-| `-i, --input`  | Input text files, describing the SLI profiles (list of intensity values). |
+| Argument       | Function                                                                                                                                                                    |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-i, --input`  | Input text files, describing the SLI profiles (list of intensity values).                                                                                                   |
 | `-o, --output` | Output folder used to store the characteristics of the SLI profiles in a txt-file (Max, Min, Num_Peaks, Peak_Pos, Directions, Prominence). Will be created if not existing. |
 
 ### Optional Arguments
-| Argument      | Function                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| `--smoothing [args]`     | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`)|
-| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! (default: 0.08) |
-| `--without_angles`       | Scatterometry measurements typically include the measurment angle in their text files. Enable this option if you have line profiles which do not have angles for each measurement. Keep in mind, that the angles will be ignored regardless. SLIX will generate the parameters based on the number of measurement angles. |
-| `--simple`               | Replace most output parameters by a single value which represents the mean value of the given parameter in the line profile. |
+| Argument                 | Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--smoothing [args]`     | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`) |
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! (default: 0.08)                                                                                                                                                                                                                                                                                                                                                                                     |
+| `--without_angles`       | Scatterometry measurements typically include the measurment angle in their text files. Enable this option if you have line profiles which do not have angles for each measurement. Keep in mind, that the angles will be ignored regardless. SLIX will generate the parameters based on the number of measurement angles.                                                                                                                                                                                                                                                                            |
+| `--simple`               | Replace most output parameters by a single value which represents the mean value of the given parameter in the line profile.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Example
 The following example demonstrates the evaluation of two SLI profiles, which can be found in the "examples" folder of the SLIX repository:
@@ -198,37 +198,37 @@ SLIXParameterGenerator -i [INPUT-STACK] -o [OUTPUT-FOLDER] [[parameters]]
 ```
 ### Required Arguments
 
-| Argument        | Function                                                |
-| ---------------- | ------------------------------------------------------- |
-| `-i, --input`    | Input file: SLI image stack (as .tif(f) or .nii).      |
-| `-o, --output`   | Output folder where resulting parameter maps (.tiff) will be stored. Will be created if not existing. |
+| Argument       | Function                                                                                              |
+|----------------|-------------------------------------------------------------------------------------------------------|
+| `-i, --input`  | Input file: SLI image stack (as .tif(f) or .nii).                                                     |
+| `-o, --output` | Output folder where resulting parameter maps (.tiff) will be stored. Will be created if not existing. |
 
 
 ### Optional Arguments
 
-| Argument          | Function                                                                                                                                            |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--thinout`    | Average every NxN pixels in the SLI image stack and run the evaluation on the resulting (downsampled) images. (Default: N=1) |
-| `--with_mask`      | Consider all image pixels with low scattering as background: Pixels for which the maximum intensity value of the SLI profile is below a defined threshold (`--mask_threshold`) are set to zero and will not be further evaluated.                                                                |
-| `--correctdir` | Correct the resulting direction angle by a floating point value (in degree). This is useful when the stack or camera was rotated. |
-| `--smoothing [args]` | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`)|
-| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users! |
-| `--detailed` | Save 3D images in addition to 2D mean images which include more detailed information but will need a lot more disk space. |
-| `--disable_gpu` | Use the CPU in combination with Numba instead of the GPU variant. This is only recommended if your GPU is significantly slower than your CPU. |
-| `--no_centroids` | Disable centroid calculation for the parameter maps. This is absolutely not recommended and will result in worse parameter maps but can lower the computing time significantly. |
-| `--output_type` | Define the output data type of the parameter images. Default = tiff. Supported types: nii, h5, tiff. (default: tiff) |
+| Argument                 | Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|--------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--thinout`              | Average every NxN pixels in the SLI image stack and run the evaluation on the resulting (downsampled) images. (Default: N=1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `--with_mask`            | Consider all image pixels with low scattering as background: Pixels for which the maximum intensity value of the SLI profile is below a defined threshold (`--mask_threshold`) are set to zero and will not be further evaluated.                                                                                                                                                                                                                                                                                                                                                                    |
+| `--correctdir`           | Correct the resulting direction angle by a floating point value (in degree). This is useful when the stack or camera was rotated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `--smoothing [args]`     | Apply smoothing to the SLI profiles for each image pixel before evaluation. Available options are low pass fourier filtering `fourier` and Savitzky-Golay filtering `savgol`. With both options, you can input up to two numbers to specify the parameters for the smoothing algorithm. With fourier, you are able to choose soft threshold for the fourier filter in percent `0.2 = 20%` and a smoothing multiplier (range `0--1`, higher values mean more smoothing) (e.g. `fourier 0.1 0.02`). With Savitzky-Golay you can choose the window length and the polynomial order (e.g. `savgol 45 2`) |
+| `--prominence_threshold` | Change the threshold for prominent peaks. Peaks with lower prominences will not be used for further evaluation. (Default: 8% of total signal amplitude.) Only recommended for experienced users!                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `--detailed`             | Save 3D images in addition to 2D mean images which include more detailed information but will need a lot more disk space.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `--disable_gpu`          | Use the CPU in combination with Numba instead of the GPU variant. This is only recommended if your GPU is significantly slower than your CPU.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `--no_centroids`         | Disable centroid calculation for the parameter maps. This is absolutely not recommended and will result in worse parameter maps but can lower the computing time significantly.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `--output_type`          | Define the output data type of the parameter images. Default = tiff. Supported types: nii, h5, tiff. (default: tiff)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 The arguments listed below determine which parameter maps will be generated from the SLI image stack.  If any such argument (except `–-optional`) is used, no parameter map besides the ones specified will be generated. If none of these arguments is used, all parameter maps except the optional ones will be generated: peakprominence, number of (prominent) peaks, peakwidth, peakdistance, direction angles in crossing regions.
 
-| Argument       | Function                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| `--peakprominence`| Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile. |
-| `--peaks`         | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above the defined prominence_threshold (Default: 8% of the total signal amplitude). |
-| `--peakwidth`     | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width (in degrees) of all prominent peaks in an SLI profile. |
-| `--peakdistance`  | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two prominent peaks (in degrees) in an SLI profile. Pixels for which the SLI profile shows more/less than two prominent peaks are set to `-1`. |
-| `--direction`     | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers (in degrees). If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map.|
-| `--unit_vectors`  | Generate unit vectors maps (`.nii`) from direction images. |
-| `--optional`      | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), and in-plane direction angles (in degrees) in regions without crossings (`_dir.tiff`). Image pixels for which the SLI profile shows more than two prominent peaks are set to `-1` in the direction map. |
+| Argument           | Function                                                                                                                                                                                                                                                                                                                                                                                            |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--peakprominence` | Generate a parameter map (`_peakprominence.tiff`) containing the average prominence ([scipy.signal.peak_prominence](https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.peak_prominences.html#scipy.signal.peak_prominences)) of an SLI profile (image pixel), normalized by the average of the SLI profile.                                                                          |
+| `--peaks`          | Generate two parameter maps (`_low_prominence_peaks.tiff` and `_high_prominence_peaks.tiff`) containing the number of peaks in an SLI profile (image pixel) with a prominence below and above the defined prominence_threshold (Default: 8% of the total signal amplitude).                                                                                                                         |
+| `--peakwidth`      | Generate a parameter map (`_peakwidth.tiff`) containing the average peak width (in degrees) of all prominent peaks in an SLI profile.                                                                                                                                                                                                                                                               |
+| `--peakdistance`   | Generate a parameter map (`_peakdistance.tiff`) containing the distance between two prominent peaks (in degrees) in an SLI profile. Pixels for which the SLI profile shows more/less than two prominent peaks are set to `-1`.                                                                                                                                                                      |
+| `--direction`      | Generate three parameter maps (`_dir_1.tiff`, `_dir_2.tiff`, `_dir_3.tiff`) indicating up to three in-plane direction angles of (crossing) fibers (in degrees). If any or all direction angles cannot be determined for an image pixel, this pixel is set to `-1` in the respective map.                                                                                                            |
+| `--unit_vectors`   | Generate unit vectors maps (`.nii`) from direction images.                                                                                                                                                                                                                                                                                                                                          |
+| `--optional`       | Generate four additional parameter maps: average value of each SLI profile (`_avg.tiff`), maximum value of each SLI profile (`_max.tiff`), minimum value of each SLI profile (`_min.tiff`), and in-plane direction angles (in degrees) in regions without crossings (`_dir.tiff`). Image pixels for which the SLI profile shows more than two prominent peaks are set to `-1` in the direction map. |
 
 ### Example
 The following example demonstrates the generation of the parameter maps, for two artificially crossing sections of human optic tracts (left) and the upper left corner of a coronal vervet brain section (right): 
@@ -340,9 +340,9 @@ SLIXVisualizeParameter -i [INPUT-DIRECTIONS] -o [OUTPUT-FOLDER] {fom, vector}
 
 ### Required Arguments
 
-| Argument                   | Function                                                |
-|----------------------------| ------------------------------------------------------- |
-| `-i, --input, --direction` | Input file: SLI direction stack (as .tif(f) or .nii).      |
+| Argument                   | Function                                                             |
+|----------------------------|----------------------------------------------------------------------|
+| `-i, --input, --direction` | Input file: SLI direction stack (as .tif(f) or .nii).                |
 | `-o, --output`             | Output folder where resulting parameter maps (.tiff) will be stored. |
 
 ### Optional Arguments
@@ -358,24 +358,24 @@ of unit vectors. Depending on what you want to do, there is an argument which fo
 The arguments are either `fom` for the creation of a FOM, or `vector` for the creation of a vector visualization
 
 #### Argument `fom`
-| Argument               | Function                                                      |
-| ---------------------- | ------------------------------------------------------------- |
-| `--output_type`        | Define the output data type of the parameter images. Default = tiff. Supported types: h5, tiff.      |
-| `--value`              | Set another mask image which will be used to weight the image through the HSV value operator. The image will be normalized 0-1. If this option isn't used, the value will be one. |
-| `--saturation`         | Set another mask image which will be used to weight the image through the HSV saturation operator. The image will be normalized to 0-1. If this option isn't used, the value will be one.|
+| Argument        | Function                                                                                                                                                                                  |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--output_type` | Define the output data type of the parameter images. Default = tiff. Supported types: h5, tiff.                                                                                           |
+| `--value`       | Set another mask image which will be used to weight the image through the HSV value operator. The image will be normalized 0-1. If this option isn't used, the value will be one.         |
+| `--saturation`  | Set another mask image which will be used to weight the image through the HSV saturation operator. The image will be normalized to 0-1. If this option isn't used, the value will be one. |
 
 #### Argument `vector`
-| Argument        | Function                                                                                                                                                                                                                                                                                                                |
-|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Argument           | Function                                                                                                                                                                                                                                                                                                                |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--slimeasurement` | SLI measurement used for the generation of the direction. Required.                                                                                                                                                                                                                                                     |
-| `--alpha`       | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1)                                                                                                                                                                       |
-| `--thinout`     | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20                                                                                                                                                                                  |
-| `--scale`       | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option. |
-| `--vector_width`| Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout)                                                                                                                                               |
-| `--threshold`   | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1)      |
-| `--dpi`         | Set the image DPI value for Matplotlib. Smaller values will result in a lower resolution image which will be written faster. Larger values will need more computation time but will result in clearer images. Default = 1000dpi                                                                                         |
-| `--distribution`| Instead of using each n-th vector for the visualization (determined by the median vector), instead show all vectors on top of each other. Note: Low alpha values (around 1/alpha) are recommended. The threshold parameter won't do anything when using this parameter                                                  |
-| `--weight_map`  | Weight the length of all vectors by the given weight map (normalized to the range 0 -- 1)                                                                                                                                                                                                                               |
+| `--alpha`          | Factor for the vectors which will be used during visualization. A higher value means that the vectors will be more visible. (Value range: 0 -- 1)                                                                                                                                                                       |
+| `--thinout`        | Thin out vectors by an integer value. A thinout of 20 means that both the x-axis and y-axis are thinned by a value of 20. Default = 20                                                                                                                                                                                  |
+| `--scale`          | Increases the scale of the vectors. A higher scale means that the vectors in the resulting image are longer. This can be helpful if many pixels of the input image are empty but you don't want to use the thinout option to see results. If the scale option isn't used, the vectors are scaled by the thinout option. |
+| `--vector_width`   | Change the default vector width shown in the resulting image. This can be useful if only a small number of vectors will be shown (for example when using a large thinout)                                                                                                                                               |
+| `--threshold`      | When using the thinout option, you might not want to get a vector for a lonely vector in the base image. This parameter defines a threshold for the allowed percentage of background pixels to be present. If more pixels than the threshold are background pixels, no vector will be shown. (Value range: 0 -- 1)      |
+| `--dpi`            | Set the image DPI value for Matplotlib. Smaller values will result in a lower resolution image which will be written faster. Larger values will need more computation time but will result in clearer images. Default = 1000dpi                                                                                         |
+| `--distribution`   | Instead of using each n-th vector for the visualization (determined by the median vector), instead show all vectors on top of each other. Note: Low alpha values (around 1/alpha) are recommended. The threshold parameter won't do anything when using this parameter                                                  |
+| `--weight_map`     | Weight the length of all vectors by the given weight map (normalized to the range 0 -- 1)                                                                                                                                                                                                                               |
 ### Example
 ```bash
 # Download the image
@@ -419,25 +419,76 @@ When three directions are present, the first three pixel will have the HSV color
 #### Unit vector map
 <img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vector.jpg" width="327">
 
+The unit vector map will contain a selection of unit vectors. The color of the vector will be the angle of the direction.
+The number of vectors is determined by the thinout parameter. Using the scale option, one can choose to scale the length of the vectors. 
+This option is recommended to get a quick overview of a measurement as the computing time is short in comparison to the FOM or vector distribution. 
+However, not all information about a measurement might be included.
+
 #### Vector distribution
 <img src="https://raw.githubusercontent.com/3d-pli/SLIX/master/assets/vectordistribution.jpg" width="327">
 
+The vector distribution will always show all unit vectors of a measurement. 
+To archive this while keeping an image which is easy to interpret, multiple vectors will be put on top of each other.
+This can lead to confusion if one vector appears only once but is still shown with full brightness. 
+Therefore, a low alpha value is absolutely recommended with this option.
+This visualization method is quite computationally expensive. 
+The color of the vector will be the angle of the direction.
+
 ## Cluster parameters
 With the last tool `SLIXCluster`, using the parameters of the previous tools, you can generate a cluster map separating flat, crossing and inclinated fibers.
+This can help to identify regions which would not be as easy to identify when only looking at a single parameter map.
+SLIXCluster uses threshold parameters to separate regions based on findings in recent studies. The resulting parameter map will always be saved as an 8-bit image.
+
 ### Required parameters
-| Argument | Function |
-| --- | --- |
-| `-i, --input` | Input folder with all (including optional) parameter maps of SLIXParameterGenerator |
-| `-o, --output` | Output directory |
+| Argument        | Function                                                                            |
+|-----------------|-------------------------------------------------------------------------------------|
+| `-i, --input`   | Input folder with all (including optional) parameter maps of SLIXParameterGenerator |
+| `-o, --output`  | Output directory                                                                    |
 
 ### Optional parameters
-| Argument | Function |
-| --- | --- |
-| `--all` | Generate a parameter map combining all other classification maps into one. |
-| `--flat` | Generate a mask containing only flat fibers. |
-| `--crossing` | Generate a mask containing only crossing fibers. |
+| Argument        | Function                                                                                                       |
+|-----------------|----------------------------------------------------------------------------------------------------------------|
+| `--all`         | Generate a parameter map combining all other classification maps into one.                                     |
+| `--flat`        | Generate a mask containing only flat fibers.                                                                   |
+| `--crossing`    | Generate a mask containing only crossing fibers.                                                               |
 | `--inclination` | Generate a unsigned character image differentiating between flat, lightly inclined and strong inclined fibers. |
 
+### Understanding the output
+The output of SLIXCluster is a number of parameter maps, each of which is saved as an 8-bit image.
+To understand the output, the following numbered codes are used:
+
+#### All
+| Number | Classification                               |
+|--------|----------------------------------------------|
+| 0      | The area neither flat, crossing or inclined. |
+| 1      | The area is a flat fiber.                    |
+| 2      | The area is contains two crossing fibers.    |
+| 3      | The area is contains three crossing fibers.  |
+| 4      | The area is lightly inclined.                |
+| 5      | The area is inclined.                        | 
+| 6      | The area is strongly inclined.               |
+
+#### Flat
+| Number | Classification                |
+|--------|-------------------------------|
+| 0      | The area is not a flat fiber. |
+| 1      | The area is a flat fiber.     |
+
+#### Crossing
+| Number | Function                                               |
+|--------|--------------------------------------------------------|
+| 0      | The area is not a crossing one.                        |
+| 1      | The area is a crossing one with two crossing fibers.   |
+| 2      | The area is a crossing one with three crossing fibers. |
+
+#### Inclined
+| Number | Function                                        |
+|--------|-------------------------------------------------|
+| 0      | The area is neither a flat nor an inclined one. |
+| 1      | The area is a flat one.                         |
+| 2      | The area is a lightly inclined one.             |
+| 3      | The area is an inclined one.                    |
+| 4      | The area is a steep one.                        |
 
 ## Tutorial
 The [Jupyter notebook](https://github.com/3d-pli/SLIX/blob/master/examples/Visualization_Example.ipynb) demonstrates how SLIX can be used to analyze SLI measurements and to visualize the results. 
@@ -451,18 +502,18 @@ and `background_threshold = 0.25` (i.e. if more than 25% of the evaluated pixels
 ## Performance Metrics
 The actual runtime depends on the complexity of the SLI image stack. Especially the number of images in the stack and the number of image pixels can have a big influence. To test the performance, one SLI image stack from the coronal vervet brain section (containing 24 images with 2469x3272 pixels each) was analyzed by running `benchmark.py`. This script will create all parameter maps (non detailed ones in addition to all detailed parameter maps) without any downsampling. All performance measurements were taken without times for reading and writing files. When utilizing the GPU and parameter maps are necessary for further operations, they are kept on the GPU to reduce processing time. The SLI measurement, high prominence peaks and centroids are therefore calculated only once each iteration and are used throughout the whole benchmark. Each benchmark used an Anaconda environment with Python 3.8.5 and all neccessary packages installed.
 
-| CPU | Operating system | With GPU | Time in seconds for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
-| ------------ | --------------------- | ----------------- | --------------------- |
-| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | Disabled | 23.000 ± 1.374 |
-| AMD Ryzen 3700X | Manjaro (Nov 9th 2020) | NVIDIA GTX 1070 | 32.013 ± 0.371 |
-| AMD Ryzen 3700X | Manjaro (Dez 8th 2020) | NVIDIA RTX 3070 | 22.467 ± 0.370 |
-| Intel Core i3-2120 | Ubuntu 18.04 LTS | -N/A- | 86.138 ± 3.57 |
-| Intel Core i5-3470 | Ubuntu 20.04 LTS | Disabled | 77.768 ± 6.101 |
-| Intel Core i5-3470 | Ubuntu 20.04 LTS | NVIDIA GTX 1070 | 34.169 ± 0.975 |
-| Intel Core i5-8350U | Ubuntu 20.10 | -N/A- | 58.945 ± 2.799 |
-| Intel Core i7-7820HQ | MacOS Big Sur | -N/A- | 55.709 ± 3.446 |
-| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | Disabled | 42.363 ± 3.475 |
-| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS | NVIDIA GTX 1080 | 27.712 ± 4.052 |
+| CPU                       | Operating system       | With GPU        | Time in seconds for [this](https://object.cscs.ch/v1/AUTH_227176556f3c4bb38df9feea4b91200c/hbp-d000048_ScatteredLightImaging_pub/Vervet_Brain/coronal_sections/Vervet1818_s0512_60um_SLI_090_Stack_1day.nii) example (8.078.658 pixels) |
+|---------------------------|------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AMD Ryzen 3700X           | Manjaro (Nov 9th 2020) | Disabled        | 23.000 ± 1.374                                                                                                                                                                                                                          |
+| AMD Ryzen 3700X           | Manjaro (Nov 9th 2020) | NVIDIA GTX 1070 | 32.013 ± 0.371                                                                                                                                                                                                                          |
+| AMD Ryzen 3700X           | Manjaro (Dez 8th 2020) | NVIDIA RTX 3070 | 22.467 ± 0.370                                                                                                                                                                                                                          |
+| Intel Core i3-2120        | Ubuntu 18.04 LTS       | -N/A-           | 86.138 ± 3.57                                                                                                                                                                                                                           |
+| Intel Core i5-3470        | Ubuntu 20.04 LTS       | Disabled        | 77.768 ± 6.101                                                                                                                                                                                                                          |
+| Intel Core i5-3470        | Ubuntu 20.04 LTS       | NVIDIA GTX 1070 | 34.169 ± 0.975                                                                                                                                                                                                                          |
+| Intel Core i5-8350U       | Ubuntu 20.10           | -N/A-           | 58.945 ± 2.799                                                                                                                                                                                                                          |
+| Intel Core i7-7820HQ      | MacOS Big Sur          | -N/A-           | 55.709 ± 3.446                                                                                                                                                                                                                          |
+| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS       | Disabled        | 42.363 ± 3.475                                                                                                                                                                                                                          |
+| 2x Intel Xeon CPU E5-2690 | Ubuntu 18.04 LTS       | NVIDIA GTX 1080 | 27.712 ± 4.052                                                                                                                                                                                                                          |
 
 ## Authors
 - Jan André Reuter
@@ -470,9 +521,9 @@ The actual runtime depends on the complexity of the SLI image stack. Especially 
 
 ## References
 |                                                                                                                                                                                                                |                                                                                                                                                              |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [![](https://www.fz-juelich.de/SharedDocs/Bilder/INM/INM-1/DE/PLI/PLI-GruppenLogo.png?__blob=thumbnail)](https://www.fz-juelich.de/inm/inm-1/EN/Forschung/Fibre%20Architecture/Fibre%20Architecture_node.html) | [Fiber Architecture - INM1 - Forschungszentrum Jülich](https://www.fz-juelich.de/inm/inm-1/EN/Forschung/Fibre%20Architecture/Fibre%20Architecture_node.html) |
-|                                                 [![](https://sos-ch-dk-2.exo.io/public-website-production/img/HBP.png)](https://www.humanbrainproject.eu/en/)                                                  | [Human Brain Project](https://www.humanbrainproject.eu/en/)           
+|                                                 [![](https://sos-ch-dk-2.exo.io/public-website-production/img/HBP.png)](https://www.humanbrainproject.eu/en/)                                                  | [Human Brain Project](https://www.humanbrainproject.eu/en/)                                                                                                  |
 
 ## Acknowledgements
 This open source software code was developed in part or in whole in the Human Brain Project, funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation under the Specific Grant Agreement No. 785907 and 945539 ("Human Brain Project" SGA2 and SGA3). The project also received funding from the Helmholtz Association port-folio theme "Supercomputing and Modeling for the Human Brain".
