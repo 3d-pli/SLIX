@@ -1,4 +1,4 @@
-[![DOI](https://joss.theoj.org/papers/10.21105/joss.02675/status.svg)](https://doi.org/10.21105/joss.02675)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02675/status.svg)](https://doi.org/10.21105/joss.02675)[![PyPI version](https://badge.fury.io/py/SLIX.svg)](https://badge.fury.io/py/SLIX)
 
 Documentation wiki: https://3d-pli.github.io/SLIX/
 
