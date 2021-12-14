@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.4.0
+### Added
+- Added vector weighting option available for SLIXVisualizeParameter with the parameter `--weight_map`. This parameter is used to weight the length of the shown vectors in both the unit vector visualization as well as the vector distribution.
+- Added new options to SLIXVisualizeParameter to allow the user to customize the appearance of the resulting parameter maps such as the vector maps and the FOM.
+- Added a new interface to SLIX.visualize called Colormaps. This class contains basic colormaps that can be used to visualize the results of the SLIX.visualize methods.
+- Currently this class holds the following color maps:
+  - Colomaps.rgb
+  - Colormaps.hsv_black
+  - Colormaps.hsv_white
+  - Colormaps.hsv_black_reverse
+  - Colormaps.hsv_white_reverse
+  - Colormaps.rgb_reverse
+- Added command line parameters for the user to choose the color maps when calling SLIXVisualizeParameter (`-c, --colormap`).
+- Added a new color_bubble method to SLIX.visualize.
+- Added an inclination parameter to SLIXVisualizeParameter [...] fom to allow the user to choose the inclination of the FOM.
+- 
+### Changed
+- When calling SLIXVisualizeParameter, a color bubble associated with the written image will be written as well. This can be disabled by using the `--disable_colorbubble` option.
+- Added a new method to SLIX.toolbox to get unit vectors from both direction and inclination images (3D instead of 2D only).
+- Added the name of the color map to the filename.
+- Added optional paramer name for the directions in SLIXVisualizeParameter (`--direction`).
+- 
+### Fixed
+- Fixed a bug in SLIXVisualizeParameter and SLIX.visualize.unit_vectors which caused the unit vectors to be drawn in the wrong direction.
 
 ## v2.3.0
 ### Added

@@ -5,6 +5,51 @@ import sys
 from SLIX import io, classification
 
 
+def load_parameter_maps(input_folder) -> {}:
+    """
+    Loads all parameter maps in the input folder.
+
+    Args:
+        input_folder: Folder containing the parameter maps.
+
+    Returns:
+        parameter_maps: Dictionary containing all parameter maps.
+
+    """
+    valid_parameter_map_names = [
+        'high_prominence_peaks',
+        'low_prominence_peaks',
+        'peakprominence',
+        'peakdistance',
+        'peakwidth',
+        'dir_1',
+        'dir_2',
+        'dir_3',
+        'avg',
+        'min',
+        'max'
+    ]
+
+    basename = None
+
+    loaded_parameter_maps = {}
+    list_of_files = glob.glob(input_folder + "/*")
+    for file in list_of_files:
+        for param in valid_parameter_map_names:
+            if param not in file:
+                continue
+            if basename is None:
+                basename = os.path.splitext(os.path.basename(file))[0]
+                basename = basename.replace(param, 'basename')
+            try:
+                image_in_file = io.imread(file)
+                loaded_parameter_maps[param] = image_in_file
+            except ...:
+                pass
+
+    return loaded_parameter_maps, basename
+
+
 def create_argparse():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter,
                             description='Creation of feature set from '
@@ -56,20 +101,6 @@ def main():
     arguments = parser.parse_args()
     args = vars(arguments)
 
-    valid_parameter_map_names = [
-        'high_prominence_peaks',
-        'low_prominence_peaks',
-        'peakprominence',
-        'peakdistance',
-        'peakwidth',
-        'dir_1',
-        'dir_2',
-        'dir_3',
-        'avg',
-        'min',
-        'max'
-    ]
-
     output_data_type = '.' + args['output_type']
 
     if output_data_type not in ['.nii', '.nii.gz', '.h5', '.tiff', '.tif']:
@@ -80,15 +111,14 @@ def main():
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
 
+    all = False
     inclination = False
     crossing = False
     flat = False
     basename = None
 
     if args['all']:
-        inclination = True
-        crossing = True
-        flat = True
+        all = True
     if args['inclination']:
         inclination = True
     if args['crossing']:
@@ -97,24 +127,12 @@ def main():
         flat = True
 
     # If no parameter map needs to be generated
-    if not inclination and not crossing and not flat:
+    if not all and not inclination and not crossing and not flat:
         parser.print_help()
         sys.exit(0)
 
-    loaded_parameter_maps = {}
-    list_of_files = glob.glob(args['input']+"/*")
-    for file in list_of_files:
-        for param in valid_parameter_map_names:
-            if param not in file:
-                continue
-            if basename is None:
-                basename = os.path.splitext(os.path.basename(file))[0]
-                basename = basename.replace(param, 'basename')
-            try:
-                image_in_file = io.imread(file)
-                loaded_parameter_maps[param] = image_in_file
-            except ...:
-                pass
+    # Load all parameter maps from the user given folder
+    loaded_parameter_maps, basename = load_parameter_maps(args['input'])
 
     if flat or inclination or crossing:
         loaded_parameter_maps['flat_mask'] = classification.flat_mask(
@@ -125,7 +143,7 @@ def main():
 
         if flat:
             flat_name = basename.replace('basename', 'flat_mask')
-            io.imwrite(args['output']+'/'+flat_name+output_data_type,
+            io.imwrite(f'{args["output"]}/{flat_name}{output_data_type}',
                        loaded_parameter_maps['flat_mask'])
 
     if inclination:
@@ -136,7 +154,7 @@ def main():
             loaded_parameter_maps['flat_mask']
         )
         inclination_name = basename.replace('basename', 'inclination_mask')
-        io.imwrite(args['output'] + '/' + inclination_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{inclination_name}{output_data_type}',
                    inclination_mask)
 
     if crossing:
@@ -145,15 +163,18 @@ def main():
             loaded_parameter_maps['max'],
         )
         crossing_name = basename.replace('basename', 'crossing_mask')
-        io.imwrite(args['output'] + '/' + crossing_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{crossing_name}{output_data_type}',
                    crossing_mask)
 
-    if inclination and flat and crossing:
-        full_mask = inclination_mask.copy()
-        full_mask[crossing_mask == 1] = 4
-        full_mask[crossing_mask == 2] = 5
+    if all:
+        full_mask = classification.full_mask(
+            loaded_parameter_maps['high_prominence_peaks'],
+            loaded_parameter_maps['low_prominence_peaks'],
+            loaded_parameter_maps['peakdistance'],
+            loaded_parameter_maps['max']
+        )
         full_name = basename.replace('basename', 'classification_mask')
-        io.imwrite(args['output'] + '/' + full_name + output_data_type,
+        io.imwrite(f'{args["output"]}/{full_name}{output_data_type}',
                    full_mask)
 
 

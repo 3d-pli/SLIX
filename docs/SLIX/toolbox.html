@@ -581,6 +581,32 @@
         <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">unit_vectors_3d</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the unit vectors (UnitX, UnitY) from a given direction angle.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        direction: 3D NumPy array - direction angles in degrees</span>
+
+<span class="sd">        inclination: 3D NumPy array - inclination angles in degrees</span>
+
+<span class="sd">        use_gpu: If available use the GPU for calculation</span>
+
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
+<span class="sd">        NumPy array will be returned.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        UnitX, UnitY: 3D NumPy array, 3D NumPy array</span>
+<span class="sd">            x- and y-vector component in arrays</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">)</span>
 </pre></div>
 
         </details>

@@ -105,9 +105,6 @@ class TestCommandClassification:
             Cluster.main()
             assert os.path.isdir('tests/output/cluster')
             assert os.path.isfile('tests/output/cluster/cluster_classification_mask.tiff')
-            assert os.path.isfile('tests/output/cluster/cluster_inclination_mask.tiff')
-            assert os.path.isfile('tests/output/cluster/cluster_flat_mask.tiff')
-            assert os.path.isfile('tests/output/cluster/cluster_crossing_mask.tiff')
 
 
 @pytest.fixture(scope="session", autouse=True)
