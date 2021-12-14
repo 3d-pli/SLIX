@@ -457,6 +457,40 @@ SLIXCluster uses threshold parameters to separate regions based on findings in r
 | `--crossing`    | Generate a mask containing only crossing fibers.                                                               |
 | `--inclination` | Generate a unsigned character image differentiating between flat, lightly inclined and strong inclined fibers. |
 
+### Definiton of flat, crossing and inclined fibers
+The classification of flat, crossing and inclined fibers is based on the following parameters:
+
+#### Flat fibers
+1. Two prominent peaks are present.
+2. The peak distance is between 145° and 215°. A peak distance of 180° is
+   expected for a completely flat fiber, but small deviations for example
+   through the sampling steps of the measurement are possible.
+3. No more than two low prominent peaks are present. Completely flat
+   fibers generally have a very stable signal and therefore a low
+   amount of low prominent peaks.
+
+#### Crossing fibers
+1. The maximum signal during the measurement is above the mean signal
+   of the maximum image.
+2. The number of peaks is either four (two crossing fibers) or six (three
+   crossing fibers).
+
+#### Inclined fibers
+In the inclined fibers mask, flat and inclined fibers are differentiated.
+
+Flat fibers:
+1. The maximum signal during the measurement is above the mean signal
+   of the maximum image.
+2. The number of peaks is two (one flat fiber)
+
+Inclined fibers:
+Three different scenarios are possible:
+1. Two peaks are present and the peak distance is between 120° and
+   150° (lightly inclined fiber)
+2. Two peaks are present and the peak distance is below 120°
+   (inclined fiber)
+3. One single peak is present (steep fiber)
+
 ### Understanding the output
 The output of SLIXCluster is a number of parameter maps, each of which is saved as an 8-bit image.
 To understand the output, the following numbered codes are used:
