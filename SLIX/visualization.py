@@ -18,11 +18,24 @@ __all__ = ['parameter_map',
 
 class Colormap:
     @staticmethod
-    def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
+    def prepare(direction: numpy.ndarray, inclination: numpy.ndarray) -> (numpy.ndarray, numpy.ndarray):
         if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
             direction = numpy.deg2rad(direction)
         if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
             inclination = numpy.deg2rad(inclination)
+
+        # If inclination is only 2D and direction is 3D, we need to make sure that the
+        # inclination matches the shape of the direction.
+        if inclination.ndim == 2 and direction.ndim == 3:
+            inclination = inclination[..., numpy.newaxis]
+        if inclination.ndim == 3 and inclination.shape[-1] != direction.shape[-1]:
+            inclination = numpy.repeat(inclination, direction.shape[-1], axis=-1)
+
+        return direction, inclination
+
+    @staticmethod
+    def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
+        direction, inclination = Colormap.prepare(direction, inclination)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
                                  1.0 - (2 * inclination / numpy.pi),
@@ -32,10 +45,7 @@ class Colormap:
 
     @staticmethod
     def hsv_black(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
-            direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
-            inclination = numpy.deg2rad(inclination)
+        direction, inclination = Colormap.prepare(direction, inclination)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
                                  numpy.ones(direction.shape),
@@ -45,10 +55,7 @@ class Colormap:
 
     @staticmethod
     def rgb(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
-            direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
-            inclination = numpy.deg2rad(inclination)
+        direction, inclination = Colormap.prepare(direction, inclination)
 
         direction[direction > numpy.pi / 2] = numpy.pi - direction[direction > numpy.pi / 2]
         rgb_stack = numpy.stack((
@@ -63,30 +70,21 @@ class Colormap:
 
     @staticmethod
     def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
-            direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
-            inclination = numpy.deg2rad(inclination)
+        direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
         return Colormap.hsv_black(direction, inclination)
 
     @staticmethod
     def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
-            direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
-            inclination = numpy.deg2rad(inclination)
+        direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
         return Colormap.hsv_white(direction, inclination)
 
     @staticmethod
     def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
-            direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
-            inclination = numpy.deg2rad(inclination)
+        direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
         return Colormap.rgb(direction, inclination)
@@ -232,20 +230,11 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         If the fraction of background pixels lies above this defined threshold,
         background pixels will not be considered for computing the median.
 
-<<<<<<< HEAD
-        weighting: Weighting of the vectors. If None, the vectors will be
-        weighted by a value of one, resulting in normal unit vectors.
-
-        colormap: The colormap to use. Default is HSV black. The available color maps
-                  can be found in the colormap class.
-=======
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
 
         weighting: Weighting of the vectors. If None, the vectors will be
                    weighted by a value of one, resulting in normal unit vectors.
-
->>>>>>> 2.4.0
 
     Returns:
 
