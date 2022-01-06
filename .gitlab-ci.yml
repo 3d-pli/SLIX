@@ -6,40 +6,54 @@ stages:
     - install
     - pack
 
-before_script:
-    - apt-get update -qq && apt-get upgrade -y
-    - apt-get install -y python3 python3-pip
-    - /usr/bin/python3 -m pip install --upgrade pip
-
-lint:python3:
-    stage: test
-    allow_failure: true
-    image: cupy/cupy:v8.0.0
-    script:
-        - pip3 install flake8
-        - flake8 SLIX/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        - flake8 SLIX/ --count --exit-zero --max-complexity=10 --statistics
-    tags:
-        - docker
-        - gpu
+code_quality_html:
+  extends: code_quality
+  variables:
+    REPORT_FORMAT: html
+  artifacts:
+    paths: [gl-code-quality-report.html]
 
 test:python3:
     stage: test
     image: cupy/cupy:v8.0.0
     script:
+        - apt-get update -qq && apt-get upgrade -y
+        - apt-get install -y python3 python3-pip
+        - /usr/bin/python3 -m pip install --upgrade pip
         - pip3 install tifffile numpy nibabel h5py pillow numba matplotlib pytest pytest-cov
-        - pytest --cov=SLIX --cov-config=.coveragerc tests --cov-report=html
+        # Online preview of tests that did run successfully
+        - pytest tests --junitxml=report.xml    
     artifacts:
-            paths:
-                - htmlcov/
+        when: always
+        reports:
+            junit: report.xml
     tags:
         - docker
         - gpu 
+        
+test_with_coverage:python3:
+    stage: test
+    image: cupy/cupy:v8.0.0
+    script:
+        - apt-get install -y python3 python3-pip
+        - /usr/bin/python3 -m pip install --upgrade pip
+        - pip3 install tifffile numpy nibabel h5py pillow numba matplotlib pytest pytest-cov
+        - coverage run -m pytest --cov-config=.coveragerc tests
+        - coverage report
+        - coverage xml
+    artifacts:
+        reports:
+            cobertura: coverage.xml
+    only:
+        - merge_requests
         
 install:python3:
     stage: install
     image: cupy/cupy:v8.0.0
     script:
+        - apt-get update -qq && apt-get upgrade -y
+        - apt-get install -y python3 python3-pip
+        - /usr/bin/python3 -m pip install --upgrade pip
         - pip3 install .
     tags:
     - docker
@@ -49,6 +63,9 @@ pack:python3:
     stage: pack
     image: cupy/cupy:v8.0.0
     script:
+        - apt-get update -qq && apt-get upgrade -y
+        - apt-get install -y python3 python3-pip
+        - /usr/bin/python3 -m pip install --upgrade pip
         - pip3 install pep517
         - python3 -m pep517.build --source --binary --out-dir dist/ .
     tags:
