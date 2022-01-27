@@ -51,7 +51,7 @@ def create_argument_parser():
                                ' stack or camera was rotated.')
     optional.add_argument('--smoothing',
                           type=str,
-                          nargs="*",
+                          nargs=3,
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
                                ' with less than 5 degree between each image. '
