@@ -518,3 +518,50 @@ def unit_vectors_3d(direction, inclination, use_gpu=gpu_available, return_numpy=
         return gpu_toolbox.unit_vectors(direction, inclination, return_numpy=return_numpy)
     else:
         return cpu_toolbox.unit_vectors(direction, inclination)
+
+
+def inclination_sign(peaks=None, peak_distance=None, use_gpu=gpu_available, return_numpy=True):
+    """
+    Calculate the inclination sign from the peak positions.
+    The inclination sign is based on the peak distance between two peaks.
+
+    Explanation of the results:
+    -1: The minimal peak distance is behind the first peak (wrapping around)
+    0: This pixel / line profile has more than two peaks
+    1: The minimal peak distance is in front of the first peak.
+
+    Args:
+
+        peaks: 3D NumPy array - peak positions
+
+        use_gpu: If available use the GPU for calculation
+
+        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
+        NumPy array will be returned.
+
+    Returns:
+
+        inclination_sign: 3D NumPy array
+            inclination sign
+
+    Raises:
+
+        ValueError: If neither peaks nor peak_distance are given.
+
+        ValueError: If peaks or peak_distance are given, but are a 2D array.
+    """
+    if peaks is None and peak_distance is None:
+        raise ValueError("Either peaks or peak_distance must be given.")
+    if peaks is not None and peaks.ndim == 2 and peak_distance is None:
+        raise ValueError("Peaks need to be a 3D array for correct calculation.")
+    if peak_distance is not None and peak_distance.ndim == 2 and peaks is None:
+        raise ValueError("Peak distance needs to be a 3D array for correct calculation.")
+
+    if use_gpu:
+        if peaks is not None:
+            peak_distance = gpu_toolbox.peak_distance(peaks, numpy.zeros_like(peaks), return_numpy=return_numpy)
+        return gpu_toolbox.inclination_sign(peak_distance, return_numpy=return_numpy)
+    else:
+        if peaks is not None:
+            peak_distance = cpu_toolbox.peak_distance(peaks, numpy.zeros_like(peaks))
+        return cpu_toolbox.inclination_sign(peak_distance)

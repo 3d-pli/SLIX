@@ -51,7 +51,7 @@ def create_argument_parser():
                                ' stack or camera was rotated.')
     optional.add_argument('--smoothing',
                           type=str,
-                          nargs="*",
+                          nargs=3,
                           help='Apply smoothing for each line profile for '
                                'noisy images. Recommended for measurements'
                                ' with less than 5 degree between each image. '
@@ -107,6 +107,9 @@ def create_argument_parser():
                        action='store_true',
                        help='Add distance between two peaks if two peaks are '
                             'detected')
+    image.add_argument('--inclination_sign',
+                       action='store_true',
+                       help='Add the sign of the inclination angle')
     image.add_argument('--unit_vectors',
                        action='store_true',
                        help='Write unit vector images from direction')
@@ -145,6 +148,7 @@ def main():
     PEAKWIDTH = True
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
+    INCLINATION_SIGN = False
     UNIT_VECTORS = False
     output_data_type = '.' + args['output_type']
 
@@ -155,12 +159,13 @@ def main():
 
     if args['direction'] or args['peaks'] or args['peakprominence'] or \
             args['peakwidth'] or args['peakdistance'] or \
-            args['unit_vectors']:
+            args['unit_vectors'] or args['inclination_sign']:
         DIRECTION = args['direction']
         PEAKS = args['peaks']
         PEAKPROMINENCE = args['peakprominence']
         PEAKWIDTH = args['peakwidth']
         PEAKDISTANCE = args['peakdistance']
+        INCLINATION_SIGN = args['inclination_sign']
         UNIT_VECTORS = args['unit_vectors']
     OPTIONAL = args['optional']
     if toolbox.gpu_available:
@@ -174,6 +179,7 @@ def main():
         f'Peak prominence map: {PEAKPROMINENCE} \n' +
         f'Peak width map: {PEAKWIDTH} \n' +
         f'Peak distance map: {PEAKDISTANCE} \n' +
+        f'Inclination sign map: {INCLINATION_SIGN} \n' +
         f'Unit vector maps: {UNIT_VECTORS} \n' +
         f'Optional maps: {OPTIONAL} \n'
     )
@@ -190,6 +196,7 @@ def main():
                                                 PEAKPROMINENCE,
                                                 PEAKWIDTH,
                                                 PEAKDISTANCE,
+                                                INCLINATION_SIGN,
                                                 OPTIONAL,
                                                 UNIT_VECTORS,
                                                 args['smoothing'] is not None,
@@ -424,6 +431,13 @@ def main():
                                UnitZ[:, :, dim])
 
                 tqdm_step.update(1)
+
+        if INCLINATION_SIGN:
+            tqdm_step.set_description('Generating inclination sign')
+            inclination_sign = toolbox.inclination_sign(significant_peaks,
+                                                        use_gpu=toolbox.gpu_available)
+            io.imwrite(f'{output_path_name}_inclination_sign{output_data_type}', inclination_sign)
+            del inclination_sign
 
         if OPTIONAL:
             tqdm_step.set_description('Generating optional maps')

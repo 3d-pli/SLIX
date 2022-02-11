@@ -5,7 +5,7 @@ from numba import cuda
 import SLIX
 from SLIX.GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
-    _peaks
+    _peaks, _inclination_sign
 
 __all__ = ['TARGET_PROMINENCE', 'peaks',
            'peak_width', 'peak_prominence',
@@ -697,3 +697,49 @@ def unit_vectors_3d(direction, inclination, return_numpy=True):
     if return_numpy:
         return UnitX.get(), UnitY.get(), UnitZ.get()
     return UnitX, UnitY, UnitZ
+
+
+def inclination_sign(peak_distance, return_numpy=True):
+    """
+    Calculate the inclination sign from the peak positions.
+    The inclination sign is based on the peak distance between two peaks.
+
+    Explanation of the results:
+    -1: The minimal peak distance is behind the first peak (wrapping around)
+    0: This pixel / line profile has more than two peaks
+    1: The minimal peak distance is in front of the first peak.
+
+    Args:
+
+        peak_distance: 3D NumPy array - of the peak distance between two peaks
+
+        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
+        NumPy array will be returned.
+
+    Returns:
+
+        inclination_sign: 3D NumPy array
+            inclination sign
+    """
+    peaks = peak_distance > 0
+    peak_sum = numpy.sum(peaks, axis=-1)
+
+    peak_sum_gpu = cupy.array(peak_sum)
+    peak_distance_gpu = cupy.array(peak_distance)
+    sign_gpu = cupy.empty(peak_sum_gpu.shape, dtype=numpy.int8)
+
+    threads_per_block = (1, 1)
+    blocks_per_grid = peak_distance_gpu.shape[:-1]
+    _inclination_sign[blocks_per_grid, threads_per_block](peak_distance_gpu,
+                                                          peak_sum_gpu,
+                                                          sign_gpu)
+
+    del peak_sum_gpu
+    del peak_distance_gpu
+
+    if return_numpy:
+        sign = sign_gpu.get()
+        del sign_gpu
+        return sign
+
+    return sign_gpu
