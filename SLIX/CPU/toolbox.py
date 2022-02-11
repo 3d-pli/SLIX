@@ -2,7 +2,8 @@ import numpy
 
 import SLIX
 from SLIX.CPU._toolbox import _direction, _prominence, _peakwidth, \
-    _peakdistance, _centroid, _centroid_correction_bases, _peaks
+    _peakdistance, _centroid, _centroid_correction_bases, _peaks, \
+    _inclination_sign
 
 __all__ = ['TARGET_PROMINENCE', 'peaks',
            'peak_width', 'peak_prominence',
@@ -501,3 +502,19 @@ def unit_vectors_3d(direction, inclination):
     UnitZ[numpy.isclose(direction, -1)] = 0
 
     return UnitX, UnitY, UnitZ
+
+
+def inclination_sign(peak_distance):
+    # Count the number of entries with a value above 0 in the last axis in peak_distance
+    peaks = peak_distance > 0
+    peak_sum = numpy.sum(peaks, axis=-1)
+
+    [image_x, image_y, image_z] = peak_distance.shape
+    peak_distance = peak_distance.reshape(image_x * image_y, image_z)
+
+    sign = _inclination_sign(peak_distance, peak_sum.flatten())
+    sign = sign.reshape((image_x, image_y))
+
+    return sign
+
+

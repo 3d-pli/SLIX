@@ -17,7 +17,6 @@ class TestToolbox:
             average_image[i + 128, :] = 128
 
         toolbox_mask = toolbox.background_mask(average_image, use_gpu=use_gpu)
-        print(toolbox_mask)
         assert numpy.all(toolbox_mask[:128, :] == True)
         assert numpy.all(toolbox_mask[128:, :] == False)
 

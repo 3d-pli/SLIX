@@ -305,3 +305,30 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
             centroid_peaks[idx, idy, pos] = centroid
         else:
             centroid_peaks[idx, idy, pos] = 0
+
+
+@cuda.jit('void(float32[:, :, :], uint8[:, :], int8[:, :])')
+def _inclination_sign(peak_distance, num_peaks, inclination_sign):
+    idx, idy = cuda.grid(2)
+    sub_peak_distance = peak_distance[idx, idy]
+    sub_num_peaks = num_peaks[idx, idy]
+
+    if sub_num_peaks != 2:
+        inclination_sign[idx, idy] = 0
+    else:
+        # Search for first index where peak distance is above 0
+        first_distance = 0
+        second_distance = 0
+
+        for pos in range(len(sub_peak_distance)):
+            if sub_peak_distance[pos] > 0:
+                if first_distance == 0:
+                    first_distance = pos
+                else:
+                    second_distance = pos
+                    break
+
+        if first_distance < second_distance:
+            inclination_sign[idx, idy] = 1
+        else:
+            inclination_sign[idx, idy] = -1

@@ -312,3 +312,33 @@ def _centroid(image, peak_image, left_bases, right_bases):
                     centroid = numpy.sign(centroid)
                 centroid_peaks[idx, pos] = centroid
     return centroid_peaks
+
+
+@jit(nopython=True, parallel=True)
+def _inclination_sign(peak_distance, num_peaks):
+    inclination_sign = numpy.zeros(num_peaks.shape, dtype=numpy.int8)
+    for idx in prange(peak_distance.shape[0]):
+        sub_peak_distance = peak_distance[idx]
+        sub_num_peaks = num_peaks[idx]
+
+        if sub_num_peaks != 2:
+            inclination_sign[idx] = 0
+        else:
+            # Search for first index where peak distance is above 0
+            first_distance = 0
+            second_distance = 0
+
+            for pos in range(len(sub_peak_distance)):
+                if sub_peak_distance[pos] > 0:
+                    if first_distance == 0:
+                        first_distance = pos
+                    else:
+                        second_distance = pos
+                        break
+
+            if first_distance < second_distance:
+                inclination_sign[idx] = 1
+            else:
+                inclination_sign[idx] = -1
+
+    return inclination_sign
