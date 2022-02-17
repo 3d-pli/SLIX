@@ -504,17 +504,17 @@ def unit_vectors_3d(direction, inclination):
     return UnitX, UnitY, UnitZ
 
 
-def inclination_sign(peak_distance):
-    # Count the number of entries with a value above 0 in the last axis in peak_distance
-    peaks = peak_distance > 0
-    peak_sum = numpy.sum(peaks, axis=-1)
+def inclination_sign(peak_image, centroids, correction_angle=0):
+    peak_image = numpy.array(peak_image).astype('uint8')
+    [image_x, image_y, image_z] = peak_image.shape
 
-    [image_x, image_y, image_z] = peak_distance.shape
-    peak_distance = peak_distance.reshape(image_x * image_y, image_z)
+    peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
+    centroids = centroids.reshape(image_x * image_y, image_z).astype('float32')
+    number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
 
-    sign = _inclination_sign(peak_distance, peak_sum.flatten())
-    sign = sign.reshape((image_x, image_y))
-
-    return sign
+    result_img = _inclination_sign(peak_image, centroids, number_of_peaks,
+                                   correction_angle)
+    result_img = result_img.reshape((image_x, image_y))
+    return result_img
 
 

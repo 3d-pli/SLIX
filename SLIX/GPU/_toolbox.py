@@ -26,7 +26,7 @@ def _peaks(image, resulting_peaks):
             if sub_image[pos] - sub_image[pos_ahead % len(sub_image)] > 0:
                 left = pos
                 right = pos_ahead - 1
-                resulting_peaks[idx, idy, (left + right)//2] = 1
+                resulting_peaks[idx, idy, (left + right) // 2] = 1
 
             pos = pos_ahead
         else:
@@ -128,7 +128,7 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
             elif current_number_of_peaks % 2 == 0:
                 left = (i + sub_centroid_array[i]) * \
                        360.0 / len(sub_peak_array)
-                right_side_peak = current_number_of_peaks//2
+                right_side_peak = current_number_of_peaks // 2
                 current_position = i
                 while right_side_peak > 0 and \
                         current_position < len(sub_peak_array):
@@ -147,7 +147,7 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
 
                 current_pair += 1
 
-            if current_pair == current_number_of_peaks//2:
+            if current_pair == current_number_of_peaks // 2:
                 break
 
 
@@ -187,7 +187,7 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
                     # We search for a peak which is around 180° away.
                     # We will search for it using the following distance
                     # as the number of peaks we need to pass.
-                    right_side_peak = current_number_of_peaks//2
+                    right_side_peak = current_number_of_peaks // 2
                     current_position = i
                     # Check for peaks until we find the corresponding peak
                     while right_side_peak > 0 and \
@@ -307,28 +307,45 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
             centroid_peaks[idx, idy, pos] = 0
 
 
-@cuda.jit('void(float32[:, :, :], uint8[:, :], int8[:, :])')
-def _inclination_sign(peak_distance, num_peaks, inclination_sign):
+@cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], '
+          'float32[:, :], float32)')
+def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image, correctdir):
     idx, idy = cuda.grid(2)
-    sub_peak_distance = peak_distance[idx, idy]
-    sub_num_peaks = num_peaks[idx, idy]
+    sub_peak_array = peak_array[idx, idy]
+    sub_centroid_array = centroid_array[idx, idy]
 
-    if sub_num_peaks != 2:
-        inclination_sign[idx, idy] = 0
-    else:
-        # Search for first index where peak distance is above 0
-        first_distance = 0
-        second_distance = 0
+    current_number_of_peaks = number_of_peaks[idx, idy]
 
-        for pos in range(len(sub_peak_distance)):
-            if sub_peak_distance[pos] > 0:
-                if first_distance == 0:
-                    first_distance = pos
+    # Set the whole pixel in the direction to background.
+    # That just in case if not all directions are calculated
+    # when only two or four peaks are present.
+    result_image[idx, idy] = BACKGROUND_COLOR
+    # Check if the line profile has less peaks than the number
+    # of directions which shall be calculated.
+    if current_number_of_peaks == 2:
+        for i in range(len(sub_peak_array)):
+            # If one of our line profile pixels is a peak
+            if sub_peak_array[i] == 1:
+                # Mark the position as the left position of our peak
+                left = (i + sub_centroid_array[i]) * \
+                       360.0 / len(sub_peak_array) + correctdir
+
+                # We will search for it using the following distance
+                # as the number of peaks we need to pass.
+                right_side_peak = current_number_of_peaks // 2
+                current_position = i
+                # Check for peaks until we find the corresponding peak
+                while right_side_peak > 0 and \
+                        current_position < len(sub_peak_array):
+                    current_position = current_position + 1
+                    if sub_peak_array[current_position] == 1:
+                        right_side_peak = right_side_peak - 1
+
+                right = (current_position +
+                         sub_centroid_array[current_position]) * \
+                         360.0 / len(sub_peak_array) + correctdir
+
+                if (right - left) > 180:
+                    result_image[idx, idy] = (left + right) / 2.0
                 else:
-                    second_distance = pos
-                    break
-
-        if first_distance < second_distance:
-            inclination_sign[idx, idy] = 1
-        else:
-            inclination_sign[idx, idy] = -1
+                    result_image[idx, idy] = (left + right) / 2.0
