@@ -5,6 +5,7 @@ import glob
 import numpy
 import tqdm
 import re
+
 if toolbox.gpu_available:
     import cupy
 
@@ -335,7 +336,7 @@ def main():
                 io.imwrite(f'{output_path_name}_peakprominence_detailed'
                            f'{output_data_type}',
                            peak_prominence_full
-                )
+                           )
                 del peak_prominence_full
 
             tqdm_step.update(1)
@@ -434,10 +435,12 @@ def main():
 
         if INCLINATION_SIGN:
             tqdm_step.set_description('Generating inclination sign')
-            inclination_sign = toolbox.inclination_sign(significant_peaks,
+            inclination_sign = toolbox.inclination_sign(significant_peaks, centroids,
+                                                        correction_angle=args['correctdir'],
                                                         use_gpu=toolbox.gpu_available)
             io.imwrite(f'{output_path_name}_inclination_sign{output_data_type}', inclination_sign)
             del inclination_sign
+            tqdm_step.update(1)
 
         if OPTIONAL:
             tqdm_step.set_description('Generating optional maps')

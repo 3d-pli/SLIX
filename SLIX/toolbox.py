@@ -22,7 +22,7 @@ except (ModuleNotFoundError, NameError):
     print('[WARNING] CuPy is not installed. The toolbox will use the CPU '
           'variant instead. If you want to use the GPU variant, please run '
           '`pip install cupy`.')
-    
+
 from SLIX.CPU import toolbox as cpu_toolbox
 import numpy
 
@@ -515,12 +515,13 @@ def unit_vectors_3d(direction, inclination, use_gpu=gpu_available, return_numpy=
             x- and y-vector component in arrays
     """
     if use_gpu:
-        return gpu_toolbox.unit_vectors(direction, inclination, return_numpy=return_numpy)
+        return gpu_toolbox.unit_vectors_3d(direction, inclination, return_numpy=return_numpy)
     else:
-        return cpu_toolbox.unit_vectors(direction, inclination)
+        return cpu_toolbox.unit_vectors_3d(direction, inclination)
 
 
-def inclination_sign(peaks=None, peak_distance=None, use_gpu=gpu_available, return_numpy=True):
+def inclination_sign(peak_image, centroids, correction_angle=0,
+                     use_gpu=gpu_available, return_numpy=True):
     """
     Calculate the inclination sign from the peak positions.
     The inclination sign is based on the peak distance between two peaks.
@@ -550,18 +551,7 @@ def inclination_sign(peaks=None, peak_distance=None, use_gpu=gpu_available, retu
 
         ValueError: If peaks or peak_distance are given, but are a 2D array.
     """
-    if peaks is None and peak_distance is None:
-        raise ValueError("Either peaks or peak_distance must be given.")
-    if peaks is not None and peaks.ndim == 2 and peak_distance is None:
-        raise ValueError("Peaks need to be a 3D array for correct calculation.")
-    if peak_distance is not None and peak_distance.ndim == 2 and peaks is None:
-        raise ValueError("Peak distance needs to be a 3D array for correct calculation.")
-
     if use_gpu:
-        if peaks is not None:
-            peak_distance = gpu_toolbox.peak_distance(peaks, numpy.zeros_like(peaks), return_numpy=return_numpy)
-        return gpu_toolbox.inclination_sign(peak_distance, return_numpy=return_numpy)
+        return gpu_toolbox.inclination_sign(peak_image, centroids, correction_angle, return_numpy=return_numpy)
     else:
-        if peaks is not None:
-            peak_distance = cpu_toolbox.peak_distance(peaks, numpy.zeros_like(peaks))
-        return cpu_toolbox.inclination_sign(peak_distance)
+        return cpu_toolbox.inclination_sign(peak_image, centroids, correction_angle)

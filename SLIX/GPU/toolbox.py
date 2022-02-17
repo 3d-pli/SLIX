@@ -131,8 +131,8 @@ def num_peaks(image=None, peak_image=None, return_numpy=True):
     else:
         raise ValueError('Either image or peak_image has to be defined.')
 
-    resulting_image = cupy.count_nonzero(peak_image, axis=-1)\
-                          .astype(cupy.uint16)
+    resulting_image = cupy.count_nonzero(peak_image, axis=-1) \
+        .astype(cupy.uint16)
     if return_numpy:
         resulting_image_cpu = cupy.asnumpy(resulting_image)
         del resulting_image
@@ -699,7 +699,7 @@ def unit_vectors_3d(direction, inclination, return_numpy=True):
     return UnitX, UnitY, UnitZ
 
 
-def inclination_sign(peak_distance, return_numpy=True):
+def inclination_sign(peak_image, centroids, correction_angle=0, return_numpy=True):
     """
     Calculate the inclination sign from the peak positions.
     The inclination sign is based on the peak distance between two peaks.
@@ -721,25 +721,30 @@ def inclination_sign(peak_distance, return_numpy=True):
         inclination_sign: 3D NumPy array
             inclination sign
     """
-    peaks = peak_distance > 0
-    peak_sum = numpy.sum(peaks, axis=-1)
+    gpu_peak_image = cupy.array(peak_image).astype('int8')
+    gpu_centroids = cupy.array(centroids).astype('float32')
 
-    peak_sum_gpu = cupy.array(peak_sum)
-    peak_distance_gpu = cupy.array(peak_distance)
-    sign_gpu = cupy.empty(peak_sum_gpu.shape, dtype=numpy.int8)
+    result_img_gpu = cupy.empty(
+        (gpu_peak_image.shape[0], gpu_peak_image.shape[1]), dtype='float32')
+    number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype(
+        'int8')
 
     threads_per_block = (1, 1)
-    blocks_per_grid = peak_distance_gpu.shape[:-1]
-    _inclination_sign[blocks_per_grid, threads_per_block](peak_distance_gpu,
-                                                          peak_sum_gpu,
-                                                          sign_gpu)
+    blocks_per_grid = gpu_peak_image.shape[:-1]
+    _inclination_sign[blocks_per_grid, threads_per_block](gpu_peak_image,
+                                                          gpu_centroids,
+                                                          number_of_peaks,
+                                                          result_img_gpu,
+                                                          correction_angle)
+    cuda.synchronize()
+    del number_of_peaks
 
-    del peak_sum_gpu
-    del peak_distance_gpu
+    if peak_image is None:
+        del gpu_peak_image
 
     if return_numpy:
-        sign = sign_gpu.get()
-        del sign_gpu
-        return sign
-
-    return sign_gpu
+        result_img_cpu = cupy.asnumpy(result_img_gpu)
+        del result_img_gpu
+        return result_img_cpu
+    else:
+        return result_img_gpu
