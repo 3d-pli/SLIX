@@ -320,7 +320,7 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
     # That just in case if not all directions are calculated
     # when only two or four peaks are present.
     result_image[idx, idy] = BACKGROUND_COLOR
-    # Check if the line profile has less peaks than the number
+    # Check if the line profile has fewer peaks than the number
     # of directions which shall be calculated.
     if current_number_of_peaks == 2:
         for i in range(len(sub_peak_array)):
@@ -345,7 +345,10 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
                          sub_centroid_array[current_position]) * \
                          360.0 / len(sub_peak_array) + correctdir
 
-                if (right - left) > 180:
-                    result_image[idx, idy] = 360.0 - ((left + right) / 2.0)
+                if right - left > 180:
+                    other_way = 360 - (right - left)
+                    result_image[idx, idy] = (right + other_way / 2) % 360
                 else:
-                    result_image[idx, idy] = (left + right) / 2.0
+                    result_image[idx, idy] = left + (right - left) / 2
+
+                break

@@ -326,12 +326,12 @@ def _inclination_sign(peak_array, centroids, number_of_peaks, correctdir):
         # That just in case if not all directions are calculated
         # when only two or four peaks are present.
         result_image[idx] = BACKGROUND_COLOR
-        # Check if the line profile has less peaks than the number
+        # Check if the line profile has fewer peaks than the number
         # of directions which shall be calculated.
         if number_of_peaks[idx] == 2:
             for i in prange(len(sub_peak_array)):
                 # If one of our line profile pixels is a peak
-                if sub_peak_array[i] == 1:
+                if sub_peak_array[i] != 0:
                     # Mark the position as the left position of our peak
                     left = (i + sub_centroid_array[i]) * \
                            360.0 / len(sub_peak_array) + \
@@ -340,24 +340,25 @@ def _inclination_sign(peak_array, centroids, number_of_peaks, correctdir):
                     # We search for a peak which is around 180° away.
                     # We will search for it using the following distance
                     # as the number of peaks we need to pass.
-                    right_side_peak = number_of_peaks[idx] // 2
                     current_position = i
                     # Check for peaks until we find the corresponding peak
-                    while right_side_peak > 0 and \
-                            current_position < len(sub_peak_array):
+                    while current_position < len(sub_peak_array):
                         current_position = current_position + 1
-                        if sub_peak_array[current_position] == 1:
-                            right_side_peak = right_side_peak - 1
+                        if sub_peak_array[current_position] != 0:
+                            break
 
                     right = (current_position +
                              sub_centroid_array[current_position]) * \
-                            360.0 / len(sub_peak_array) + \
-                            numpy.float32(correctdir)
+                             360.0 / len(sub_peak_array) + \
+                             numpy.float32(correctdir)
 
-                    if (right - left) > 180:
-                        result_image[idx] = 360.0 - ((left + right) / 2.0)
+                    if right - left > 180:
+                        other_way = 360 - (right - left)
+                        result_image[idx] = (right + other_way / 2) % 360
                     else:
-                        result_image[idx] = ((left + right) / 2.0)
+                        result_image[idx] = left + (right - left) / 2
+
+                    break
 
     return result_image
 
