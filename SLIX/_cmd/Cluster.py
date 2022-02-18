@@ -110,12 +110,16 @@ def main():
 
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
+    # Check if the output path is writable
+    if not os.access(args['output'], os.W_OK):
+        print('Output path is not writable. Please choose a valid output '
+              'path!')
+        exit(1)
 
     all = False
     inclination = False
     crossing = False
     flat = False
-    basename = None
 
     if args['all']:
         all = True

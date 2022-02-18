@@ -148,6 +148,11 @@ def main():
 
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
+    # Check if the output path is writable
+    if not os.access(args['output'], os.W_OK):
+        print('Output path is not writable. Please choose a valid output '
+              'path!')
+        exit(1)
 
     filename_without_extension = \
         os.path.splitext(os.path.basename(args['input'][0]))[0]
