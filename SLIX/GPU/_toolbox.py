@@ -346,6 +346,6 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
                          360.0 / len(sub_peak_array) + correctdir
 
                 if (right - left) > 180:
-                    result_image[idx, idy] = (left + right) / 2.0
+                    result_image[idx, idy] = 360.0 - ((left + right) / 2.0)
                 else:
                     result_image[idx, idy] = (left + right) / 2.0
