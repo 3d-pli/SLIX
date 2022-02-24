@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.4.1
+### Added
+- Added inclination sign map in SLIXParameterGenerator
+
+### Changed
+- Added check for write operations before actually trying to generate any content reducing the computing time if the program would fail anyways.
+### Fixed
+- Fixed an issue where you could use any amount of arguments after the `--smoothing` flag in SLIXParameterGenerator resulting in weird behaviour for the users.
+
 ## v2.4.0
 ### Added
 - Added vector weighting option available for SLIXVisualizeParameter with the parameter `--weight_map`. This parameter is used to weight the length of the shown vectors in both the unit vector visualization as well as the vector distribution.
