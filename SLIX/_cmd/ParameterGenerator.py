@@ -149,7 +149,7 @@ def main():
     PEAKWIDTH = True
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
-    INCLINATION_SIGN = False
+    INCLINATION_SIGN = True
     UNIT_VECTORS = False
     output_data_type = '.' + args['output_type']
 
