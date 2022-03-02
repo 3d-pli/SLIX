@@ -89,7 +89,7 @@ With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is poss
 ##### Install SLIX vom PyPI
 Installing the currently available version of SLIX through PyPI is the recommended way. Use the following command to install SLIX into your Python enviroment.
 ```bash
-pip3 install SLIX
+pip install SLIX
 ```
 
 ##### How to install SLIX as Python package from source
