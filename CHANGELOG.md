@@ -24,13 +24,13 @@
 - Added command line parameters for the user to choose the color maps when calling SLIXVisualizeParameter (`-c, --colormap`).
 - Added a new color_bubble method to SLIX.visualize.
 - Added an inclination parameter to SLIXVisualizeParameter [...] fom to allow the user to choose the inclination of the FOM.
-- 
+
 ### Changed
 - When calling SLIXVisualizeParameter, a color bubble associated with the written image will be written as well. This can be disabled by using the `--disable_colorbubble` option.
 - Added a new method to SLIX.toolbox to get unit vectors from both direction and inclination images (3D instead of 2D only).
 - Added the name of the color map to the filename.
 - Added optional paramer name for the directions in SLIXVisualizeParameter (`--direction`).
-- 
+
 ### Fixed
 - Fixed a bug in SLIXVisualizeParameter and SLIX.visualize.unit_vectors which caused the unit vectors to be drawn in the wrong direction.
 

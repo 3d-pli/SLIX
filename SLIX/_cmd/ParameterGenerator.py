@@ -370,7 +370,6 @@ def main():
 
             centroids = toolbox. \
                 centroid_correction(image, significant_peaks,
-                                    use_gpu=toolbox.gpu_available,
                                     return_numpy=not toolbox.gpu_available)
 
             if args['detailed']:
