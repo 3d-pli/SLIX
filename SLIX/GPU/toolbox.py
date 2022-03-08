@@ -596,8 +596,8 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
     gpu_reverse_peaks[gpu_reverse_prominence > high_prominence] = False
     del gpu_reverse_prominence
 
-    gpu_left_bases = cupy.empty(gpu_image.shape, dtype='int8')
-    gpu_right_bases = cupy.empty(gpu_image.shape, dtype='int8')
+    gpu_left_bases = cupy.empty(gpu_image.shape, dtype='int16')
+    gpu_right_bases = cupy.empty(gpu_image.shape, dtype='int16')
     _centroid_correction_bases[blocks_per_grid,
                                threads_per_block](gpu_image,
                                                   gpu_peak_image,

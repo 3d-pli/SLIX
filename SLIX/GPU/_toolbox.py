@@ -216,36 +216,37 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
                         break
 
 
-@cuda.jit('void(float32[:], uint8[:], float32, int16, uint8[:], uint8[:])', device=True)
+@cuda.jit('void(float32[:], uint8[:], float32, int16, int16[:], int16[:])', device=True)
 def _centroid_correction_bases_inclined(sub_image, sub_reverse_peaks, max_val, pos, left_position, right_position):
     left_position[pos] = len(sub_image)
     right_position[pos] = len(sub_image)
-    target_peak_height = max(0, sub_image[pos] - max_val * 0.8)
+    target_peak_height = 0.3 * max_val
+
+    # Check for peak in reverse direction
+    for offset in range(1, left_position[pos]):
+        if sub_reverse_peaks[pos - offset] == 1:
+            left_position[pos] = offset
+            break
+
+    for offset in range(1, right_position[pos]):
+        if sub_reverse_peaks[(pos + offset) % len(sub_image)] == 1:
+            right_position[pos] = offset
+            break
 
     # Check for peak height
-    for offset in range(left_position[pos]):
+    for offset in range(1, left_position[pos]):
         if sub_image[pos - offset] < target_peak_height:
             left_position[pos] = offset
             break
-    for offset in range(right_position[pos]):
+
+    for offset in range(1, right_position[pos]):
         if sub_image[(pos + offset) % len(sub_image)] < \
                 target_peak_height:
             right_position[pos] = offset
             break
 
-    # Check for peak in reverse direction
-    for offset in range(left_position[pos], 0, -1):
-        if sub_reverse_peaks[pos - offset] == 1:
-            left_position[pos] = offset
-            break
 
-    for offset in range(right_position[pos], 0, -1):
-        if sub_reverse_peaks[(pos + offset) % len(sub_image)] == 1:
-            right_position[pos] = offset
-            break
-
-
-@cuda.jit('void(float32[:], uint8[:], float32, int16, uint8[:], uint8[:])', device=True)
+@cuda.jit('void(float32[:], uint8[:], float32, int16, int16[:], int16[:])', device=True)
 def _centroid_correction_bases_non_inclined(sub_image, sub_reverse_peaks, max_val, pos, left_position, right_position):
     left_position[pos] = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
     right_position[pos] = MAX_DISTANCE_FOR_CENTROID_ESTIMATION
@@ -253,10 +254,12 @@ def _centroid_correction_bases_non_inclined(sub_image, sub_reverse_peaks, max_va
                              TARGET_PEAK_HEIGHT)
 
     # Check for minima in range
-    for offset in range(1, MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
+    for offset in range(1, left_position[pos]):
         if sub_reverse_peaks[pos - offset] == 1:
             left_position[pos] = offset
             break
+
+    for offset in range(1, right_position[pos]):
         if sub_reverse_peaks[(pos + offset) %
                              len(sub_reverse_peaks)] == 1:
             right_position[pos] = offset
@@ -275,7 +278,7 @@ def _centroid_correction_bases_non_inclined(sub_image, sub_reverse_peaks, max_va
 
 
 @cuda.jit('void(float32[:, :, :], uint8[:, :, :], uint8[:, :, :], '
-          'uint8[:, :, :], uint8[:, :, :])')
+          'int16[:, :, :], int16[:, :, :])')
 def _centroid_correction_bases(image, peak_image, reverse_peaks,
                                left_bases, right_bases):
     idx, idy = cuda.grid(2)
@@ -298,7 +301,6 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
             if num_peaks == 1:
                 _centroid_correction_bases_inclined(sub_image, sub_reverse_peaks, numpy.float32(max_val),
                                                     numpy.int16(pos), left_bases[idx, idy], right_bases[idx, idy])
-                print(left_bases[idx, idy, pos], right_bases[idx, idy, pos])
             else:
                 _centroid_correction_bases_non_inclined(sub_image, sub_reverse_peaks, numpy.float32(max_val),
                                                         numpy.int16(pos), left_bases[idx, idy], right_bases[idx, idy])
@@ -307,8 +309,8 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
             right_bases[idx, idy, pos] = 0
 
 
-@cuda.jit('void(float32[:, :, :], uint8[:, :, :], int8[:, :, :], '
-          'int8[:, :, :], float32[:, :, :])')
+@cuda.jit('void(float32[:, :, :], uint8[:, :, :], int16[:, :, :], '
+          'int16[:, :, :], float32[:, :, :])')
 def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
     idx, idy = cuda.grid(2)
     sub_image = image[idx, idy]
@@ -334,7 +336,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
                 target_peak_height = max(0, sub_image[pos] - max_pos *
                                          TARGET_PEAK_HEIGHT)
             else:
-                target_peak_height = max(0, sub_image[pos] - max_pos * 0.8)
+                target_peak_height = 0.3 * max_pos
 
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
                 img_pixel = sub_image[(pos + x) % len(sub_image)]
@@ -350,7 +352,7 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
             if num_peaks > 1:
                 if centroid > 1:
                     centroid = 1
-                if centroid < -1:
+                elif centroid < -1:
                     centroid = -1
             centroid_peaks[idx, idy, pos] = centroid
         else:
