@@ -149,7 +149,7 @@ def main():
     PEAKWIDTH = True
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
-    INCLINATION_SIGN = False
+    INCLINATION_SIGN = True
     UNIT_VECTORS = False
     output_data_type = '.' + args['output_type']
 
@@ -191,6 +191,11 @@ def main():
 
     if not os.path.exists(args['output']):
         os.makedirs(args['output'], exist_ok=True)
+    # Check if the output path is writable
+    if not os.access(args['output'], os.W_OK):
+        print('Output path is not writable. Please choose a valid output '
+              'path!')
+        exit(1)
 
     number_of_param_maps = numpy.count_nonzero([DIRECTION,
                                                 PEAKS,
@@ -365,7 +370,6 @@ def main():
 
             centroids = toolbox. \
                 centroid_correction(image, significant_peaks,
-                                    use_gpu=toolbox.gpu_available,
                                     return_numpy=not toolbox.gpu_available)
 
             if args['detailed']:

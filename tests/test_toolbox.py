@@ -260,3 +260,23 @@ class TestToolbox:
         direction = numpy.arange(0, 180).reshape((1, 1, 180))
         unit_x, unit_y = toolbox.unit_vectors(direction, use_gpu=use_gpu)
         assert numpy.all(numpy.isclose(numpy.rad2deg(numpy.arctan2(unit_y, unit_x)), 180 - direction))
+
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
+    def test_inclination_sign(self, use_gpu):
+        four_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0])
+        four_peak_arr = four_peak_arr.reshape((1, 1, 24))
+        expected_value = -1
+        sign_val = toolbox.inclination_sign(four_peak_arr, centroids=numpy.zeros_like(four_peak_arr), use_gpu=use_gpu)
+        assert sign_val == expected_value
+
+        two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        two_peak_arr = two_peak_arr.reshape((1, 1, 24))
+        expected_value = 45 + 165.0 / 2
+        sign_val = toolbox.inclination_sign(two_peak_arr, centroids=numpy.zeros_like(four_peak_arr), use_gpu=use_gpu)
+        assert sign_val == expected_value
+
+        two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+        two_peak_arr = two_peak_arr.reshape((1, 1, 24))
+        expected_value = 330.0
+        sign_val = toolbox.inclination_sign(two_peak_arr, centroids=numpy.zeros_like(four_peak_arr), use_gpu=use_gpu)
+        assert sign_val == expected_value

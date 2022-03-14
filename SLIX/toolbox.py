@@ -47,8 +47,6 @@ def background_mask(image, use_gpu=gpu_available,
 
         image: Complete SLI measurement image stack as a 2D/3D NumPy array
 
-        threshold: Threshhold for mask creation (default: 10)
-
         use_gpu: If available use the GPU for calculation
 
         return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
@@ -94,6 +92,7 @@ def peaks(image, use_gpu=gpu_available, return_numpy=True):
 
 def significant_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
                       high_prominence=numpy.inf,
+                      optimize=True,
                       use_gpu=gpu_available, return_numpy=True):
     """
     Detect all peaks from a full SLI measurement and filter them by passing
@@ -125,14 +124,15 @@ def significant_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
         peaks = gpu_toolbox.peaks(image, return_numpy=return_numpy)
         prominences = gpu_toolbox.peak_prominence(image, peaks,
                                                   return_numpy=return_numpy)
-        peaks[prominences < low_prominence] = False
-        peaks[prominences > high_prominence] = False
     else:
         peaks = cpu_toolbox.peaks(image)
         prominences = cpu_toolbox.peak_prominence(image, peaks)
-        peaks[prominences < low_prominence] = False
-        peaks[prominences > high_prominence] = False
-    return peaks
+
+    sig_peaks = peaks.copy()
+    sig_peaks[prominences < low_prominence] = False
+    sig_peaks[prominences > high_prominence] = False
+
+    return sig_peaks
 
 
 def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,

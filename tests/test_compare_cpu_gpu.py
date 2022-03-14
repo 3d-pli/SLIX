@@ -59,6 +59,9 @@ if SLIX.toolbox.gpu_available:
             gpu_centroids = SLIX.toolbox.gpu_toolbox.centroid_correction(self.example, gpu_peaks)
             cpu_centroids = SLIX.toolbox.cpu_toolbox.centroid_correction(self.example, cpu_peaks)
 
+            SLIX.io.imwrite('/tmp/gpu_centroids.tiff', gpu_centroids)
+            SLIX.io.imwrite('/tmp/cpu_centroids.tiff', cpu_centroids)
+
             assert numpy.all(numpy.isclose(cpu_centroids, gpu_centroids))
 
         def test_compare_direction(self):
