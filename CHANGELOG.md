@@ -6,8 +6,11 @@
 
 ### Changed
 - Added check for write operations before actually trying to generate any content reducing the computing time if the program would fail anyways.
+- Changed the memory management between CPU and GPU in SLIXParameterGenerator which might reduce computing time.
+
 ### Fixed
 - Fixed an issue where you could use any amount of arguments after the `--smoothing` flag in SLIXParameterGenerator resulting in weird behaviour for the users.
+- Fixed an issue where the GPU would still be used to calculate the centroids even though the GPU execution was disabled.
 
 ## v2.4.0
 ### Added

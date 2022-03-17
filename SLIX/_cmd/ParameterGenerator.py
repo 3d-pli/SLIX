@@ -282,7 +282,8 @@ def main():
 
         if args['with_mask']:
             tqdm_step.set_description('Creating mask')
-            mask = toolbox.background_mask(image, use_gpu=toolbox.gpu_available)
+            mask = toolbox.background_mask(image, use_gpu=toolbox.gpu_available,
+                                           return_numpy=toolbox.gpu_available)
             image[mask, :] = 0
             io.imwrite(f'{output_path_name}_background_mask'
                        f'{output_data_type}', mask)
@@ -293,14 +294,15 @@ def main():
             significant_peaks(image,
                               low_prominence=args['prominence_threshold'],
                               use_gpu=toolbox.gpu_available,
-                              return_numpy=not toolbox.gpu_available)
+                              return_numpy=toolbox.gpu_available)
         if toolbox.gpu_available:
             significant_peaks_cpu = significant_peaks.get()
         else:
             significant_peaks_cpu = significant_peaks
 
         if PEAKS:
-            peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available)
+            peaks = toolbox.peaks(image, use_gpu=toolbox.gpu_available,
+                                  return_numpy=False)
 
             io.imwrite(f'{output_path_name}_high_prominence_peaks'
                        f'{output_data_type}',
@@ -330,14 +332,16 @@ def main():
                        f'{output_data_type}',
                        toolbox.
                        mean_peak_prominence(image, significant_peaks,
-                                            use_gpu=toolbox.gpu_available))
+                                            use_gpu=toolbox.gpu_available,
+                                            return_numpy=False))
 
             if args['detailed']:
                 peak_prominence_full = \
                     toolbox.peak_prominence(image,
                                             peak_image=significant_peaks,
                                             kind_of_normalization=1,
-                                            use_gpu=toolbox.gpu_available)
+                                            use_gpu=toolbox.gpu_available,
+                                            return_numpy=False)
                 io.imwrite(f'{output_path_name}_peakprominence_detailed'
                            f'{output_data_type}',
                            peak_prominence_full
@@ -352,12 +356,14 @@ def main():
             io.imwrite(f'{output_path_name}_peakwidth'
                        f'{output_data_type}',
                        toolbox.mean_peak_width(image, significant_peaks,
-                                               use_gpu=toolbox.gpu_available))
+                                               use_gpu=toolbox.gpu_available,
+                                               return_numpy=False))
 
             if args['detailed']:
                 peak_width_full = \
                     toolbox.peak_width(image, significant_peaks,
-                                       use_gpu=toolbox.gpu_available)
+                                       use_gpu=toolbox.gpu_available,
+                                       return_numpy=False)
                 io.imwrite(f'{output_path_name}_peakwidth_detailed'
                            f'{output_data_type}',
                            peak_width_full)
@@ -371,7 +377,7 @@ def main():
             centroids = toolbox. \
                 centroid_correction(image, significant_peaks,
                                     use_gpu=toolbox.gpu_available,
-                                    return_numpy=not toolbox.gpu_available)
+                                    return_numpy=toolbox.gpu_available)
 
             if args['detailed']:
                 if toolbox.gpu_available:
@@ -395,12 +401,14 @@ def main():
             io.imwrite(f'{output_path_name}_peakdistance'
                        f'{output_data_type}', toolbox.
                        mean_peak_distance(significant_peaks, centroids,
-                                          use_gpu=toolbox.gpu_available))
+                                          use_gpu=toolbox.gpu_available,
+                                          return_numpy=False))
 
             if args['detailed']:
                 peak_distance_full = toolbox. \
                     peak_distance(significant_peaks, centroids,
-                                  use_gpu=toolbox.gpu_available)
+                                  use_gpu=toolbox.gpu_available,
+                                  return_numpy=False)
                 io.imwrite(f'{output_path_name}_peakdistance_detailed'
                            f'{output_data_type}', peak_distance_full)
                 del peak_distance_full
@@ -411,7 +419,8 @@ def main():
             tqdm_step.set_description('Generating direction')
             direction = toolbox.direction(significant_peaks, centroids,
                                           correction_angle=args['correctdir'],
-                                          use_gpu=toolbox.gpu_available)
+                                          use_gpu=toolbox.gpu_available,
+                                          return_numpy=False)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):
                     io.imwrite(f'{output_path_name}_dir_{dim + 1}'
@@ -423,7 +432,8 @@ def main():
                 tqdm_step.set_description('Generating unit vectors')
                 UnitX, UnitY = toolbox.unit_vectors(direction,
                                                     use_gpu=
-                                                    toolbox.gpu_available)
+                                                    toolbox.gpu_available,
+                                                    return_numpy=False)
                 UnitZ = numpy.zeros(UnitX.shape)
                 for dim in range(UnitX.shape[-1]):
                     io.imwrite(f'{output_path_name}'
@@ -442,7 +452,8 @@ def main():
             tqdm_step.set_description('Generating inclination sign')
             inclination_sign = toolbox.inclination_sign(significant_peaks, centroids,
                                                         correction_angle=args['correctdir'],
-                                                        use_gpu=toolbox.gpu_available)
+                                                        use_gpu=toolbox.gpu_available,
+                                                        return_numpy=False)
             io.imwrite(f'{output_path_name}_inclination_sign{output_data_type}', inclination_sign)
             del inclination_sign
             tqdm_step.update(1)
@@ -467,9 +478,11 @@ def main():
                 direction(significant_peaks, centroids,
                           number_of_directions=1,
                           correction_angle=args['correctdir'],
-                          use_gpu=toolbox.gpu_available)
+                          use_gpu=toolbox.gpu_available,
+                          return_numpy=False)
             io.imwrite(f'{output_path_name}_dir{output_data_type}',
                        non_crossing_direction)
+            del non_crossing_direction
             tqdm_step.update(1)
 
         tqdm_step.reset()
