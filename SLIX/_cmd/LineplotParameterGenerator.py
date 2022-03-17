@@ -148,11 +148,12 @@ def create_plot(profile, filtered_profile, significant_peaks, centroids):
     filtered_profile = filtered_profile.flatten()
 
     profile = (profile - profile.min()) / (profile.max() - profile.min())
-    plt.plot(profile)
+    filtered_profile = (filtered_profile - filtered_profile.min()) / \
+                       (filtered_profile.max() - filtered_profile.min())
 
     if not numpy.all(profile == filtered_profile):
-        filtered_profile = filtered_profile / filtered_profile.max()
-        plt.plot(filtered_profile)
+        plt.plot(filtered_profile, label='filtered profile')
+    plt.plot(profile, label='profile')
 
     significant_peaks = numpy.argwhere(significant_peaks.flatten()) \
         .flatten()
@@ -217,9 +218,10 @@ def subprocess(input_file, detailed, low_prominence, with_angle,
     # Parameters than can change their output depending on the detailed parameters
     output_parameters['peaks'] = generate_all_peaks(output_parameters['filtered'],
                                                     detailed)
-    output_parameters['significant peaks'] = generate_significant_peaks(output_parameters['filtered'],
-                                                                        low_prominence,
-                                                                        detailed)
+    significant_peaks = generate_significant_peaks(output_parameters['filtered'],
+                                                   low_prominence,
+                                                   True)
+    output_parameters['significant peaks'] = numpy.sum(significant_peaks) if not detailed else significant_peaks
     output_parameters['prominence'] = generate_prominence(output_parameters['filtered'],
                                                           sig_peaks,
                                                           detailed)
@@ -235,7 +237,7 @@ def subprocess(input_file, detailed, low_prominence, with_angle,
 
     write_parameter_file(output_parameters, output_file)
     create_plot(output_parameters['profile'], output_parameters['filtered'],
-                output_parameters['significant peaks'],
+                significant_peaks,
                 output_parameters['centroids'])
     plt.savefig(output_file + ".png", dpi=300)
     plt.clf()

@@ -85,7 +85,24 @@ With [`SLIXLineplotParameterGenerator`](#evaluation-of-sli-profiles), it is poss
 
 ## Installation of SLIX
 
+
+##### Install SLIX via PyPI
+Installing the currently available version of SLIX through PyPI is the recommended way. Use the following command to install SLIX into your Python enviroment.
+```bash
+pip install SLIX
+```
+
+##### How to install SLIX as Python package from source
+If you want to use the latest available version from the GitHub repository, you can use the following commands.
+Please note that features available here in comparison to the PyPI release might still be in development.
+```bash
+git clone git@github.com:3d-pli/SLIX.git
+cd SLIX
+pip install .
+```
+
 ##### How to clone SLIX (for further work)
+If you want to contribute to SLIX, clone the repository and install the requirements in a virtual environment like seen below.
 ```bash
 git clone git@github.com:3d-pli/SLIX.git
 cd SLIX
@@ -94,33 +111,10 @@ cd SLIX
 python3 -m venv venv
 source venv/bin/activate
 
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-##### How to install SLIX as Python package
-```bash
-# Install via PyPi
-pip install SLIX
 
-# Install after cloning locally
-git clone git@github.com:3d-pli/SLIX.git
-cd SLIX
-pip install .
-```
-
-##### Run SLIX locally
-
-```bash
-git clone git@github.com:3d-pli/SLIX.git
-cd SLIX
-python3 SLIXParameterGenerator.py [options]
-python3 SLIXLineplotParameterGenerator.py [options]
-
-# alternatively, after installation of SLIX
-pip3 install SLIX
-SLIXParameterGenerator [options]
-SLIXLineplotParameterGenerator [options]
-```
 
 ## Evaluation of SLI Profiles
 
