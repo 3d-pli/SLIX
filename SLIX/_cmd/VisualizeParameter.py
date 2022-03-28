@@ -2,6 +2,7 @@ import numpy
 import os
 import re
 import SLIX
+from SLIX._logging import get_logger
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
@@ -146,12 +147,7 @@ def main():
     arguments = parser.parse_args()
     args = vars(arguments)
 
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-    # Check if the output path is writable
-    if not os.access(args['output'], os.W_OK):
-        print('Output path is not writable. Please choose a valid output '
-              'path!')
+    if not SLIX.io.check_output_dir(args['output']):
         exit(1)
 
     filename_without_extension = \
@@ -182,6 +178,7 @@ def main():
 
 
 def write_vector(args, direction_image, output_path_name):
+    logger = get_logger(__name__)
     image = SLIX.io.imread(args['slimeasurement'])
     UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
     if args['weight_map'] is not None:
@@ -195,9 +192,9 @@ def write_vector(args, direction_image, output_path_name):
             image.shape[:2][::-1] == UnitX.shape[:2]:
         image = image.T
     if image.shape[:2] != UnitX.shape[:2]:
-        print("[WARNING]: Direction and SLI measurement are not correctly aligned."
-              " The program will still run but the results might not represent"
-              " the expected result. Please check your input!")
+        logger.warning("Direction and SLI measurement are not correctly aligned."
+                       " The program will still run but the results might not represent"
+                       " the expected result. Please check your input!")
     thinout = args['thinout']
     scale = args['scale']
     alpha = args['alpha']
@@ -254,6 +251,7 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
 
 
 def write_fom(args, direction_image, output_path_name):
+    logger = get_logger(__name__)
     if args['inclination'] is not None:
         inclination_image = None
         for inclination_file in args['inclination']:
@@ -275,8 +273,8 @@ def write_fom(args, direction_image, output_path_name):
 
     output_data_type = '.' + args['output_type']
     if output_data_type not in ['.h5', '.tiff', '.tif']:
-        print('Output data type is not supported. Please choose a valid '
-              'datatype!')
+        logger.error('Output data type is not supported. Please choose a valid '
+                     'datatype!')
         exit(1)
     saturation = None
     value = None

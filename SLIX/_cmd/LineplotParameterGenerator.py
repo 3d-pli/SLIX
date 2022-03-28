@@ -254,7 +254,8 @@ def main():
     if not isinstance(paths, list):
         paths = [paths]
 
-    SLIX.io.check_output_dir(args['output'])
+    if not SLIX.io.check_output_dir(args['output']):
+        exit(1)
 
     algorithm = ""
     first_val = -1

@@ -110,7 +110,8 @@ def main():
                      'datatype!')
         exit(1)
 
-    io.check_output_dir(args['output'])
+    if not io.check_output_dir(args['output']):
+        exit(1)
 
     all = False
     inclination = False

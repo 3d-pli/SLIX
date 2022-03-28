@@ -1,5 +1,8 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
+
+import SLIX.io
 from SLIX import io, toolbox, preparation
+from SLIX._logging import get_logger
 import os
 import glob
 import numpy
@@ -140,6 +143,7 @@ def get_file_pattern(path):
 
 
 def main():
+    logger = get_logger("SLIXParameterGenerator")
     parser = create_argument_parser()
     arguments = parser.parse_args()
     args = vars(arguments)
@@ -154,8 +158,8 @@ def main():
     output_data_type = '.' + args['output_type']
 
     if output_data_type not in ['.nii', '.nii.gz', '.h5', '.tiff', '.tif']:
-        print('Output data type is not supported. Please choose a valid '
-              'datatype!')
+        logger.error('Output data type is not supported. Please choose a valid '
+                     'datatype!')
         exit(1)
 
     if args['direction'] or args['peaks'] or args['peakprominence'] or \
@@ -172,7 +176,7 @@ def main():
     if toolbox.gpu_available:
         toolbox.gpu_available = args['disable_gpu']
 
-    print(
+    logger.info(
         f'SLI Feature Generator:\n' +
         f'Chosen feature maps:\n' +
         f'Direction maps: {DIRECTION} \n' +
@@ -189,12 +193,7 @@ def main():
     if not isinstance(paths, list):
         paths = [paths]
 
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-    # Check if the output path is writable
-    if not os.access(args['output'], os.W_OK):
-        print('Output path is not writable. Please choose a valid output '
-              'path!')
+    if not SLIX.io.check_output_dir(args['output']):
         exit(1)
 
     number_of_param_maps = numpy.count_nonzero([DIRECTION,
@@ -270,8 +269,8 @@ def main():
                                                              poly_order)
 
             else:
-                print(f"Unknown smoothing option {algorithm}. "
-                      f"Please use either 'fourier' or 'savgol'!")
+                logger.error(f"Unknown smoothing option {algorithm}. "
+                             f"Please use either 'fourier' or 'savgol'!")
                 exit(1)
 
             tqdm_step.update(1)
