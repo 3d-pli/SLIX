@@ -3,6 +3,7 @@ import glob
 import os
 import sys
 from SLIX import io, classification
+from SLIX._logging import get_logger
 
 
 def load_parameter_maps(input_folder) -> {}:
@@ -100,21 +101,16 @@ def main():
     parser = create_argparse()
     arguments = parser.parse_args()
     args = vars(arguments)
+    logger = get_logger("SLIXCluster")
 
     output_data_type = '.' + args['output_type']
 
     if output_data_type not in ['.nii', '.nii.gz', '.h5', '.tiff', '.tif']:
-        print('Output data type is not supported. Please choose a valid '
-              'datatype!')
+        logger.error('Output data type is not supported. Please choose a valid '
+                     'datatype!')
         exit(1)
 
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-    # Check if the output path is writable
-    if not os.access(args['output'], os.W_OK):
-        print('Output path is not writable. Please choose a valid output '
-              'path!')
-        exit(1)
+    io.check_output_dir(args['output'])
 
     all = False
     inclination = False
