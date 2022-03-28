@@ -1,3 +1,7 @@
+from SLIX.CPU import toolbox as cpu_toolbox
+from SLIX._logging import get_logger
+import numpy
+
 try:
     try:
         import cupy
@@ -13,18 +17,15 @@ try:
         gpu_available = False
     except (cuda.cudadrv.driver.CudaAPIError,
             cuda.cudadrv.driver.LinkerError):
-        print("[WARNING] Numba CUDA couldn't be initialized. "
-              "Please check if there are problems with your CUDA / Numba "
-              "version. SLIX will fall back to the CPU variant.")
+        get_logger("SLIX").info("Numba CUDA couldn't be initialized. "
+                                "Please check if there are problems with your CUDA / Numba "
+                                "version. SLIX will fall back to the CPU variant.")
         gpu_available = False
 except (ModuleNotFoundError, NameError):
     gpu_available = False
-    print('[WARNING] CuPy is not installed. The toolbox will use the CPU '
-          'variant instead. If you want to use the GPU variant, please run '
-          '`pip install cupy`.')
-
-from SLIX.CPU import toolbox as cpu_toolbox
-import numpy
+    get_logger("SLIX").info('CuPy is not installed. The toolbox will use the CPU '
+                            'variant instead. If you want to use the GPU variant, please run '
+                            '`pip install cupy`.')
 
 __all__ = ['background_mask', 'centroid_correction',
            'direction', 'unit_vectors', 'num_peaks',
@@ -46,8 +47,6 @@ def background_mask(image, use_gpu=gpu_available,
     Args:
 
         image: Complete SLI measurement image stack as a 2D/3D NumPy array
-
-        threshold: Threshhold for mask creation (default: 10)
 
         use_gpu: If available use the GPU for calculation
 
