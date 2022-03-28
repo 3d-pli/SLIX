@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy
 import os
 import re
@@ -181,15 +182,21 @@ def main():
         write_vector(args, direction_image, output_path_name)
 
 
-def write_vector(args, direction_image, output_path_name):
-    image = SLIX.io.imread(args['slimeasurement'])
-    UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
-    if args['weight_map'] is not None:
-        weight_map = SLIX.io.imread(args['weight_map']).astype(float)
+def read_weight_map(path: Optional[str]) -> Optional[numpy.ndarray]:
+    if path is not None:
+        weight_map = SLIX.io.imread(path).astype(float)
         weight_map = (weight_map - weight_map.min()) / \
                      (numpy.percentile(weight_map, 95) - weight_map.min())
     else:
         weight_map = None
+
+    return weight_map
+
+
+def write_vector(args, direction_image, output_path_name):
+    image = SLIX.io.imread(args['slimeasurement'])
+    UnitX, UnitY = SLIX.toolbox.unit_vectors(direction_image, use_gpu=False)
+
     # Try to fix image shape if the two axes are swapped
     if image.shape[:2] != UnitX.shape[:2] and \
             image.shape[:2][::-1] == UnitX.shape[:2]:
@@ -198,6 +205,7 @@ def write_vector(args, direction_image, output_path_name):
         print("[WARNING]: Direction and SLI measurement are not correctly aligned."
               " The program will still run but the results might not represent"
               " the expected result. Please check your input!")
+    weight_map = read_weight_map(args['weight_map'])
     thinout = args['thinout']
     scale = args['scale']
     alpha = args['alpha']
@@ -253,23 +261,9 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
 
-def write_fom(args, direction_image, output_path_name):
+def write_fom(args, direction_image, output_path_name) -> None:
     if args['inclination'] is not None:
-        inclination_image = None
-        for inclination_file in args['inclination']:
-            single_inclination_image = SLIX.io.imread(inclination_file)
-            if inclination_image is None:
-                inclination_image = single_inclination_image
-            else:
-                if len(inclination_image.shape) == 2:
-                    inclination_image = numpy.stack((inclination_image,
-                                                     single_inclination_image),
-                                                    axis=-1)
-                else:
-                    inclination_image = numpy.concatenate((inclination_image,
-                                                           single_inclination_image
-                                                           [:, :, numpy.newaxis]),
-                                                          axis=-1)
+        inclination_image = read_inclination(args)
     else:
         inclination_image = numpy.zeros_like(direction_image)
 
@@ -290,6 +284,25 @@ def write_fom(args, direction_image, output_path_name):
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
+
+
+def read_inclination(args) -> numpy.ndarray:
+    inclination_image = None
+    for inclination_file in args['inclination']:
+        single_inclination_image = SLIX.io.imread(inclination_file)
+        if inclination_image is None:
+            inclination_image = single_inclination_image
+        else:
+            if len(inclination_image.shape) == 2:
+                inclination_image = numpy.stack((inclination_image,
+                                                 single_inclination_image),
+                                                axis=-1)
+            else:
+                inclination_image = numpy.concatenate((inclination_image,
+                                                       single_inclination_image
+                                                       [:, :, numpy.newaxis]),
+                                                      axis=-1)
+    return inclination_image
 
 
 if __name__ == "__main__":
