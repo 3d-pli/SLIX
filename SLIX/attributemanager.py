@@ -4,6 +4,7 @@ import h5py
 import numpy
 import secrets
 import getpass
+from SLIX._logging import get_logger
 
 __all__ = ['AttributeHandler']
 
@@ -20,6 +21,7 @@ class AttributeHandler:
         """
         self.dataset: h5py.Dataset = dataset
         self.attrs: h5py.AttributeManager = dataset.attrs
+        self.logger = get_logger(__name__)
 
     def does_attribute_exist(self, attribute_name: str) -> bool:
         """
@@ -58,8 +60,8 @@ class AttributeHandler:
         if self.does_attribute_exist(attribute_name):
             del self.attrs[attribute_name]
         else:
-            print("Attribute %s was not deleted as it does not "
-                  "exist" % {attribute_name})
+            self.logger.warning("Attribute %s was not deleted as it does not "
+                                "exist" % {attribute_name})
 
     def get_attribute(self, attribute_name: str) -> \
             typing.Union[str, float, int, bool, numpy.array]:
@@ -78,13 +80,13 @@ class AttributeHandler:
             will be returned.
         """
         if not self.does_attribute_exist(attribute_name):
-            print('Attribute %s does not exist!' % {attribute_name})
+            self.logger.error('Attribute %s does not exist!' % {attribute_name})
             return None
         return self.attrs[attribute_name]
 
     def set_attribute(self, attribute_name: str,
                       value: typing.Union[str, float, int,
-                                           bool, numpy.array]) \
+                                          bool, numpy.array]) \
             -> None:
         """
         Set an attribute in the HDF5 dataset.
@@ -127,7 +129,7 @@ class AttributeHandler:
         self.set_reference_modality_to([reference])
 
     def set_reference_modality_to(self,
-                                  references: typing.List["AttributeHandler"])\
+                                  references: typing.List["AttributeHandler"]) \
             -> None:
         """
         When SLIX generates an image based on a SLI measurement, the original
@@ -151,8 +153,8 @@ class AttributeHandler:
             if reference.does_attribute_exist('id'):
                 ref_id.append(reference.get_attribute('id'))
             else:
-                print('Could not set reference_images because id is not '
-                      'present in at least one dataset')
+                self.logger.error('Could not set reference_images because id is not '
+                                  'present in at least one dataset')
                 return
 
         self.set_attribute('reference_images', ref_id)
