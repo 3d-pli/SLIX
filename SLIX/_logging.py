@@ -7,7 +7,7 @@ def get_logger(name, file=None, level=logging.INFO):
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('[%(levelname)s][%(name)s] - %(message)s')
     if file:
         # Write LOG to file
         fh = logging.FileHandler(file)
