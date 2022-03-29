@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
-from typing import Optional
+from typing import Optional, Tuple
 
 import SLIX.io
 from SLIX import io, toolbox, preparation
@@ -143,7 +143,7 @@ def get_file_pattern(path):
     return pattern
 
 
-def smooth_image(args, image, output_path_name) -> Optional[numpy.ndarray, str]:
+def smooth_image(args, image, output_path_name) -> Optional[Tuple[numpy.ndarray, str]]:
     algorithm = args['smoothing'][0]
     if algorithm == "fourier":
         low_percentage = 0.25
