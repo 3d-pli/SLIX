@@ -3,6 +3,7 @@ import numpy
 from numba import cuda
 
 import SLIX
+from SLIX import _decorators
 from SLIX.GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks, _inclination_sign
@@ -16,6 +17,7 @@ __all__ = ['peaks',
            'unit_vectors', 'centroid_correction', 'normalize']
 
 
+@_decorators.check_valid_input
 def background_mask(image, return_numpy=True):
     """
     Creates a background mask by setting all image pixels with low scattering
@@ -67,6 +69,7 @@ def background_mask(image, return_numpy=True):
         return gpu_mask
 
 
+@_decorators.check_valid_input
 def peaks(image, return_numpy=True):
     """
     Detect all peaks from a full SLI measurement. Peaks will not be filtered
@@ -102,6 +105,7 @@ def peaks(image, return_numpy=True):
         return resulting_peaks.astype('bool')
 
 
+@_decorators.check_valid_input
 def num_peaks(image=None, peak_image=None, return_numpy=True):
     """
     Calculate the number of peaks from each line profile in an SLI image series
@@ -140,6 +144,7 @@ def num_peaks(image=None, peak_image=None, return_numpy=True):
         return resulting_image
 
 
+@_decorators.check_valid_input
 def normalize(image, kind_of_normalization=0, return_numpy=True):
     """
     Normalize given line profile by using a normalization technique based on
@@ -178,6 +183,7 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
         return gpu_image
 
 
+@_decorators.check_valid_input
 def peak_prominence(image, peak_image=None, kind_of_normalization=0,
                     return_numpy=True):
     """
@@ -234,6 +240,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0,
         return result_img_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0,
                          return_numpy=True):
     """
@@ -283,6 +290,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0,
         return peak_prominence_gpu
 
 
+@_decorators.check_valid_input
 def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
     """
     Calculate the peak width of all given peak positions within a line profile.
@@ -343,6 +351,7 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
         return result_image_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_width(image, peak_image=None, target_height=0.5,
                     return_numpy=True):
     """
@@ -387,6 +396,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5,
         return peak_width_gpu
 
 
+@_decorators.check_valid_input
 def peak_distance(peak_image, centroids, return_numpy=True):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -437,6 +447,7 @@ def peak_distance(peak_image, centroids, return_numpy=True):
         return result_image_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_distance(peak_image, centroids, return_numpy=True):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -473,6 +484,7 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
         return peak_distance_gpu
 
 
+@_decorators.check_valid_input
 def direction(peak_image, centroids, correction_angle=0,
               number_of_directions=3, return_numpy=True):
     """
@@ -538,6 +550,7 @@ def direction(peak_image, centroids, correction_angle=0,
         return result_img_gpu
 
 
+@_decorators.check_valid_input
 def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
                         high_prominence=None, return_numpy=True):
     """
@@ -698,6 +711,7 @@ def unit_vectors_3d(direction, inclination, return_numpy=True):
     return UnitX, UnitY, UnitZ
 
 
+@_decorators.check_valid_input
 def inclination_sign(peak_image, centroids, correction_angle=0, return_numpy=True):
     """
     Calculate the inclination sign from the peak positions.

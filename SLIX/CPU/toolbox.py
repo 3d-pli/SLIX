@@ -5,6 +5,7 @@ from SLIX.CPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid, _centroid_correction_bases, _peaks, \
     _inclination_sign
 from SLIX.parameters import TARGET_PROMINENCE
+from SLIX import _decorators
 
 __all__ = ['peaks',
            'peak_width', 'peak_prominence',
@@ -14,6 +15,7 @@ __all__ = ['peaks',
            'unit_vectors', 'centroid_correction', 'normalize']
 
 
+@_decorators.check_valid_input
 def background_mask(image):
     """
     Creates a background mask by setting all image pixels with low scattering
@@ -25,8 +27,6 @@ def background_mask(image):
     Args:
 
         image: Complete SLI measurement image stack as a 2D/3D Numpy array
-
-        threshold: Threshhold for mask creation (default: 10)
 
     Returns:
 
@@ -54,6 +54,7 @@ def background_mask(image):
     return avg_image < threshold
 
 
+@_decorators.check_valid_input
 def peaks(image):
     """
     Detect all peaks from a full SLI measurement. Peaks will not be filtered
@@ -69,24 +70,20 @@ def peaks(image):
     2D/3D boolean image containing masking the peaks with `True`
     """
     image = numpy.array(image, dtype=numpy.float32)
-    
-    reshape = False
-    if len(image.shape) == 3:
-        reshape = True
-        [image_x, image_y, image_z] = image.shape
-        image = image.reshape(image_x * image_y, image_z)
+
+    image_x, image_y, image_z = image.shape
+    image = image.reshape(image_x * image_y, image_z)
 
     resulting_image = _peaks(image)
 
-    if reshape:
-        image = image.reshape(image_x, image_y, image_z)
-        resulting_image = resulting_image.reshape(image_x, image_y, image_z)
+    resulting_image = resulting_image.reshape(image_x, image_y, image_z)
     return resulting_image.astype('bool')
 
 
+@_decorators.check_valid_input
 def num_peaks(image=None, peak_image=None):
     """
-Calculate the number of peaks from each line profile in an SLI image series
+    Calculate the number of peaks from each line profile in an SLI image series
     by detecting all peaks and applying thresholds to remove unwanted peaks.
 
     Args:
@@ -111,6 +108,7 @@ Calculate the number of peaks from each line profile in an SLI image series
     return numpy.count_nonzero(peak_image, axis=-1).astype(numpy.uint16)
 
 
+@_decorators.check_valid_input
 def normalize(image, kind_of_normalization=0):
     """
     Normalize given line profile by using a normalization technique based on
@@ -142,6 +140,7 @@ def normalize(image, kind_of_normalization=0):
     return image
 
 
+@_decorators.check_valid_input
 def peak_prominence(image, peak_image=None, kind_of_normalization=0):
     """
     Calculate the peak prominence of all given peak positions within a line
@@ -185,6 +184,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0):
     return result_img
 
 
+@_decorators.check_valid_input
 def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
     """
         Calculate the mean peak prominence of all given peak positions within a
@@ -219,6 +219,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0):
     return result_img.astype('float32')
 
 
+@_decorators.check_valid_input
 def peak_width(image, peak_image=None, target_height=0.5):
     """
     Calculate the peak width of all given peak positions within a line profile.
@@ -245,7 +246,7 @@ def peak_width(image, peak_image=None, target_height=0.5):
     else:
         peak_image = peaks(image).astype('uint8')
 
-    [image_x, image_y, image_z] = image.shape
+    image_x, image_y, image_z = image.shape
 
     image = image.reshape(image_x * image_y, image_z)
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
@@ -259,6 +260,7 @@ def peak_width(image, peak_image=None, target_height=0.5):
     return result_image
 
 
+@_decorators.check_valid_input
 def mean_peak_width(image, peak_image=None, target_height=0.5):
     """
     Calculate the mean peak width of all given peak positions within a line
@@ -291,6 +293,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5):
     return result_img
 
 
+@_decorators.check_valid_input
 def peak_distance(peak_image, centroids):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -325,6 +328,7 @@ def peak_distance(peak_image, centroids):
     return result_img
 
 
+@_decorators.check_valid_input
 def mean_peak_distance(peak_image, centroids):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -351,6 +355,7 @@ def mean_peak_distance(peak_image, centroids):
     return result_image
 
 
+@_decorators.check_valid_input
 def direction(peak_image, centroids, correction_angle=0,
               number_of_directions=3):
     """
@@ -384,7 +389,7 @@ def direction(peak_image, centroids, correction_angle=0,
         array entry will be BACKGROUND_COLOR instead.
     """
     peak_image = numpy.array(peak_image).astype('uint8')
-    [image_x, image_y, image_z] = peak_image.shape
+    image_x, image_y, image_z = peak_image.shape
 
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
     centroids = centroids.reshape(image_x * image_y, image_z).astype('float32')
@@ -397,6 +402,7 @@ def direction(peak_image, centroids, correction_angle=0,
     return result_img
 
 
+@_decorators.check_valid_input
 def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
                         high_prominence=None):
     """
@@ -430,7 +436,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
     if high_prominence is None:
         high_prominence = -numpy.inf
 
-    [image_x, image_y, image_z] = image.shape
+    image_x, image_y, image_z = image.shape
     image = normalize(image)
     image = image.reshape(image_x * image_y, image_z).astype('float32')
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
@@ -503,6 +509,7 @@ def unit_vectors_3d(direction, inclination):
     return UnitX, UnitY, UnitZ
 
 
+@_decorators.check_valid_input
 def inclination_sign(peak_image, centroids, correction_angle=0):
     peak_image = numpy.array(peak_image).astype('uint8')
     [image_x, image_y, image_z] = peak_image.shape
@@ -515,5 +522,3 @@ def inclination_sign(peak_image, centroids, correction_angle=0):
                                    correction_angle)
     result_img = result_img.reshape((image_x, image_y))
     return result_img
-
-
