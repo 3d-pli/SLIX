@@ -4,15 +4,14 @@ import SLIX
 from SLIX.CPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid, _centroid_correction_bases, _peaks, \
     _inclination_sign
+from SLIX.parameters import TARGET_PROMINENCE
 
-__all__ = ['TARGET_PROMINENCE', 'peaks',
+__all__ = ['peaks',
            'peak_width', 'peak_prominence',
            'peak_distance', 'mean_peak_distance',
            'background_mask', 'mean_peak_width',
            'direction', 'num_peaks', 'mean_peak_prominence',
            'unit_vectors', 'centroid_correction', 'normalize']
-
-TARGET_PROMINENCE = 0.08
 
 
 def background_mask(image):
