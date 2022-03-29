@@ -1,9 +1,10 @@
-import numpy
-from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
-from matplotlib import pyplot as plt
-from PIL import Image
 import copy
+
+import numpy
 import tqdm
+from PIL import Image
+from matplotlib import pyplot as plt
+from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
 
 from SLIX._visualization import _downsample, _plot_axes_unit_vectors, \
     _visualize_multiple_direction, \
@@ -19,9 +20,9 @@ __all__ = ['parameter_map',
 class Colormap:
     @staticmethod
     def prepare(direction: numpy.ndarray, inclination: numpy.ndarray) -> (numpy.ndarray, numpy.ndarray):
-        if direction.max() > numpy.pi and not numpy.isclose(direction.max(), numpy.pi):
+        if direction.max(axis=None) > numpy.pi and not numpy.isclose(direction.max(axis=None), numpy.pi):
             direction = numpy.deg2rad(direction)
-        if inclination.max() > numpy.pi and not numpy.isclose(inclination.max(), numpy.pi):
+        if inclination.max(axis=None) > numpy.pi and not numpy.isclose(inclination.max(axis=None), numpy.pi):
             inclination = numpy.deg2rad(inclination)
 
         # If inclination is only 2D and direction is 3D, we need to make sure that the
@@ -149,6 +150,7 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     the shown orientations. This method creates an empty numpy array and fills
     it with values based on the circular orientation from the middle point.
     The color can be directed from the colormap argument
+
     Args:
         colormap: Colormap which will be used to create the color bubble
         shape: Shape of the resulting color bubble.
@@ -180,7 +182,7 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     return (255.0 * color_bubble).astype('uint8')
 
 
-def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
+def unit_vectors(unit_x, unit_y, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
                  background_value=0, colormap=Colormap.hsv_black,
@@ -195,9 +197,9 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
 
     Args:
 
-        UnitX: Unit vector components along the x-axis (3D NumPy array).
+        unit_x: Unit vector components along the x-axis (3D NumPy array).
 
-        UnitY: Unit vector components along the y-axis (3D NumPy array).
+        unit_y: Unit vector components along the y-axis (3D NumPy array).
 
         thinout: Downscaling parameter N (defines how many vectors N x N are
         replaced by one vector).
@@ -244,10 +246,10 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
     if ax is None:
         ax = plt.gca()
 
-    while len(UnitX.shape) < 3:
-        UnitX = UnitX[..., numpy.newaxis]
-    while len(UnitY.shape) < 3:
-        UnitY = UnitY[..., numpy.newaxis]
+    while len(unit_x.shape) < 3:
+        unit_x = unit_x[..., numpy.newaxis]
+    while len(unit_y.shape) < 3:
+        unit_y = unit_y[..., numpy.newaxis]
 
     # The default scale is below zero to allow the user to define his own scale
     # A scale below zero isn't valid for visualization. If the user
@@ -258,9 +260,9 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
         scale = thinout
 
     if thinout > 1:
-        downscaled_unit_x = _downsample(UnitX, thinout,
+        downscaled_unit_x = _downsample(unit_x, thinout,
                                         background_threshold, background_value)
-        downscaled_unit_y = _downsample(UnitY, thinout,
+        downscaled_unit_y = _downsample(unit_y, thinout,
                                         background_threshold, background_value)
 
         while len(downscaled_unit_x.shape) < 3:
@@ -269,14 +271,14 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
             downscaled_unit_y = downscaled_unit_y[..., numpy.newaxis]
 
         # Rescale images to original dimensions
-        for i in range(UnitX.shape[2]):
-            UnitX[:, :, i] = numpy.array(
+        for i in range(unit_x.shape[2]):
+            unit_x[:, :, i] = numpy.array(
                 Image.fromarray(downscaled_unit_x[:, :, i])
-                     .resize(UnitX.shape[:2][::-1], Image.NEAREST)
+                     .resize(unit_x.shape[:2][::-1], Image.NEAREST)
             )
-            UnitY[:, :, i] = numpy.array(
+            unit_y[:, :, i] = numpy.array(
                 Image.fromarray(downscaled_unit_y[:, :, i])
-                     .resize(UnitY.shape[:2][::-1], Image.NEAREST)
+                     .resize(unit_y.shape[:2][::-1], Image.NEAREST)
             )
 
         del downscaled_unit_y
@@ -293,13 +295,13 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
             weighting = weighting[thinout // 2::thinout, thinout // 2::thinout]
             weighting = weighting.flatten()
 
-    for i in range(UnitX.shape[2]):
-        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, UnitX.shape[1],
+    for i in range(unit_x.shape[2]):
+        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, unit_x.shape[1],
                                                      thinout),
-                                        numpy.arange(thinout // 2, UnitX.shape[0],
+                                        numpy.arange(thinout // 2, unit_x.shape[0],
                                                      thinout))
-        mesh_u = UnitX[thinout // 2::thinout, thinout // 2::thinout, i]
-        mesh_v = UnitY[thinout // 2::thinout, thinout // 2::thinout, i]
+        mesh_u = unit_x[thinout // 2::thinout, thinout // 2::thinout, i]
+        mesh_v = unit_y[thinout // 2::thinout, thinout // 2::thinout, i]
 
         _plot_axes_unit_vectors(ax,
                                 mesh_x.flatten(),
@@ -311,7 +313,7 @@ def unit_vectors(UnitX, UnitY, ax=None, thinout=20,
     return ax
 
 
-def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
+def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
                              scale=-1, vector_width=1,
                              alpha=0.01, colormap=Colormap.hsv_black,
                              weighting=None):
@@ -328,9 +330,9 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
 
     Args:
 
-        UnitX: Unit vector components along the x-axis (3D NumPy array).
+        unit_x: Unit vector components along the x-axis (3D NumPy array).
 
-        UnitY: Unit vector components along the y-axis (3D NumPy array).
+        unit_y: Unit vector components along the y-axis (3D NumPy array).
 
         thinout: Downscaling parameter N (defines how many vectors N x N are
         replaced by one vector).
@@ -365,10 +367,10 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     if ax is None:
         ax = plt.gca()
 
-    while len(UnitX.shape) < 3:
-        UnitX = UnitX[..., numpy.newaxis]
-    while len(UnitY.shape) < 3:
-        UnitY = UnitY[..., numpy.newaxis]
+    while len(unit_x.shape) < 3:
+        unit_x = unit_x[..., numpy.newaxis]
+    while len(unit_y.shape) < 3:
+        unit_y = unit_y[..., numpy.newaxis]
 
     # The default scale is below zero to allow the user to define his own scale
     # A scale below zero isn't valid for visualization. If the user
@@ -378,11 +380,11 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     if scale < 0:
         scale = thinout
 
-    mesh_x = numpy.empty(UnitX.size)
-    mesh_y = numpy.empty(UnitX.size)
-    mesh_u = numpy.empty(UnitX.size)
-    mesh_v = numpy.empty(UnitX.size)
-    mesh_weighting = numpy.empty(UnitX.size)
+    mesh_x = numpy.empty(unit_x.size)
+    mesh_y = numpy.empty(unit_x.size)
+    mesh_u = numpy.empty(unit_x.size)
+    mesh_v = numpy.empty(unit_x.size)
+    mesh_weighting = numpy.empty(unit_x.size)
     idx = 0
 
     progress_bar = tqdm.tqdm(total=thinout * thinout,
@@ -390,16 +392,16 @@ def unit_vector_distribution(UnitX, UnitY, ax=None, thinout=20,
     for offset_x in range(thinout):
         for offset_y in range(thinout):
             progress_bar.update(1)
-            for i in range(UnitX.shape[2]):
+            for i in range(unit_x.shape[2]):
                 mesh_x_it, mesh_y_it = numpy.meshgrid(
-                    numpy.arange(0, UnitX.shape[1] - offset_x, thinout),
-                    numpy.arange(0, UnitX.shape[0] - offset_y, thinout)
+                    numpy.arange(0, unit_x.shape[1] - offset_x, thinout),
+                    numpy.arange(0, unit_x.shape[0] - offset_y, thinout)
                 )
                 mesh_x_it = mesh_x_it.flatten()
                 mesh_y_it = mesh_y_it.flatten()
-                mesh_u_it = UnitX[offset_y::thinout, offset_x::thinout, i] \
+                mesh_u_it = unit_x[offset_y::thinout, offset_x::thinout, i] \
                     .flatten()
-                mesh_v_it = UnitY[offset_y::thinout, offset_x::thinout, i] \
+                mesh_v_it = unit_y[offset_y::thinout, offset_x::thinout, i] \
                     .flatten()
 
                 if weighting is not None:
@@ -491,7 +493,7 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
     if saturation is None:
         saturation = numpy.ones(direction.shape)
     # Normalize saturation image
-    saturation = saturation / saturation.max()
+    saturation = saturation / saturation.max(axis=None)
     # If we have a saturation image, check if the shape matches (3D) and correct accordingly
     while len(saturation.shape) < len(direction.shape):
         saturation = saturation[..., numpy.newaxis]
@@ -502,7 +504,7 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
     if value is None:
         value = numpy.ones(direction.shape)
     # Normalize value image
-    value = value / value.max()
+    value = value / value.max(axis=None)
     # If we have a value image, check if the shape matches (3D) and correct accordingly
     while len(value.shape) < len(direction.shape):
         value = value[..., numpy.newaxis]

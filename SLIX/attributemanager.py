@@ -126,10 +126,10 @@ class AttributeHandler:
             None
 
         """
-        self.set_reference_modality_to([reference])
+        self.set_reference_modalities_to([reference])
 
-    def set_reference_modality_to(self,
-                                  references: typing.List["AttributeHandler"]) \
+    def set_reference_modalities_to(self,
+                                    references: typing.List["AttributeHandler"]) \
             -> None:
         """
         When SLIX generates an image based on a SLI measurement, the original

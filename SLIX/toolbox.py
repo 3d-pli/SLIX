@@ -7,7 +7,7 @@ try:
         import cupy
         from numba import cuda
 
-        cupy.empty((0), dtype=float)
+        cupy.empty(0, dtype=float)
         from SLIX.GPU import toolbox as gpu_toolbox
 
         gpu_available = True

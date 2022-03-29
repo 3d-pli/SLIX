@@ -9,6 +9,7 @@ import os
 import glob
 import datetime
 import SLIX
+import nibabel.openers
 from .attributemanager import AttributeHandler
 from ._logging import get_logger
 
@@ -268,7 +269,7 @@ def read_folder(filepath):
     0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.
 
     The follwing regex is used to find the measurements:
-    ".*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)"
+    ".*_+p[0-9]+_?.*.(tif{1,2}|jpe*g|nii|h5|png)"
 
     Supported file formats for the image file equal the supported formats of
     SLIX.imread.

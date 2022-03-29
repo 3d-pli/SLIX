@@ -4,9 +4,9 @@ import numpy
 _multiprocessing_worker_fourier_var_dict = {}
 
 
-def _init_worker_fourier_smoothing(X, X_shape):
-    _multiprocessing_worker_fourier_var_dict['X'] = X
-    _multiprocessing_worker_fourier_var_dict['X_shape'] = X_shape
+def _init_worker_fourier_smoothing(x, x_shape):
+    _multiprocessing_worker_fourier_var_dict['X'] = x
+    _multiprocessing_worker_fourier_var_dict['X_shape'] = x_shape
 
 
 def _worker_function_fourier_smoothing(i, threshold, window):
@@ -20,7 +20,7 @@ def _worker_function_fourier_smoothing(i, threshold, window):
 def _fourier_smoothing(image, threshold, window):
     fft = numpy.fft.fft(image, axis=-1)
     frequencies = numpy.fft.fftfreq(fft.shape[-1])
-    frequencies = frequencies / frequencies.max()
+    frequencies = frequencies / frequencies.max(axis=None)
 
     multiplier = 1 - (0.5 + 0.5 * numpy.tanh(
         (numpy.abs(frequencies) - threshold) / window))

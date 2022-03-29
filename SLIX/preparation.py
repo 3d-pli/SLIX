@@ -35,28 +35,26 @@ def low_pass_fourier_smoothing(image, threshold=0.2, smoothing_factor=0.025):
         Complete SLI measurement image with applied Low Pass fourier filter
         and the same shape as the original image.
     """
-    if not "daemon" in current_process()._config:
-        X_shape = image.shape
-        X = RawArray('d', X_shape[0] * X_shape[1] * X_shape[2])
-        X_np = numpy.frombuffer(X).reshape(X_shape)
+    if not current_process().name == 'MainProcess':
+        x_shape = image.shape
+        x = RawArray('d', x_shape[0] * x_shape[1] * x_shape[2])
+        x_np = numpy.frombuffer(x).reshape(x_shape)
 
-        numpy.copyto(X_np, image)
+        numpy.copyto(x_np, image)
 
         partial_worker_function = partial(_worker_function_fourier_smoothing,
                                           threshold=threshold, window=smoothing_factor)
 
         with Pool(processes=os.cpu_count(),
                   initializer=_init_worker_fourier_smoothing,
-                  initargs=(X, X_shape)) as pool:
+                  initargs=(x, x_shape)) as pool:
             pool.map(partial_worker_function,
-                     range(X_shape[0] * X_shape[1]))
+                     range(x_shape[0] * x_shape[1]))
 
-        return X_np.astype(image.dtype)
+        return x_np.astype(image.dtype)
 
     image = _fourier_smoothing(image, threshold, smoothing_factor)
     return image
-
-
 
 
 def savitzky_golay_smoothing(image, window_length=45, polyorder=2):
