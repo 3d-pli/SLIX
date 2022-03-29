@@ -155,7 +155,7 @@ def smooth_image(args, image, output_path_name) -> Optional[Tuple[numpy.ndarray,
             smoothing_factor = float(args['smoothing'][2])
         output_path_name = f'{output_path_name}' \
                            f'_{algorithm}_{low_percentage}_' \
-                           f'{smoothing_factor}_smoothed'
+                           f'{smoothing_factor}'
 
         image = preparation.low_pass_fourier_smoothing(image,
                                                        low_percentage,
