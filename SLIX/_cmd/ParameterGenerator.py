@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
+from typing import Optional
 
 import SLIX.io
 from SLIX import io, toolbox, preparation
@@ -142,6 +143,43 @@ def get_file_pattern(path):
     return pattern
 
 
+def smooth_image(args, image, output_path_name) -> Optional[numpy.ndarray, str]:
+    algorithm = args['smoothing'][0]
+    if algorithm == "fourier":
+        low_percentage = 0.25
+        if len(args['smoothing']) > 1:
+            low_percentage = float(args['smoothing'][1])
+
+        smoothing_factor = 0.025
+        if len(args['smoothing']) > 2:
+            smoothing_factor = float(args['smoothing'][2])
+        output_path_name = f'{output_path_name}' \
+                           f'_{algorithm}_{low_percentage}_' \
+                           f'{smoothing_factor}_smoothed'
+
+        image = preparation.low_pass_fourier_smoothing(image,
+                                                       low_percentage,
+                                                       smoothing_factor)
+    elif algorithm == "savgol":
+        window_length = 45
+        if len(args['smoothing']) > 1:
+            window_length = int(args['smoothing'][1])
+
+        poly_order = 2
+        if len(args['smoothing']) > 2:
+            poly_order = int(args['smoothing'][2])
+        output_path_name = output_path_name + f'_{algorithm}_' \
+                                              f'{window_length}_' \
+                                              f'{poly_order}'
+
+        image = preparation.savitzky_golay_smoothing(image,
+                                                     window_length,
+                                                     poly_order)
+    else:
+        return None
+    return image, output_path_name
+
+
 def main():
     logger = get_logger("SLIXParameterGenerator")
     parser = create_argument_parser()
@@ -153,7 +191,7 @@ def main():
     PEAKWIDTH = True
     PEAKPROMINENCE = True
     PEAKDISTANCE = True
-    INCLINATION_SIGN = False
+    INCLINATION_SIGN = True
     UNIT_VECTORS = False
     output_data_type = '.' + args['output_type']
 
@@ -177,7 +215,7 @@ def main():
         toolbox.gpu_available = args['disable_gpu']
 
     logger.info(
-        f'SLI Feature Generator:\n' +
+        f'\nSLI Feature Generator:\n' +
         f'Chosen feature maps:\n' +
         f'Direction maps: {DIRECTION} \n' +
         f'Peak maps: {PEAKS} \n' +
@@ -235,43 +273,15 @@ def main():
 
         if args['smoothing']:
             tqdm_step.set_description('Applying smoothing')
-
-            algorithm = args['smoothing'][0]
-            if algorithm == "fourier":
-                low_percentage = 0.25
-                if len(args['smoothing']) > 1:
-                    low_percentage = float(args['smoothing'][1])
-
-                smoothing_factor = 0.025
-                if len(args['smoothing']) > 2:
-                    smoothing_factor = float(args['smoothing'][2])
-                output_path_name = f'{output_path_name}' \
-                                   f'_{algorithm}_{low_percentage}_' \
-                                   f'{smoothing_factor}_smoothed'
-
-                image = preparation.low_pass_fourier_smoothing(image,
-                                                               low_percentage,
-                                                               smoothing_factor)
-            elif algorithm == "savgol":
-                window_length = 45
-                if len(args['smoothing']) > 1:
-                    window_length = int(args['smoothing'][1])
-
-                poly_order = 2
-                if len(args['smoothing']) > 2:
-                    poly_order = int(args['smoothing'][2])
-                output_path_name = output_path_name + f'_{algorithm}_' \
-                                                      f'{window_length}_' \
-                                                      f'{poly_order}'
-
-                image = preparation.savitzky_golay_smoothing(image,
-                                                             window_length,
-                                                             poly_order)
-
-            else:
-                logger.error(f"Unknown smoothing option {algorithm}. "
+            result = smooth_image(args, image, output_path_name)
+            if result is None:
+                logger.error(f"Unknown smoothing option. "
                              f"Please use either 'fourier' or 'savgol'!")
                 exit(1)
+            else:
+                image = result[0]
+                output_path_name = result[1]
+                del result
 
             tqdm_step.update(1)
             io.imwrite(output_path_name + output_data_type, image)
