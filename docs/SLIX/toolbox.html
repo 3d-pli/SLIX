@@ -87,12 +87,16 @@
                 
                         <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">try</span><span class="p">:</span>
+            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">SLIX.CPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">cpu_toolbox</span>
+<span class="kn">from</span> <span class="nn">SLIX._logging</span> <span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="k">try</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">cupy</span>
         <span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">cuda</span>
 
-        <span class="n">cupy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">cupy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">SLIX.GPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">gpu_toolbox</span>
 
         <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">True</span>
@@ -102,18 +106,15 @@
         <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">cuda</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">CudaAPIError</span><span class="p">,</span>
             <span class="n">cuda</span><span class="o">.</span><span class="n">cudadrv</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">LinkerError</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[WARNING] Numba CUDA couldn&#39;t be initialized. &quot;</span>
-              <span class="s2">&quot;Please check if there are problems with your CUDA / Numba &quot;</span>
-              <span class="s2">&quot;version. SLIX will fall back to the CPU variant.&quot;</span><span class="p">)</span>
+        <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;SLIX&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Numba CUDA couldn&#39;t be initialized. &quot;</span>
+                                <span class="s2">&quot;Please check if there are problems with your CUDA / Numba &quot;</span>
+                                <span class="s2">&quot;version. SLIX will fall back to the CPU variant.&quot;</span><span class="p">)</span>
         <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="ne">NameError</span><span class="p">):</span>
     <span class="n">gpu_available</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[WARNING] CuPy is not installed. The toolbox will use the CPU &#39;</span>
-          <span class="s1">&#39;variant instead. If you want to use the GPU variant, please run &#39;</span>
-          <span class="s1">&#39;`pip install cupy`.&#39;</span><span class="p">)</span>
-    
-<span class="kn">from</span> <span class="nn">SLIX.CPU</span> <span class="kn">import</span> <span class="n">toolbox</span> <span class="k">as</span> <span class="n">cpu_toolbox</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
+    <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;SLIX&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CuPy is not installed. The toolbox will use the CPU &#39;</span>
+                            <span class="s1">&#39;variant instead. If you want to use the GPU variant, please run &#39;</span>
+                            <span class="s1">&#39;`pip install cupy`.&#39;</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;background_mask&#39;</span><span class="p">,</span> <span class="s1">&#39;centroid_correction&#39;</span><span class="p">,</span>
            <span class="s1">&#39;direction&#39;</span><span class="p">,</span> <span class="s1">&#39;unit_vectors&#39;</span><span class="p">,</span> <span class="s1">&#39;num_peaks&#39;</span><span class="p">,</span>
@@ -135,8 +136,6 @@
 <span class="sd">    Args:</span>
 
 <span class="sd">        image: Complete SLI measurement image stack as a 2D/3D NumPy array</span>
-
-<span class="sd">        threshold: Threshhold for mask creation (default: 10)</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
@@ -604,9 +603,46 @@
 <span class="sd">            x- and y-vector component in arrays</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors_3d</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">unit_vectors_3d</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">inclination</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">inclination_sign</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">use_gpu</span><span class="o">=</span><span class="n">gpu_available</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the inclination sign from the peak positions.</span>
+<span class="sd">    The inclination sign is based on the peak distance between two peaks.</span>
+
+<span class="sd">    Explanation of the results:</span>
+<span class="sd">    -1: The minimal peak distance is behind the first peak (wrapping around)</span>
+<span class="sd">    0: This pixel / line profile has more than two peaks</span>
+<span class="sd">    1: The minimal peak distance is in front of the first peak.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        peaks: 3D NumPy array - peak positions</span>
+
+<span class="sd">        use_gpu: If available use the GPU for calculation</span>
+
+<span class="sd">        return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or</span>
+<span class="sd">        NumPy array will be returned.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        inclination_sign: 3D NumPy array</span>
+<span class="sd">            inclination sign</span>
+
+<span class="sd">    Raises:</span>
+
+<span class="sd">        ValueError: If neither peaks nor peak_distance are given.</span>
+
+<span class="sd">        ValueError: If peaks or peak_distance are given, but are a 2D array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_gpu</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gpu_toolbox</span><span class="o">.</span><span class="n">inclination_sign</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">,</span> <span class="n">return_numpy</span><span class="o">=</span><span class="n">return_numpy</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cpu_toolbox</span><span class="o">.</span><span class="n">inclination_sign</span><span class="p">(</span><span class="n">peak_image</span><span class="p">,</span> <span class="n">centroids</span><span class="p">,</span> <span class="n">correction_angle</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -634,8 +670,6 @@
 <span class="sd">    Args:</span>
 
 <span class="sd">        image: Complete SLI measurement image stack as a 2D/3D NumPy array</span>
-
-<span class="sd">        threshold: Threshhold for mask creation (default: 10)</span>
 
 <span class="sd">        use_gpu: If available use the GPU for calculation</span>
 
@@ -665,8 +699,6 @@ It is advised to use this function.</p>
 <p>Args:</p>
 
 <pre><code>image: Complete SLI measurement image stack as a 2D/3D NumPy array
-
-threshold: Threshhold for mask creation (default: 10)
 
 use_gpu: If available use the GPU for calculation
 

@@ -1,22 +1,35 @@
+from typing import Tuple, List
+
 import cupy
 import numpy
 from numba import cuda
 
 import SLIX
+from SLIX import _decorators
 from SLIX.GPU._toolbox import _direction, _prominence, _peakwidth, \
     _peakdistance, _centroid_correction_bases, _centroid, \
     _peaks, _inclination_sign
+from SLIX.parameters import TARGET_PROMINENCE
 
-__all__ = ['TARGET_PROMINENCE', 'peaks',
+__all__ = ['peaks',
            'peak_width', 'peak_prominence',
            'peak_distance', 'mean_peak_distance',
            'background_mask', 'mean_peak_width',
            'direction', 'num_peaks', 'mean_peak_prominence',
            'unit_vectors', 'centroid_correction', 'normalize']
 
-TARGET_PROMINENCE = 0.08
+
+def prepare_kernel_execution(image):
+    assert type(image) == cupy.ndarray
+
+    threads_per_block = (16, 16)
+    original_shape = image.shape
+    blocks_per_grid = (int(numpy.ceil(original_shape[0] / threads_per_block[0])),
+                       int(numpy.ceil(original_shape[1] / threads_per_block[1])))
+    return blocks_per_grid, threads_per_block
 
 
+@_decorators.check_valid_input
 def background_mask(image, return_numpy=True):
     """
     Creates a background mask by setting all image pixels with low scattering
@@ -68,6 +81,7 @@ def background_mask(image, return_numpy=True):
         return gpu_mask
 
 
+@_decorators.check_valid_input
 def peaks(image, return_numpy=True):
     """
     Detect all peaks from a full SLI measurement. Peaks will not be filtered
@@ -85,12 +99,10 @@ def peaks(image, return_numpy=True):
 
     2D/3D boolean image containing masking the peaks with `True`
     """
-
     gpu_image = cupy.array(image, dtype='float32')
-
     resulting_peaks = cupy.zeros(gpu_image.shape, dtype='int8')
-    threads_per_block = (1, 1)
-    blocks_per_grid = image.shape[:-1]
+
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_image)
     _peaks[blocks_per_grid, threads_per_block](gpu_image, resulting_peaks)
     cuda.synchronize()
 
@@ -103,6 +115,7 @@ def peaks(image, return_numpy=True):
         return resulting_peaks.astype('bool')
 
 
+@_decorators.check_valid_input
 def num_peaks(image=None, peak_image=None, return_numpy=True):
     """
     Calculate the number of peaks from each line profile in an SLI image series
@@ -141,6 +154,7 @@ def num_peaks(image=None, peak_image=None, return_numpy=True):
         return resulting_image
 
 
+@_decorators.check_valid_input
 def normalize(image, kind_of_normalization=0, return_numpy=True):
     """
     Normalize given line profile by using a normalization technique based on
@@ -179,6 +193,7 @@ def normalize(image, kind_of_normalization=0, return_numpy=True):
         return gpu_image
 
 
+@_decorators.check_valid_input
 def peak_prominence(image, peak_image=None, kind_of_normalization=0,
                     return_numpy=True):
     """
@@ -216,8 +231,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0,
 
     result_img_gpu = cupy.zeros(gpu_image.shape, dtype='float32')
 
-    threads_per_block = (1, 1)
-    blocks_per_grid = gpu_peak_image.shape[:-1]
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_image)
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image,
                                                     result_img_gpu)
     cuda.synchronize()
@@ -235,6 +249,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0,
         return result_img_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0,
                          return_numpy=True):
     """
@@ -284,6 +299,7 @@ def mean_peak_prominence(image, peak_image=None, kind_of_normalization=0,
         return peak_prominence_gpu
 
 
+@_decorators.check_valid_input
 def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
     """
     Calculate the peak width of all given peak positions within a line profile.
@@ -313,10 +329,8 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
     else:
         gpu_peak_image = peaks(gpu_image, return_numpy=False).astype('uint8')
 
-    threads_per_block = (1, 1)
-    blocks_per_grid = gpu_peak_image.shape[:-1]
-
     gpu_prominence = cupy.empty(gpu_image.shape, dtype='float32')
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_image)
     _prominence[blocks_per_grid, threads_per_block](gpu_image, gpu_peak_image,
                                                     gpu_prominence)
     cuda.synchronize()
@@ -344,6 +358,7 @@ def peak_width(image, peak_image=None, target_height=0.5, return_numpy=True):
         return result_image_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_width(image, peak_image=None, target_height=0.5,
                     return_numpy=True):
     """
@@ -388,6 +403,7 @@ def mean_peak_width(image, peak_image=None, target_height=0.5,
         return peak_width_gpu
 
 
+@_decorators.check_valid_input
 def peak_distance(peak_image, centroids, return_numpy=True):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -419,8 +435,7 @@ def peak_distance(peak_image, centroids, return_numpy=True):
                                 return_numpy=False).astype('int8')
     result_image_gpu = cupy.zeros(gpu_peak_image.shape, dtype='float32')
 
-    threads_per_block = (1, 1)
-    blocks_per_grid = gpu_peak_image.shape[:-1]
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_peak_image)
     _peakdistance[blocks_per_grid, threads_per_block](gpu_peak_image,
                                                       gpu_centroids,
                                                       number_of_peaks,
@@ -438,6 +453,7 @@ def peak_distance(peak_image, centroids, return_numpy=True):
         return result_image_gpu
 
 
+@_decorators.check_valid_input
 def mean_peak_distance(peak_image, centroids, return_numpy=True):
     """
     Calculate the mean peak distance in degrees between two corresponding peaks
@@ -474,6 +490,7 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
         return peak_distance_gpu
 
 
+@_decorators.check_valid_input
 def direction(peak_image, centroids, correction_angle=0,
               number_of_directions=3, return_numpy=True):
     """
@@ -518,8 +535,7 @@ def direction(peak_image, centroids, correction_angle=0,
     number_of_peaks = cupy.count_nonzero(gpu_peak_image, axis=-1).astype(
         'int8')
 
-    threads_per_block = (1, 1)
-    blocks_per_grid = gpu_peak_image.shape[:-1]
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_peak_image)
     _direction[blocks_per_grid, threads_per_block](gpu_peak_image,
                                                    gpu_centroids,
                                                    number_of_peaks,
@@ -539,6 +555,7 @@ def direction(peak_image, centroids, correction_angle=0,
         return result_img_gpu
 
 
+@_decorators.check_valid_input
 def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
                         high_prominence=None, return_numpy=True):
     """
@@ -568,7 +585,8 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
         NumPy array with the positions of all detected peak positions corrected
         with the centroid calculation.
     """
-    gpu_image = normalize(cupy.array(image, dtype='float32'))
+    gpu_image = normalize(image, return_numpy=False)
+
     if peak_image is not None:
         gpu_peak_image = cupy.array(peak_image, dtype='uint8')
     else:
@@ -584,8 +602,7 @@ def centroid_correction(image, peak_image, low_prominence=TARGET_PROMINENCE,
     gpu_reverse_prominence = cupy.empty(gpu_reverse_image.shape,
                                         dtype='float32')
 
-    threads_per_block = (1, 1)
-    blocks_per_grid = gpu_peak_image.shape[:-1]
+    blocks_per_grid, threads_per_block = prepare_kernel_execution(gpu_reverse_image)
     _prominence[blocks_per_grid, threads_per_block](gpu_reverse_image,
                                                     gpu_reverse_peaks,
                                                     gpu_reverse_prominence)
@@ -699,6 +716,7 @@ def unit_vectors_3d(direction, inclination, return_numpy=True):
     return UnitX, UnitY, UnitZ
 
 
+@_decorators.check_valid_input
 def inclination_sign(peak_image, centroids, correction_angle=0, return_numpy=True):
     """
     Calculate the inclination sign from the peak positions.

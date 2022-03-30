@@ -1,12 +1,8 @@
 from numba import jit, prange
+from SLIX.parameters import BACKGROUND_COLOR, TARGET_PEAK_HEIGHT, \
+                            MAX_DISTANCE_FOR_CENTROID_ESTIMATION, \
+                            NUMBER_OF_SAMPLES
 import numpy
-
-# DEFAULT PARAMETERS
-BACKGROUND_COLOR = -1
-MAX_DISTANCE_FOR_CENTROID_ESTIMATION = 2
-
-NUMBER_OF_SAMPLES = 100
-TARGET_PEAK_HEIGHT = 0.06
 
 
 @jit(nopython=True, parallel=True)

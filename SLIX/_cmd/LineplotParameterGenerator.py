@@ -1,5 +1,8 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
+
+import SLIX.io
 from SLIX import toolbox, preparation
+from SLIX._logging import get_logger
 from matplotlib import pyplot as plt
 import os
 import tqdm
@@ -242,6 +245,7 @@ def subprocess(input_file, detailed, low_prominence, with_angle,
 
 
 def main():
+    logger = get_logger("SLIXLineplotParameterGenerator")
     parser = create_argument_parser()
     arguments = parser.parse_args()
     args = vars(arguments)
@@ -250,12 +254,7 @@ def main():
     if not isinstance(paths, list):
         paths = [paths]
 
-    if not os.path.exists(args['output']):
-        os.makedirs(args['output'], exist_ok=True)
-    # Check if the output path is writable
-    if not os.access(args['output'], os.W_OK):
-        print('Output path is not writable. Please choose a valid output '
-              'path!')
+    if not SLIX.io.check_output_dir(args['output']):
         exit(1)
 
     algorithm = ""
@@ -282,7 +281,7 @@ def main():
                 second_val = int(args['smoothing'][2])
 
     if len(paths) > 1:
-        print('Applying pool workers...')
+        logger.info('Applying pool workers...')
         args = zip(
             paths,
             [not args['simple'] for _ in paths],

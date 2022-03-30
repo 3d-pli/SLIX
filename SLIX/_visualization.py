@@ -1,6 +1,5 @@
 import numba
 import numpy
-from matplotlib.colors import hsv_to_rgb
 
 
 @numba.njit()

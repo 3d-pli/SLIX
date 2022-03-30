@@ -73,8 +73,8 @@ class TestNumbaToolboxCPU:
     def test_centroid_correction_bases(self):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14).reshape((1, 24))
-        test_high_peaks = SLIX.toolbox.peaks(test_array, use_gpu=False)
-        test_reverse_peaks = SLIX.toolbox.peaks(-test_array, use_gpu=False)
+        test_high_peaks = SLIX.toolbox.peaks(test_array.reshape((1, 1, 24)), use_gpu=False)[0]
+        test_reverse_peaks = SLIX.toolbox.peaks(-test_array.reshape((1, 1, 24)), use_gpu=False)[0]
 
         left_bases, right_bases = ntoolbox._centroid_correction_bases(test_array, test_high_peaks, test_reverse_peaks)
         assert numpy.sum(left_bases) == 1
@@ -82,8 +82,8 @@ class TestNumbaToolboxCPU:
 
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 8 + [0.95, 1, 0.5] + [0] * 13).reshape((1, 24))
-        test_high_peaks = SLIX.toolbox.peaks(test_array, use_gpu=False)
-        test_reverse_peaks = SLIX.toolbox.peaks(-test_array, use_gpu=False)
+        test_high_peaks = SLIX.toolbox.peaks(test_array.reshape((1, 1, 24)), use_gpu=False)[0]
+        test_reverse_peaks = SLIX.toolbox.peaks(-test_array.reshape((1, 1, 24)), use_gpu=False)[0]
 
         left_bases, right_bases = ntoolbox._centroid_correction_bases(test_array, test_high_peaks, test_reverse_peaks)
         assert numpy.sum(left_bases) == 2
@@ -91,8 +91,8 @@ class TestNumbaToolboxCPU:
 
         # simple test case: centroid is between two measurements
         test_array = numpy.array([0] * 8 + [1, 1] + [0] * 14).reshape((1, 24))
-        test_high_peaks = SLIX.toolbox.peaks(test_array, use_gpu=False)
-        test_reverse_peaks = SLIX.toolbox.peaks(-test_array, use_gpu=False)
+        test_high_peaks = SLIX.toolbox.peaks(test_array.reshape((1, 1, 24)), use_gpu=False)[0]
+        test_reverse_peaks = SLIX.toolbox.peaks(-test_array.reshape((1, 1, 24)), use_gpu=False)[0]
 
         left_bases, right_bases = ntoolbox._centroid_correction_bases(test_array, test_high_peaks, test_reverse_peaks)
         assert numpy.sum(left_bases) == 1
@@ -100,8 +100,8 @@ class TestNumbaToolboxCPU:
 
         # more complicated test case: wide peak plateau
         test_array = numpy.array([0] * 8 + [1, 1, 1] + [0] * 13).reshape((1, 24))
-        test_high_peaks = SLIX.toolbox.peaks(test_array, use_gpu=False)
-        test_reverse_peaks = SLIX.toolbox.peaks(-test_array, use_gpu=False)
+        test_high_peaks = SLIX.toolbox.peaks(test_array.reshape((1, 1, 24)), use_gpu=False)[0]
+        test_reverse_peaks = SLIX.toolbox.peaks(-test_array.reshape((1, 1, 24)), use_gpu=False)[0]
 
         left_bases, right_bases = ntoolbox._centroid_correction_bases(test_array, test_high_peaks, test_reverse_peaks)
         assert numpy.sum(left_bases) == 2

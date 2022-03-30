@@ -58,6 +58,9 @@
                                 <a class="function" href="#AttributeHandler.set_reference_modality_to">set_reference_modality_to</a>
                         </li>
                         <li>
+                                <a class="function" href="#AttributeHandler.set_reference_modalities_to">set_reference_modalities_to</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#AttributeHandler.add_creator">add_creator</a>
                         </li>
                         <li>
@@ -99,6 +102,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">secrets</span>
 <span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">from</span> <span class="nn">SLIX._logging</span> <span class="kn">import</span> <span class="n">get_logger</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AttributeHandler&#39;</span><span class="p">]</span>
 
@@ -115,6 +119,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">does_attribute_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -153,8 +158,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
-                  <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
+                                <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
 
     <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> \
             <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
@@ -173,13 +178,13 @@
 <span class="sd">            will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                       <span class="n">value</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
-                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                                          <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -219,10 +224,10 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modalities_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+    <span class="k">def</span> <span class="nf">set_reference_modalities_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
@@ -246,8 +251,8 @@
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
                 <span class="n">ref_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
-                      <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
+                                  <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
                 <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;reference_images&#39;</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">)</span>
@@ -392,6 +397,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">does_attribute_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -430,8 +436,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
-                  <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
+                                <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
 
     <span class="k">def</span> <span class="nf">get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> \
             <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">]:</span>
@@ -450,13 +456,13 @@
 <span class="sd">            will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                       <span class="n">value</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
-                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                                          <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -496,10 +502,10 @@
 <span class="sd">            None</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modality_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modalities_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+    <span class="k">def</span> <span class="nf">set_reference_modalities_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
@@ -523,8 +529,8 @@
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
                 <span class="n">ref_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
-                      <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
+                                  <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
                 <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;reference_images&#39;</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">)</span>
@@ -667,6 +673,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span> <span class="o">=</span> <span class="n">dataset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span> <span class="n">h5py</span><span class="o">.</span><span class="n">AttributeManager</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -779,8 +786,8 @@ can result in errors.</p>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
-                  <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> was not deleted as it does not &quot;</span>
+                                <span class="s2">&quot;exist&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
 </pre></div>
 
         </details>
@@ -831,7 +838,7 @@ can result in errors.</p>
 <span class="sd">            will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Attribute </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="n">attribute_name</span><span class="p">})</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
 </pre></div>
@@ -872,7 +879,7 @@ will be returned.
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
                       <span class="n">value</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span>
-                                           <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
+                                          <span class="nb">bool</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set an attribute in the HDF5 dataset.</span>
@@ -922,7 +929,58 @@ value: String, Float, Integer, Boolean or numpy array you
 
         
             <span class="def">def</span>
-            <span class="name">set_reference_modality_to</span><span class="signature">(
+            <span class="name">set_reference_modality_to</span><span class="signature">(self, reference: <a href="#AttributeHandler">SLIX.attributemanager.AttributeHandler</a>) -&gt; None</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference</span><span class="p">:</span> <span class="s2">&quot;AttributeHandler&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
+<span class="sd">        HDF5 file can be saves as a reference for the future.</span>
+<span class="sd">        This method adds the reference file and dataset to the output.</span>
+<span class="sd">        However, the input HDF5 and dataset must contain an id attribute.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            reference: Reference AttributeHandler containing the dataset of</span>
+<span class="sd">                       the input file.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_reference_modalities_to</span><span class="p">([</span><span class="n">reference</span><span class="p">])</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>When SLIX generates an image based on a SLI measurement, the original
+HDF5 file can be saves as a reference for the future.
+This method adds the reference file and dataset to the output.
+However, the input HDF5 and dataset must contain an id attribute.</p>
+
+<p>Args:</p>
+
+<pre><code>reference: Reference AttributeHandler containing the dataset of
+           the input file.
+</code></pre>
+
+<p>Returns:</p>
+
+<pre><code>None
+</code></pre>
+</div>
+
+
+                            </div>
+                            <div id="AttributeHandler.set_reference_modalities_to" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#AttributeHandler.set_reference_modalities_to">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">set_reference_modalities_to</span><span class="signature">(
     self,
     references: List[<a href="#AttributeHandler">SLIX.attributemanager.AttributeHandler</a>]
 ) -&gt; None</span>:
@@ -930,8 +988,8 @@ value: String, Float, Integer, Boolean or numpy array you
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_reference_modality_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                  <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span>\
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">set_reference_modalities_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">references</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="s2">&quot;AttributeHandler&quot;</span><span class="p">])</span> \
             <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        When SLIX generates an image based on a SLI measurement, the original</span>
@@ -955,8 +1013,8 @@ value: String, Float, Integer, Boolean or numpy array you
             <span class="k">if</span> <span class="n">reference</span><span class="o">.</span><span class="n">does_attribute_exist</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
                 <span class="n">ref_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reference</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
-                      <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Could not set reference_images because id is not &#39;</span>
+                                  <span class="s1">&#39;present in at least one dataset&#39;</span><span class="p">)</span>
                 <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attribute</span><span class="p">(</span><span class="s1">&#39;reference_images&#39;</span><span class="p">,</span> <span class="n">ref_id</span><span class="p">)</span>

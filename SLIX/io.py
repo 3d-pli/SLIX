@@ -9,7 +9,9 @@ import os
 import glob
 import datetime
 import SLIX
+import nibabel.openers
 from .attributemanager import AttributeHandler
+from ._logging import get_logger
 
 __all__ = ['H5FileReader', 'H5FileWriter', 'imread', 'imwrite', 'imwrite_rgb']
 
@@ -267,7 +269,7 @@ def read_folder(filepath):
     0002, 1, 004, 3 will be sorted as 1, 0002, 3, 004.
 
     The follwing regex is used to find the measurements:
-    ".*_+p[0-9]+_?.*\.(tif{1,2}|jpe*g|nii|h5|png)"
+    ".*_+p[0-9]+_?.*.(tif{1,2}|jpe*g|nii|h5|png)"
 
     Supported file formats for the image file equal the supported formats of
     SLIX.imread.
@@ -436,10 +438,13 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
 
             None
         """
+
+    logger = get_logger("imwrite_rgb")
+
     save_data = data.copy()
     axis = numpy.argwhere(numpy.array(save_data.shape) == 3).flatten()
     if len(axis) == 0:
-        print('Cannot create RGB image as no dimension has a depth of 3.')
+        logger.error('Cannot create RGB image as no dimension has a depth of 3.')
         return
 
     if filepath.endswith('.tiff') or filepath.endswith('.tif'):
@@ -454,5 +459,31 @@ def imwrite_rgb(filepath, data, dataset='/Image', original_stack_path=""):
         writer.add_symlink(dataset, '/pyramid/00')
         writer.close()
     else:
-        print("File type is not supported. "
-              "Supported file types are .h5, .tif(f)")
+        logger.error("File type is not supported. "
+                     "Supported file types are .h5, .tif(f)")
+
+
+def check_output_dir(folder: str) -> bool:
+    """
+    Check if the output directory exists. If not, create it.
+    Also checks for read/write permissions.
+
+    Args:
+
+        folder: Path to the output directory
+
+    Returns:
+
+        True if the directory exists and is writable, False otherwise
+
+    """
+    logger = get_logger("check_output_dir")
+
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
+    # Check if the output path is writable
+    if not os.access(folder, os.W_OK):
+        logger.error('Output path is not writable. Please choose a valid output '
+                     'path!')
+        return False
+    return True
