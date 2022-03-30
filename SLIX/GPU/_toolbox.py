@@ -315,8 +315,8 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
                                      TARGET_PEAK_HEIGHT)
 
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
-                img_pixel = sub_image[(((pos + x) % len(sub_image)) + len(sub_image)) % len(sub_image)]
-                next_img_pixel = sub_image[(((pos + x + 1) % len(sub_image)) + len(sub_image)) % len(sub_image)]
+                img_pixel = sub_image[(pos + x) % len(sub_image)]
+                next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
                 for interp in range(NUMBER_OF_SAMPLES):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
@@ -351,7 +351,7 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
     # That just in case if not all directions are calculated
     # when only two or four peaks are present.
     result_image[idx, idy] = BACKGROUND_COLOR
-    # Check if the line profile has less peaks than the number
+    # Check if the line profile has fewer peaks than the number
     # of directions which shall be calculated.
     if current_number_of_peaks == 2:
         for i in range(len(sub_peak_array)):
