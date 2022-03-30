@@ -77,7 +77,7 @@ def peaks(image):
     resulting_image = _peaks(image)
 
     resulting_image = resulting_image.reshape(image_x, image_y, image_z)
-    return resulting_image.astype('bool')
+    return resulting_image.astype(bool)
 
 
 @_decorators.check_valid_input
@@ -173,7 +173,7 @@ def peak_prominence(image, peak_image=None, kind_of_normalization=0):
         peak_image = numpy.array(peak_image).astype('uint8')
     image = normalize(image, kind_of_normalization)
 
-    [image_x, image_y, image_z] = image.shape
+    image_x, image_y, image_z = image.shape
 
     image = image.reshape(image_x * image_y, image_z)
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
@@ -316,7 +316,7 @@ def peak_distance(peak_image, centroids):
         the second peak will show 360 - (peak_2 - peak_1).
     """
     peak_image = numpy.array(peak_image).astype('uint8')
-    [image_x, image_y, image_z] = peak_image.shape
+    image_x, image_y, image_z = peak_image.shape
 
     peak_image = peak_image.reshape(image_x * image_y, image_z).astype('uint8')
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
