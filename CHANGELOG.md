@@ -2,11 +2,15 @@
 
 ## v2.4.1
 ### Added
+- Added inclination sign map in SLIXParameterGenerator
 - Added `SLIX.parameters` which contains all the parameters for the operations of the toolbox.
 - Added `SLIX._logging` to replace the print statements in SLIX. This is a private variable and should not be used.
 - Added `SLIX._decorators` for additional checks of the toolbox. This should ensure that the toolbox is not used in a wrong way.
 
 ### Changed
+- Added check for write operations before actually trying to generate any content reducing the computing time if the program would fail anyways.
+- Changed the memory management between CPU and GPU in SLIXParameterGenerator which might reduce computing time.
+
 - Changed print statements in SLIX to logging statements where possible. The tqdm progress bar is still used.
 - `SLIX.GPU` now uses more than 1 thread for the GPU. The current value is 16x16 threads per block.
 - Replaced `uint8` with `int8` in `_centroid_correction_bases`. This shouldn't affect the toolbox itself but ensures that the correct data type is used.
@@ -17,6 +21,8 @@
 - Fixed out-of-bounds issues in `SLIX.GPU` when using more than 1x1 threads per block.
 - Fixed issue in centroid calculation on the GPU where the normalized image wasn't stored in the GPU memory resulting in additional transfers through the CPU and GPU.
 - Fixed an issue with `SLIX.attributemanager` where the method `set_reference_modality_to` was not working because it got overwritten.
+- Fixed an issue where you could use any amount of arguments after the `--smoothing` flag in SLIXParameterGenerator resulting in weird behaviour for the users.
+- Fixed an issue where the GPU would still be used to calculate the centroids even though the GPU execution was disabled.
 
 ## v2.4.0
 ### Added
