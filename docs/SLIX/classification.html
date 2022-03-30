@@ -99,8 +99,17 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">crossing</span> <span class="o">=</span> <span class="n">crossing_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">max_image</span><span class="p">)</span>
-    <span class="n">flat</span> <span class="o">=</span> <span class="n">flat_mask</span><span class="p">(</span><span class="n">flat_mask</span><span class="p">,</span> <span class="n">max_image</span><span class="p">)</span>
-    <span class="n">inclined</span> <span class="o">=</span> <span class="n">inclinated_mask</span><span class="p">(</span><span class="n">low_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">,</span> <span class="n">max_image</span><span class="p">,</span> <span class="n">flat</span><span class="p">)</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">flat_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">low_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">)</span>
+    <span class="n">inclined</span> <span class="o">=</span> <span class="n">inclinated_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">,</span> <span class="n">max_image</span><span class="p">,</span> <span class="n">flat</span><span class="p">)</span>
+
+    <span class="n">return_mask</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">crossing</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">crossing</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
+
+    <span class="k">return</span> <span class="n">return_mask</span>
 
 
 <span class="k">def</span> <span class="nf">crossing_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">max_image</span><span class="p">):</span>
@@ -194,7 +203,7 @@
                      <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&gt;</span> <span class="mi">120</span><span class="p">)</span> <span class="o">&amp;</span>
                      <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">two_peak_mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&lt;</span> <span class="mi">120</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">high_prominence_peaks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">high_prominence_peaks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
 
     <span class="k">return</span> <span class="n">inclinated_areas</span>
 
@@ -286,8 +295,17 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">crossing</span> <span class="o">=</span> <span class="n">crossing_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">max_image</span><span class="p">)</span>
-    <span class="n">flat</span> <span class="o">=</span> <span class="n">flat_mask</span><span class="p">(</span><span class="n">flat_mask</span><span class="p">,</span> <span class="n">max_image</span><span class="p">)</span>
-    <span class="n">inclined</span> <span class="o">=</span> <span class="n">inclinated_mask</span><span class="p">(</span><span class="n">low_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">,</span> <span class="n">max_image</span><span class="p">,</span> <span class="n">flat</span><span class="p">)</span>
+    <span class="n">flat</span> <span class="o">=</span> <span class="n">flat_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">low_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">)</span>
+    <span class="n">inclined</span> <span class="o">=</span> <span class="n">inclinated_mask</span><span class="p">(</span><span class="n">high_prominence_peaks</span><span class="p">,</span> <span class="n">peakdistance</span><span class="p">,</span> <span class="n">max_image</span><span class="p">,</span> <span class="n">flat</span><span class="p">)</span>
+
+    <span class="n">return_mask</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">crossing</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">crossing</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">return_mask</span><span class="p">[</span><span class="n">inclined</span> <span class="o">==</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
+
+    <span class="k">return</span> <span class="n">return_mask</span>
 </pre></div>
 
         </details>
@@ -472,7 +490,7 @@ crossing fibers).</li>
                      <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&gt;</span> <span class="mi">120</span><span class="p">)</span> <span class="o">&amp;</span>
                      <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">two_peak_mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">peakdistance</span> <span class="o">&lt;</span> <span class="mi">120</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">high_prominence_peaks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">inclinated_areas</span><span class="p">[</span><span class="n">high_prominence_peaks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
 
     <span class="k">return</span> <span class="n">inclinated_areas</span>
 </pre></div>
