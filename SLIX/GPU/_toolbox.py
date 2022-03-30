@@ -8,6 +8,10 @@ import numpy
 @cuda.jit('void(float32[:, :, :], int8[:, :, :])')
 def _peaks(image, resulting_peaks):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < image.shape[0] or not idy < image.shape[1]:
+        return
+
     sub_image = image[idx, idy]
 
     pos = 0
@@ -32,6 +36,10 @@ def _peaks(image, resulting_peaks):
 @cuda.jit('void(float32[:, :, :], int8[:, :, :], float32[:, :, :])')
 def _prominence(image, peak_image, result_image):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < image.shape[0] or not idy < image.shape[1]:
+        return
+
     sub_image = image[idx, idy]
     sub_peak_array = peak_image[idx, idy]
 
@@ -70,6 +78,10 @@ def _prominence(image, peak_image, result_image):
           'float32[:, :, :], float32)')
 def _peakwidth(image, peak_image, prominence, result_image, target_height):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < image.shape[0] or not idy < image.shape[1]:
+        return
+
     sub_image = image[idx, idy]
     sub_peak_array = peak_image[idx, idy]
     sub_prominece = prominence[idx, idy]
@@ -110,6 +122,10 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
           'float32[:, :, :])')
 def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < peak_image.shape[0] or not idy < peak_image.shape[1]:
+        return
+
     sub_peak_array = peak_image[idx, idy]
     sub_centroid_array = centroid_array[idx, idy]
     current_pair = 0
@@ -151,6 +167,10 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
           'float32[:, :, :], float32)')
 def _direction(peak_array, centroid_array, number_of_peaks, result_image, correctdir):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < peak_array.shape[0] or not idy < peak_array.shape[1]:
+        return
+
     sub_peak_array = peak_array[idx, idy]
     sub_centroid_array = centroid_array[idx, idy]
     num_directions = result_image.shape[-1]
@@ -213,10 +233,14 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
 
 
 @cuda.jit('void(float32[:, :, :], uint8[:, :, :], uint8[:, :, :], '
-          'uint8[:, :, :], uint8[:, :, :])')
+          'int8[:, :, :], int8[:, :, :])')
 def _centroid_correction_bases(image, peak_image, reverse_peaks,
                                left_bases, right_bases):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < image.shape[0] or not idy < image.shape[1]:
+        return
+
     sub_image = image[idx, idy]
     sub_peaks = peak_image[idx, idy]
     sub_reverse_peaks = reverse_peaks[idx, idy]
@@ -236,19 +260,22 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
 
             # Check for minima in range
             for offset in range(1, MAX_DISTANCE_FOR_CENTROID_ESTIMATION):
-                if sub_reverse_peaks[pos - offset] == 1:
+                idx_left = (pos - offset + len(sub_reverse_peaks)) % len(sub_reverse_peaks)
+                idx_right = (pos + offset) % len(sub_reverse_peaks)
+                if sub_reverse_peaks[idx_left] == 1:
                     left_position = offset
                     break
-                if sub_reverse_peaks[(pos + offset) %
-                                     len(sub_reverse_peaks)] == 1:
+                if sub_reverse_peaks[idx_right] == 1:
                     right_position = offset
                     break
 
             # Check for peak height
             for offset in range(left_position):
-                if sub_image[pos - offset] < target_peak_height:
+                if sub_image[(pos - offset + len(sub_image)) % len(sub_image)]\
+                        < target_peak_height:
                     left_position = offset
                     break
+
             for offset in range(right_position):
                 if sub_image[(pos + offset) % len(sub_image)] < \
                         target_peak_height:
@@ -266,6 +293,10 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
           'int8[:, :, :], float32[:, :, :])')
 def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < image.shape[0] or not idy < image.shape[1]:
+        return
+
     sub_image = image[idx, idy]
     sub_peaks = peak_image[idx, idy]
     sub_left_bases = left_bases[idx, idy]
@@ -284,8 +315,8 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
                                      TARGET_PEAK_HEIGHT)
 
             for x in range(-sub_left_bases[pos], sub_right_bases[pos]):
-                img_pixel = sub_image[(pos + x) % len(sub_image)]
-                next_img_pixel = sub_image[(pos + x + 1) % len(sub_image)]
+                img_pixel = sub_image[(((pos + x) % len(sub_image)) + len(sub_image)) % len(sub_image)]
+                next_img_pixel = sub_image[(((pos + x + 1) % len(sub_image)) + len(sub_image)) % len(sub_image)]
                 for interp in range(NUMBER_OF_SAMPLES):
                     step = interp / NUMBER_OF_SAMPLES
                     func_val = img_pixel + (next_img_pixel - img_pixel) * step
@@ -307,6 +338,10 @@ def _centroid(image, peak_image, left_bases, right_bases, centroid_peaks):
           'float32[:, :], float32)')
 def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image, correctdir):
     idx, idy = cuda.grid(2)
+    # Check if idx and idy are inside the image
+    if not idx < peak_array.shape[0] or not idy < peak_array.shape[1]:
+        return
+
     sub_peak_array = peak_array[idx, idy]
     sub_centroid_array = centroid_array[idx, idy]
 
