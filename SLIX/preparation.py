@@ -7,8 +7,6 @@ import scipy.signal as signal
 from SLIX._preparation import _thin_out_median, _thin_out_plain, \
     _thin_out_average, _init_worker_fourier_smoothing, \
     _worker_function_fourier_smoothing, _fourier_smoothing
-from SLIX._logging import get_logger
-import logging
 
 __all__ = ['thin_out', 'savitzky_golay_smoothing',
            'low_pass_fourier_smoothing']
@@ -37,8 +35,6 @@ def low_pass_fourier_smoothing(image, threshold=0.2, smoothing_factor=0.025):
         Complete SLI measurement image with applied Low Pass fourier filter
         and the same shape as the original image.
     """
-    logger = get_logger("Optimization", level=logging.DEBUG)
-    logger.debug(current_process().name)
     if current_process().name == 'MainProcess':
         x_shape = image.shape
         x = RawArray('d', x_shape[0] * x_shape[1] * x_shape[2])
