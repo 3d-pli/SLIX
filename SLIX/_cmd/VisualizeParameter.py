@@ -4,6 +4,7 @@ import os
 import re
 import SLIX
 from SLIX._logging import get_logger
+import matplotlib
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
@@ -209,24 +210,28 @@ def write_vector(args, direction_image, output_path_name):
     alpha = args['alpha']
     background_threshold = args['threshold']
     vector_width = args['vector_width']
+    fig, ax = plt.subplots(dpi=args['dpi'])
+    fig.subplots_adjust(0, 0, 1, 1)
     if vector_width < 0:
         vector_width = numpy.ceil(thinout / 3)
     if len(image.shape) == 2:
-        plt.imshow(image, cmap='gray')
+        ax.imshow(image, cmap='gray')
     else:
-        plt.imshow(numpy.max(image, axis=-1), cmap='gray')
-    plt.axis('off')
+        ax.imshow(numpy.max(image, axis=-1), cmap='gray')
     if args['distribution']:
-        write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map)
+        write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map,
+                                  fig, ax)
     else:
         write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout,
-                           vector_width, weight_map)
+                           vector_width, weight_map, fig, ax)
     plt.clf()
 
 
 def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout, vector_width,
-                       weight_map):
+                       weight_map, fig, ax):
+
     SLIX.visualization.unit_vectors(UnitX, UnitY,
+                                    ax=ax,
                                     thinout=thinout,
                                     scale=scale,
                                     alpha=alpha,
@@ -235,15 +240,19 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                                     background_threshold,
                                     weighting=weight_map,
                                     colormap=available_colormaps[args['colormap']])
-    plt.savefig(f"{output_path_name}vector_{args['colormap']}.tiff", dpi=args['dpi'],
-                bbox_inches='tight')
+    fig.canvas.draw()
+    vector_image = numpy.array(fig.canvas.buffer_rgba(), dtype=numpy.uint8)
+    vector_image = vector_image[:, :, :3]
+    SLIX.io.imwrite_rgb(f"{output_path_name}vector_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
 
 
-def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map):
+def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale,
+                              thinout, vector_width, weight_map, fig, ax):
     SLIX.visualization.unit_vector_distribution(UnitX, UnitY,
+                                                ax=ax,
                                                 thinout=thinout,
                                                 scale=scale,
                                                 alpha=alpha,
@@ -251,9 +260,10 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                                                 vector_width,
                                                 weighting=weight_map,
                                                 colormap=available_colormaps[args['colormap']])
-    plt.savefig(f"{output_path_name}vector_distribution_{args['colormap']}.tiff",
-                dpi=args['dpi'],
-                bbox_inches='tight')
+    fig.canvas.draw()
+    vector_image = numpy.array(fig.canvas.buffer_rgba(), dtype=numpy.uint8)
+    vector_image = vector_image[:, :, :3]
+    SLIX.io.imwrite_rgb(f"{output_path_name}vector_distribution_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
                             SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
