@@ -292,16 +292,16 @@ def unit_vectors(unit_x, unit_y, ax=None, thinout=20,
                 Image.fromarray(downscaled_weighting)
                      .resize(weighting.shape[:2][::-1], Image.NEAREST)
             )
-            weighting = weighting[thinout // 2::thinout, thinout // 2::thinout]
+            weighting = weighting[::thinout, ::thinout]
             weighting = weighting.flatten()
 
     for i in range(unit_x.shape[2]):
-        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(thinout // 2, unit_x.shape[1],
+        mesh_x, mesh_y = numpy.meshgrid(numpy.arange(0, unit_x.shape[1],
                                                      thinout),
-                                        numpy.arange(thinout // 2, unit_x.shape[0],
+                                        numpy.arange(0, unit_x.shape[0],
                                                      thinout))
-        mesh_u = unit_x[thinout // 2::thinout, thinout // 2::thinout, i]
-        mesh_v = unit_y[thinout // 2::thinout, thinout // 2::thinout, i]
+        mesh_u = unit_x[::thinout, ::thinout, i]
+        mesh_v = unit_y[::thinout, ::thinout, i]
 
         _plot_axes_unit_vectors(ax,
                                 mesh_x.flatten(),
