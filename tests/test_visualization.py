@@ -207,7 +207,7 @@ def run_around_tests(request):
 
     def remove_test_dir():
         if os.path.isdir('tests/output/vis'):
-            shutil.rmtree('tests/output/vis')
+            # shutil.rmtree('tests/output/vis')
             pass
 
     request.addfinalizer(remove_test_dir)
