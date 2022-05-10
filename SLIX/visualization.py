@@ -375,7 +375,7 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
     # The default scale is below zero to allow the user to define his own scale
     # A scale below zero isn't valid for visualization. If the user
     # defines no scale, we suspect that the user wants an image
-    # where each vector has a scale of one. Therefore we set the scale to
+    # where each vector has a scale of one. Therefore, we set the scale to
     # the same as our thinout when we draw the image.
     if scale < 0:
         scale = thinout
@@ -389,8 +389,8 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
 
     progress_bar = tqdm.tqdm(total=thinout * thinout,
                              desc='Creating unit vectors.')
-    for offset_x in range(thinout):
-        for offset_y in range(thinout):
+    for offset_x in range(0, thinout):
+        for offset_y in range(0, thinout):
             progress_bar.update(1)
             for i in range(unit_x.shape[2]):
                 mesh_x_it, mesh_y_it = numpy.meshgrid(
@@ -423,6 +423,7 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
 
                 idx = idx + len(mesh_x_it)
 
+    assert idx == mesh_x.size
     progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
                             scale, alpha, vector_width, mesh_weighting, colormap)

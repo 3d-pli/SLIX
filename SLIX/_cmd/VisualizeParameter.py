@@ -224,13 +224,15 @@ def write_vector(args, direction_image, output_path_name):
     fig = plt.figure(dpi=args['dpi'])
     ax = fig.add_subplot()
     fig.subplots_adjust(0, 0, 1, 1, 0, 0)
-    ax.axis('off')
     if vector_width < 0:
         vector_width = numpy.ceil(thinout / 3)
     if len(image.shape) == 2:
-        ax.imshow(image, cmap='gray')
+        ax.imshow(image, cmap='gray', origin='lower')
     else:
-        ax.imshow(numpy.max(image, axis=-1), cmap='gray')
+        ax.imshow(numpy.max(image, axis=-1), cmap='gray', origin='lower')
+    ax.set_xlim(0, image.shape[1])
+    ax.set_ylim(image.shape[0], 0)
+    ax.axis('off')
     if args['distribution']:
         write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale, thinout, vector_width, weight_map,
                                   fig, ax)
