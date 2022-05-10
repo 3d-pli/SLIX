@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.4.2
+## Added
+
+## Changed
+
+## Fixed
+- Added `SLIX.parameters` to the `__init__.py` file. 
+- Fixed an issue where vectors were misaligned when using both vector options of SLIXVisualizeParameter.
+- Fixed an issue where a white border would be shown in the output vector images when using the latest SLIX versions.
+
 ## v2.4.1
 ### Added
 - Added inclination sign map in SLIXParameterGenerator
@@ -10,7 +20,6 @@
 ### Changed
 - Added check for write operations before actually trying to generate any content reducing the computing time if the program would fail anyways.
 - Changed the memory management between CPU and GPU in SLIXParameterGenerator which might reduce computing time.
-
 - Changed print statements in SLIX to logging statements where possible. The tqdm progress bar is still used.
 - `SLIX.GPU` now uses more than 1 thread for the GPU. The current value is 16x16 threads per block.
 - Replaced `uint8` with `int8` in `_centroid_correction_bases`. This shouldn't affect the toolbox itself but ensures that the correct data type is used.
