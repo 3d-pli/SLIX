@@ -146,7 +146,9 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
                         current_position < len(sub_peak_array):
                     if sub_peak_array[current_position] == 1:
                         right_side_peak = right_side_peak - 1
-                        current_position = current_position + 1
+                    current_position = current_position + 1
+                # We run one step too far, so we need to go back one step
+                current_position = current_position - 1
 
                 if right_side_peak > 0:
                     result_image[idx, idy, i] = 0
@@ -211,7 +213,9 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
                             current_position < len(sub_peak_array):
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
-                            current_position = current_position + 1
+                        current_position = current_position + 1
+                    # We run one step too far, so we need to go back one step
+                    current_position = current_position - 1
 
                     if right_side_peak == 0:
                         right = (current_position +
