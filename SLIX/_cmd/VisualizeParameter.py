@@ -4,7 +4,7 @@ import os
 import re
 import SLIX
 from SLIX._logging import get_logger
-import matplotlib
+from io import BytesIO
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
@@ -190,6 +190,17 @@ def read_weight_map(path: Optional[str]) -> Optional[numpy.ndarray]:
     return weight_map
 
 
+def pyplot_to_numpy(fig, ax):
+    io_buf = BytesIO()
+    b = ax.get_window_extent()
+    fig.savefig(io_buf, format='raw', bbox_inches='tight', pad_inches=0)
+    io_buf.seek(0)
+    img_arr = numpy.reshape(numpy.frombuffer(io_buf.getvalue(), dtype=numpy.uint8),
+                            newshape=(int(b.height), int(b.width), -1))
+    io_buf.close()
+    return img_arr[:, :, :3]
+
+
 def write_vector(args, direction_image, output_path_name):
     logger = get_logger(__name__)
     image = SLIX.io.imread(args['slimeasurement'])
@@ -210,8 +221,10 @@ def write_vector(args, direction_image, output_path_name):
     alpha = args['alpha']
     background_threshold = args['threshold']
     vector_width = args['vector_width']
-    fig, ax = plt.subplots(dpi=args['dpi'])
-    fig.subplots_adjust(0, 0, 1, 1)
+    fig = plt.figure(dpi=args['dpi'])
+    ax = fig.add_subplot()
+    fig.subplots_adjust(0, 0, 1, 1, 0, 0)
+    ax.axis('off')
     if vector_width < 0:
         vector_width = numpy.ceil(thinout / 3)
     if len(image.shape) == 2:
@@ -229,7 +242,6 @@ def write_vector(args, direction_image, output_path_name):
 
 def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_path_name, scale, thinout, vector_width,
                        weight_map, fig, ax):
-
     SLIX.visualization.unit_vectors(UnitX, UnitY,
                                     ax=ax,
                                     thinout=thinout,
@@ -240,9 +252,7 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                                     background_threshold,
                                     weighting=weight_map,
                                     colormap=available_colormaps[args['colormap']])
-    fig.canvas.draw()
-    vector_image = numpy.array(fig.canvas.buffer_rgba(), dtype=numpy.uint8)
-    vector_image = vector_image[:, :, :3]
+    vector_image = pyplot_to_numpy(fig, ax)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
@@ -260,9 +270,7 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                                                 vector_width,
                                                 weighting=weight_map,
                                                 colormap=available_colormaps[args['colormap']])
-    fig.canvas.draw()
-    vector_image = numpy.array(fig.canvas.buffer_rgba(), dtype=numpy.uint8)
-    vector_image = vector_image[:, :, :3]
+    vector_image = pyplot_to_numpy(fig, ax)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_distribution_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
