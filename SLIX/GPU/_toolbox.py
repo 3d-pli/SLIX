@@ -141,12 +141,13 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
                 left = (i + sub_centroid_array[i]) * \
                        360.0 / len(sub_peak_array)
                 right_side_peak = current_number_of_peaks // 2
-                current_position = i
+                current_position = i + 1
                 while right_side_peak > 0 and \
                         current_position < len(sub_peak_array):
-                    current_position = current_position + 1
                     if sub_peak_array[current_position] == 1:
                         right_side_peak = right_side_peak - 1
+                        current_position = current_position + 1
+
                 if right_side_peak > 0:
                     result_image[idx, idy, i] = 0
                 else:
@@ -204,13 +205,13 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
                     # We will search for it using the following distance
                     # as the number of peaks we need to pass.
                     right_side_peak = current_number_of_peaks // 2
-                    current_position = i
+                    current_position = i + 1
                     # Check for peaks until we find the corresponding peak
                     while right_side_peak > 0 and \
                             current_position < len(sub_peak_array):
-                        current_position = current_position + 1
                         if sub_peak_array[current_position] == 1:
                             right_side_peak = right_side_peak - 1
+                            current_position = current_position + 1
 
                     if right_side_peak == 0:
                         right = (current_position +
@@ -363,12 +364,12 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
 
                 # We will search for it using the following distance
                 # as the number of peaks we need to pass.
-                current_position = i
+                current_position = i + 1
                 # Check for peaks until we find the corresponding peak
                 while current_position < len(sub_peak_array):
-                    current_position = current_position + 1
                     if sub_peak_array[current_position] == 1:
                         break
+                    current_position = current_position + 1
 
                 right = (current_position +
                          sub_centroid_array[current_position]) * \
