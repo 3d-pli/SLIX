@@ -394,11 +394,11 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
             progress_bar.update(1)
             for i in range(unit_x.shape[2]):
                 mesh_x_it, mesh_y_it = numpy.meshgrid(
-                    numpy.arange(thinout // 2,
-                                 unit_x.shape[1] + thinout // 2 - offset_x,
+                    numpy.arange(thinout / 2,
+                                 unit_x.shape[1] + thinout / 2 - offset_x,
                                  thinout),
-                    numpy.arange(thinout // 2,
-                                 unit_x.shape[0] + thinout // 2 - offset_y,
+                    numpy.arange(thinout / 2,
+                                 unit_x.shape[0] + thinout / 2 - offset_y,
                                  thinout)
                 )
                 mesh_x_it = mesh_x_it.flatten()
