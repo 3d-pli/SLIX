@@ -7,9 +7,8 @@ import numpy
 
 @jit(nopython=True, parallel=True)
 def _peaks(image):
-    peaks = image.copy()
-    resulting_peaks = numpy.zeros(peaks.shape, dtype=numpy.uint8)
-    for idx in prange(peaks.shape[0]):
+    resulting_peaks = numpy.zeros(image.shape, dtype=numpy.uint8)
+    for idx in prange(image.shape[0]):
         sub_image = image[idx]
 
         pos = 0
@@ -88,6 +87,7 @@ def _peakwidth(image, peak_image, prominence, target_height):
                 i_min = -len(sub_peak_array) // 2
                 i_max = 1.5 * len(sub_peak_array)
 
+                # Find intersection point on the left side
                 i = int(pos)
                 while i_min < i and \
                         sub_image[i % len(sub_peak_array)] - height > 1e-7:
@@ -113,6 +113,21 @@ def _peakwidth(image, peak_image, prominence, target_height):
     return result_image
 
 
+@jit(nopython=True)
+def _find_corresponding_peak(line_profile, number_of_peaks, left_side_index):
+    peak_distance = number_of_peaks // 2
+    current_position = left_side_index + 1
+    while peak_distance > 0 and \
+            current_position < len(line_profile):
+        if line_profile[current_position] == 1:
+            peak_distance = peak_distance - 1
+        current_position = current_position + 1
+    # We run one step too far, so we need to go back one step
+    current_position = current_position - 1
+
+    return peak_distance == 0, current_position
+
+
 @jit(nopython=True, parallel=True)
 def _peakdistance(peak_image, centroids, number_of_peaks):
     result_image = numpy.zeros(peak_image.shape, dtype=numpy.float32)
@@ -129,23 +144,18 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
                 elif number_of_peaks[idx] % 2 == 0:
                     left = (i + sub_centroid_array[i]) * 360.0 / \
                            len(sub_peak_array)
-                    right_side_peak = number_of_peaks[idx] // 2
-                    current_position = i + 1
-                    while right_side_peak > 0 and \
-                            current_position < len(sub_peak_array):
-                        if sub_peak_array[current_position] == 1:
-                            right_side_peak = right_side_peak - 1
-                        current_position = current_position + 1
-                    # We run one step too far, so we need to go back one step
-                    current_position = current_position - 1
-                    if right_side_peak > 0:
+
+                    peak_found, right_peak_idx = \
+                        _find_corresponding_peak(sub_peak_array,
+                                                 number_of_peaks[idx], i)
+                    if not peak_found:
                         result_image[idx, i] = 0
                     else:
-                        right = (current_position +
-                                 sub_centroid_array[current_position]) * \
+                        right = (right_peak_idx +
+                                 sub_centroid_array[right_peak_idx]) * \
                                 360.0 / len(sub_peak_array)
                         result_image[idx, i] = right - left
-                        result_image[idx, current_position] = 360 - \
+                        result_image[idx, right_peak_idx] = 360 - \
                                                               (right - left)
 
                     current_pair += 1
@@ -190,19 +200,12 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                         # We search for a peak which is around 180° away.
                         # We will search for it using the following distance
                         # as the number of peaks we need to pass.
-                        right_side_peak = number_of_peaks[idx] // 2
-                        current_position = i + 1
-                        # Check for peaks until we find the corresponding peak
-                        while right_side_peak > 0 and \
-                                current_position < len(sub_peak_array):
-                            if sub_peak_array[current_position] == 1:
-                                right_side_peak = right_side_peak - 1
-                            current_position = current_position + 1
-                        # We run one step too far, so we need to go back one step
-                        current_position = current_position - 1
-                        if right_side_peak == 0:
-                            right = (current_position +
-                                     sub_centroid_array[current_position]) * \
+                        peak_found, right_peak_idx = \
+                            _find_corresponding_peak(sub_peak_array,
+                                                     number_of_peaks[idx], i)
+                        if peak_found:
+                            right = (right_peak_idx +
+                                     sub_centroid_array[right_peak_idx]) * \
                                     360.0 / len(sub_peak_array) + \
                                     numpy.float32(correctdir)
                             # If our peaks are around 180° ± 35° apart,
@@ -325,7 +328,7 @@ def _inclination_sign(peak_array, centroids, number_of_peaks, correctdir):
         # That just in case if not all directions are calculated
         # when only two or four peaks are present.
         result_image[idx] = BACKGROUND_COLOR
-        # Check if the line profile has less peaks than the number
+        # Check if the line profile has fewer peaks than the number
         # of directions which shall be calculated.
         if number_of_peaks[idx] == 2:
             for i in prange(len(sub_peak_array)):
