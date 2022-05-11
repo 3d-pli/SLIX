@@ -24,7 +24,7 @@ class Colormap:
         if direction.size == 0 or inclination.size == 0:
             return direction, inclination
 
-        if offset > numpy.pi:
+        if numpy.abs(offset) > numpy.pi:
             offset = numpy.deg2rad(offset)
         if direction.max(axis=None) > numpy.pi and not numpy.isclose(direction.max(axis=None), numpy.pi):
             direction = numpy.deg2rad(direction)
@@ -78,24 +78,24 @@ class Colormap:
 
     @staticmethod
     def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.hsv_black(direction, inclination, offset)
+        return Colormap.hsv_black(direction, inclination)
 
     @staticmethod
     def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.hsv_white(direction, inclination, offset)
+        return Colormap.hsv_white(direction, inclination)
 
     @staticmethod
     def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.rgb(direction, inclination, offset)
+        return Colormap.rgb(direction, inclination)
 
 
 def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
@@ -184,7 +184,7 @@ def color_bubble(colormap, offset=0, shape=(1000, 1000, 3)) -> numpy.ndarray:
     inclination = 90 - inclination / radius * 90
 
     # create the color bubble
-    color_bubble = colormap(direction, inclination, numpy.deg2rad(offset))
+    color_bubble = colormap(direction, inclination, offset)
     color_bubble[inclination < 0] = 0
 
     return (255.0 * color_bubble).astype('uint8')

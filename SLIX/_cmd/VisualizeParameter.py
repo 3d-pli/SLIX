@@ -265,7 +265,8 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
-                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']],
+                                                            args['direction_offset']))
 
 
 def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale,
