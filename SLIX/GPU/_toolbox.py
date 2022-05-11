@@ -1,7 +1,7 @@
 from numba import cuda
 from SLIX.parameters import BACKGROUND_COLOR, TARGET_PEAK_HEIGHT, \
-                            MAX_DISTANCE_FOR_CENTROID_ESTIMATION, \
-                            NUMBER_OF_SAMPLES
+    MAX_DISTANCE_FOR_CENTROID_ESTIMATION, \
+    NUMBER_OF_SAMPLES
 import numpy
 
 
@@ -118,6 +118,23 @@ def _peakwidth(image, peak_image, prominence, result_image, target_height):
             result_image[idx, idy, pos] = right_ip - left_ip
 
 
+@cuda.jit('int32(int8[:], int32, int32)', device=True)
+def _find_corresponding_peak(line_profile, number_of_peaks, left_side_index):
+    peak_distance = number_of_peaks // 2
+    current_position = left_side_index + 1
+    while peak_distance > 0 and \
+            current_position < len(line_profile):
+        if line_profile[current_position] == 1:
+            peak_distance = peak_distance - 1
+        current_position = current_position + 1
+    # We run one step too far, so we need to go back one step
+    current_position = current_position - 1
+
+    if peak_distance == 0:
+        return current_position
+    return -1
+
+
 @cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], '
           'float32[:, :, :])')
 def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
@@ -140,25 +157,19 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
             elif current_number_of_peaks % 2 == 0:
                 left = (i + sub_centroid_array[i]) * \
                        360.0 / len(sub_peak_array)
-                right_side_peak = current_number_of_peaks // 2
-                current_position = i + 1
-                while right_side_peak > 0 and \
-                        current_position < len(sub_peak_array):
-                    if sub_peak_array[current_position] == 1:
-                        right_side_peak = right_side_peak - 1
-                    current_position = current_position + 1
-                # We run one step too far, so we need to go back one step
-                current_position = current_position - 1
 
-                if right_side_peak > 0:
+                right_peak_idx = _find_corresponding_peak(sub_peak_array,
+                                                          current_number_of_peaks,
+                                                          i)
+                if right_peak_idx == -1:
                     result_image[idx, idy, i] = 0
                 else:
-                    right = (current_position +
-                             sub_centroid_array[current_position]) * \
+                    right = (right_peak_idx +
+                             sub_centroid_array[right_peak_idx]) * \
                             360.0 / len(sub_peak_array)
                     result_image[idx, idy, i] = right - left
-                    result_image[idx, idy, current_position] = 360 - \
-                                                               (right - left)
+                    result_image[idx, idy, right_peak_idx] = 360 - \
+                                                             (right - left)
 
                 current_pair += 1
 
@@ -206,20 +217,12 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
                     # We search for a peak which is around 180° away.
                     # We will search for it using the following distance
                     # as the number of peaks we need to pass.
-                    right_side_peak = current_number_of_peaks // 2
-                    current_position = i + 1
-                    # Check for peaks until we find the corresponding peak
-                    while right_side_peak > 0 and \
-                            current_position < len(sub_peak_array):
-                        if sub_peak_array[current_position] == 1:
-                            right_side_peak = right_side_peak - 1
-                        current_position = current_position + 1
-                    # We run one step too far, so we need to go back one step
-                    current_position = current_position - 1
-
-                    if right_side_peak == 0:
-                        right = (current_position +
-                                 sub_centroid_array[current_position]) * \
+                    right_peak_idx = _find_corresponding_peak(sub_peak_array,
+                                                              current_number_of_peaks,
+                                                              i)
+                    if right_peak_idx >= 0:
+                        right = (right_peak_idx +
+                                 sub_centroid_array[right_peak_idx]) * \
                                 360.0 / len(sub_peak_array) + correctdir
 
                         # If our peaks are around 180° ± 35° apart,
@@ -276,7 +279,7 @@ def _centroid_correction_bases(image, peak_image, reverse_peaks,
 
             # Check for peak height
             for offset in range(left_position):
-                if sub_image[(pos - offset + len(sub_image)) % len(sub_image)]\
+                if sub_image[(pos - offset + len(sub_image)) % len(sub_image)] \
                         < target_peak_height:
                     left_position = offset
                     break
@@ -377,7 +380,7 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
 
                 right = (current_position +
                          sub_centroid_array[current_position]) * \
-                         360.0 / len(sub_peak_array) + correctdir
+                        360.0 / len(sub_peak_array) + correctdir
 
                 if right - left > 180:
                     other_way = 360 - (right - left)
@@ -386,4 +389,3 @@ def _inclination_sign(peak_array, centroid_array, number_of_peaks, result_image,
                     result_image[idx, idy] = left + (right - left) / 2
 
                 break
-
