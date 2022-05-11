@@ -284,7 +284,8 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_distribution_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
-                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']],
+                                                            args['direction_offset']))
 
 
 def write_fom(args, direction_image, output_path_name) -> None:
@@ -310,7 +311,8 @@ def write_fom(args, direction_image, output_path_name) -> None:
     SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
-                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']]))
+                            SLIX.visualization.color_bubble(available_colormaps[args['colormap']],
+                                                            args['direction_offset']))
 
 
 def read_inclination(args) -> numpy.ndarray:
