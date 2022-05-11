@@ -42,6 +42,12 @@ def create_argument_parser():
                         choices=available_colormaps.keys(),
                         default='hsvBlack',
                         help='Colormap to use for the images.')
+    parser.add_argument('--direction_offset',
+                        dest='direction_offset',
+                        required=False,
+                        default=0.0,
+                        type=float,
+                        help='Offset of the direction images.')
     parser.add_argument('--disable_colorbubble',
                         required=False,
                         action='store_true',
@@ -253,7 +259,8 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                                     background_threshold=
                                     background_threshold,
                                     weighting=weight_map,
-                                    colormap=available_colormaps[args['colormap']])
+                                    colormap=available_colormaps[args['colormap']],
+                                    direction_offset=args['direction_offset'])
     vector_image = pyplot_to_numpy(fig, ax)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
@@ -271,7 +278,8 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                                                 vector_width=
                                                 vector_width,
                                                 weighting=weight_map,
-                                                colormap=available_colormaps[args['colormap']])
+                                                colormap=available_colormaps[args['colormap']],
+                                                direction_offset=args['direction_offset'])
     vector_image = pyplot_to_numpy(fig, ax)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_distribution_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
@@ -298,7 +306,7 @@ def write_fom(args, direction_image, output_path_name) -> None:
     if args['value']:
         value = SLIX.io.imread(args['value'])
     rgb_fom = SLIX.visualization.direction(direction_image, inclination_image, saturation, value,
-                                           available_colormaps[args['colormap']])
+                                           available_colormaps[args['colormap']], args['direction_offset'])
     SLIX.io.imwrite_rgb(f"{output_path_name}fom_{args['colormap']}{output_data_type}", rgb_fom)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
