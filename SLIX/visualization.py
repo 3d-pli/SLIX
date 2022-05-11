@@ -19,11 +19,18 @@ __all__ = ['parameter_map',
 
 class Colormap:
     @staticmethod
-    def prepare(direction: numpy.ndarray, inclination: numpy.ndarray) -> (numpy.ndarray, numpy.ndarray):
+    def prepare(direction: numpy.ndarray, inclination: numpy.ndarray,
+                offset: float = 0) -> (numpy.ndarray, numpy.ndarray):
+        if direction.size == 0 or inclination.size == 0:
+            return direction, inclination
+
+        if offset > numpy.pi:
+            offset = numpy.deg2rad(offset)
         if direction.max(axis=None) > numpy.pi and not numpy.isclose(direction.max(axis=None), numpy.pi):
             direction = numpy.deg2rad(direction)
         if inclination.max(axis=None) > numpy.pi and not numpy.isclose(inclination.max(axis=None), numpy.pi):
             inclination = numpy.deg2rad(inclination)
+        direction = (direction + offset) % numpy.pi
 
         # If inclination is only 2D and direction is 3D, we need to make sure that the
         # inclination matches the shape of the direction.
@@ -35,8 +42,8 @@ class Colormap:
         return direction, inclination
 
     @staticmethod
-    def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+    def hsv_white(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
                                  1.0 - (2 * inclination / numpy.pi),
@@ -45,8 +52,8 @@ class Colormap:
         return numpy.clip(hsv_to_rgb(hsv_stack), 0, 1)
 
     @staticmethod
-    def hsv_black(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+    def hsv_black(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
 
         hsv_stack = numpy.stack((direction / numpy.pi,
                                  numpy.ones(direction.shape),
@@ -55,8 +62,8 @@ class Colormap:
         return numpy.clip(hsv_to_rgb(hsv_stack), 0, 1)
 
     @staticmethod
-    def rgb(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
-        direction, inclination = Colormap.prepare(direction, inclination)
+    def rgb(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
+        direction, inclination = Colormap.prepare(direction, inclination, offset)
 
         direction[direction > numpy.pi / 2] = numpy.pi - direction[direction > numpy.pi / 2]
         rgb_stack = numpy.stack((
@@ -70,25 +77,25 @@ class Colormap:
         return numpy.clip(rgb_stack, 0, 1)
 
     @staticmethod
-    def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
+    def hsv_black_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
         direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.hsv_black(direction, inclination)
+        return Colormap.hsv_black(direction, inclination, offset)
 
     @staticmethod
-    def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
+    def hsv_white_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
         direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.hsv_white(direction, inclination)
+        return Colormap.hsv_white(direction, inclination, offset)
 
     @staticmethod
-    def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray) -> numpy.ndarray:
+    def rgb_reverse(direction: numpy.ndarray, inclination: numpy.ndarray, offset: float = 0) -> numpy.ndarray:
         direction, inclination = Colormap.prepare(direction, inclination)
         direction = numpy.clip(numpy.abs(-numpy.pi + direction), 0, numpy.pi)
 
-        return Colormap.rgb(direction, inclination)
+        return Colormap.rgb(direction, inclination, offset)
 
 
 def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
@@ -143,7 +150,7 @@ def parameter_map(parameter_map, fig=None, ax=None, alpha=1,
     return fig, ax
 
 
-def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
+def color_bubble(colormap, offset=0, shape=(1000, 1000, 3)) -> numpy.ndarray:
     """
     Based on the chosen colormap in methods like unit_vectors or
     direction, the user might want to see the actual color bubble to understand
@@ -152,7 +159,8 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     The color can be directed from the colormap argument
 
     Args:
-        colormap: Colormap which will be used to create the color bubble
+        colormap: Colormap function which will be used to create the color bubble
+        offset: Direction offset in degree (default: 0)
         shape: Shape of the resulting color bubble.
 
     Returns: NumPy array containing the color bubble
@@ -176,7 +184,7 @@ def color_bubble(colormap: Colormap, shape=(1000, 1000, 3)) -> numpy.ndarray:
     inclination = 90 - inclination / radius * 90
 
     # create the color bubble
-    color_bubble = colormap(direction, inclination)
+    color_bubble = colormap(direction, inclination, numpy.deg2rad(offset))
     color_bubble[inclination < 0] = 0
 
     return (255.0 * color_bubble).astype('uint8')
@@ -186,7 +194,7 @@ def unit_vectors(unit_x, unit_y, ax=None, thinout=20,
                  scale=-1, vector_width=1,
                  alpha=0.8, background_threshold=0.5,
                  background_value=0, colormap=Colormap.hsv_black,
-                 weighting=None):
+                 direction_offset=0, weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -234,6 +242,9 @@ def unit_vectors(unit_x, unit_y, ax=None, thinout=20,
 
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
+
+        direction_offset: Direction offset in degree (default: 0). This will
+        change the coloring of the vectors.
 
         weighting: Weighting of the vectors. If None, the vectors will be
                    weighted by a value of one, resulting in normal unit vectors.
@@ -309,14 +320,15 @@ def unit_vectors(unit_x, unit_y, ax=None, thinout=20,
                                 mesh_u.flatten(),
                                 mesh_v.flatten(),
                                 scale, alpha, vector_width,
-                                weighting, colormap)
+                                weighting, colormap,
+                                direction_offset)
     return ax
 
 
 def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
                              scale=-1, vector_width=1,
                              alpha=0.01, colormap=Colormap.hsv_black,
-                             weighting=None):
+                             direction_offset=0, weighting=None):
     """
     This method will create a Matplotlib plot based on quiver to represent the
     given unit vectors as colored lines (vector map).
@@ -355,6 +367,9 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
 
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
+
+        direction_offset: Direction offset in degree (default: 0). This will
+        change the coloring of the vectors.
 
         weighting: Weighting of the vectors. If None, the vectors will be
         weighted by a value of one, resulting in normal unit vectors.
@@ -425,13 +440,15 @@ def unit_vector_distribution(unit_x, unit_y, ax=None, thinout=20,
 
     progress_bar.set_description('Finished. Plotting unit vectors.')
     _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width, mesh_weighting, colormap)
+                            scale, alpha, vector_width, mesh_weighting,
+                            colormap, direction_offset)
     progress_bar.set_description('Done')
     progress_bar.close()
     return ax
 
 
-def direction(direction, inclination=None, saturation=None, value=None, colormap=Colormap.hsv_black):
+def direction(direction, inclination=None, saturation=None, value=None,
+              colormap=Colormap.hsv_black, direction_offset=0):
     """
     Generate a 2D colorized direction image in the HSV color space based on
     the original direction. Value and saturation of the color will always be
@@ -480,6 +497,9 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
         colormap: The colormap to use. Default is HSV black. The available color maps
                   can be found in the colormap class.
 
+        direction_offset: Direction offset in degree (default: 0). This will
+        change the coloring of the vectors.
+
     Returns:
 
         numpy.ndarray: 2D image containing the resulting HSV orientation map
@@ -490,7 +510,7 @@ def direction(direction, inclination=None, saturation=None, value=None, colormap
     if inclination is None:
         inclination = numpy.zeros_like(direction)
 
-    colors = colormap(direction, inclination)
+    colors = colormap(direction, inclination, direction_offset)
     hsv_colors = rgb_to_hsv(colors)
 
     # If no saturation is given, create an "empty" saturation image that will be used

@@ -26,7 +26,7 @@ def _downsample_2d(image, kernel_size,
     for i in numba.prange(0, nx):
         for j in numba.prange(0, ny):
             roi = image[kernel_size * i:kernel_size * i + kernel_size,
-                        kernel_size * j:kernel_size * j + kernel_size]
+                  kernel_size * j:kernel_size * j + kernel_size]
             roi = roi.flatten()
             number_of_valid_vectors = _count_nonzero(roi != background_value)
 
@@ -42,7 +42,7 @@ def _downsample_2d(image, kernel_size,
                         if number_of_valid_vectors % 2 == 0:
                             output_image[i, j] = roi[idx]
                         else:
-                            output_image[i, j] = (roi[idx+1] + roi[idx]) / 2
+                            output_image[i, j] = (roi[idx + 1] + roi[idx]) / 2
 
     return output_image
 
@@ -128,7 +128,8 @@ def _visualize_multiple_direction(direction, rgb_stack):
 
 
 def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
-                            scale, alpha, vector_width, weighting, colormap):
+                            scale, alpha, vector_width, weighting,
+                            colormap, direction_offset):
     # Normalize the arrows:
     mesh_u_normed = mesh_u / numpy.sqrt(numpy.maximum(1e-15,
                                                       mesh_u ** 2 +
@@ -136,24 +137,31 @@ def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
     mesh_v_normed = mesh_v / numpy.sqrt(numpy.maximum(1e-15,
                                                       mesh_u ** 2 +
                                                       mesh_v ** 2))
+    # Remove NaNs to speed up plotting
+    mesh_u_normed[numpy.isclose(mesh_u, 0) &
+                  numpy.isclose(mesh_v, 0)] = numpy.nan
+    mask = numpy.bitwise_not(numpy.isnan(mesh_u_normed))
+    mesh_x = mesh_x[mask]
+    mesh_y = mesh_y[mask]
+    mesh_u_normed = mesh_u_normed[mask]
+    mesh_v_normed = mesh_v_normed[mask]
 
     # Convert to RGB colors
     normed_angle = numpy.abs(numpy.arctan2(mesh_v_normed, -mesh_u_normed))
-    color_rgb = colormap(normed_angle, numpy.zeros_like(normed_angle))
+    color_rgb = colormap(normed_angle,
+                         numpy.zeros_like(normed_angle),
+                         numpy.deg2rad(direction_offset)
+                         )
 
     # Apply weighting
     if weighting is not None:
+        weighting = weighting[mask]
         mesh_u_normed = weighting * mesh_u_normed
         mesh_v_normed = weighting * mesh_v_normed
 
     # Apply scaling
     mesh_u_normed *= scale
     mesh_v_normed *= scale
-
-    mesh_u_normed[numpy.isclose(mesh_u, 0) &
-                  numpy.isclose(mesh_v, 0)] = numpy.nan
-    mesh_v_normed[numpy.isclose(mesh_u, 0) &
-                  numpy.isclose(mesh_v, 0)] = numpy.nan
 
     # 1/scale to increase vector length for scale > 1
     ax.quiver(mesh_x, mesh_y, mesh_u_normed, mesh_v_normed,
