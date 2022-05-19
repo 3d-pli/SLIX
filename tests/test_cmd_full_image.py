@@ -161,6 +161,13 @@ class TestCommandFullImage:
         assert args['output'] == 'output'
         assert args['disable_gpu'] == False
 
+        for strategy in ['strict', 'safe', 'unsafe']:
+            test_string = minimal_string + f' --direction_strategy {strategy}'
+            args = vars(argparse.parse_args(shlex.split(test_string)))
+            assert args['input'] == ['input']
+            assert args['output'] == 'output'
+            assert args['direction_strategy'] == strategy
+
     def test_main(self):
         with mock.patch('sys.argv', ['SLIXParameterGenerator',
                                      '--input',
@@ -214,105 +221,93 @@ class TestCommandFullImage:
                                      '--input',
                                      'tests/files/demo.nii',
                                      '--output',
-                                     'tests/files/output/single/cpu',
+                                     'tests/files/output/single/',
                                      '--direction',
                                      '--no_centroids']):
             ParameterGenerator.main()
-            assert os.path.isdir('tests/files/output/cpu')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_high_prominence_peaks.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_low_prominence_peaks.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakwidth.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakprominence.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_peakdistance.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_max.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_min.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_avg.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitX.nii')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitY.nii')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_dir_1_UnitZ.nii')
-            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_1.tiff')
-            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_2.tiff')
-            assert os.path.isfile('tests/files/output/single/cpu/demo_dir_3.tiff')
-            assert not os.path.isfile('tests/files/output/single/cpu/demo_background_mask.tiff')
+            assert os.path.isdir('tests/files/output/single/')
+            assert not os.path.isfile('tests/files/output/single/demo_high_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_low_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_peakwidth.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_peakprominence.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_peakdistance.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_max.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_min.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_avg.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_dir.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_dir_1_UnitX.nii')
+            assert not os.path.isfile('tests/files/output/single/demo_dir_1_UnitY.nii')
+            assert not os.path.isfile('tests/files/output/single/demo_dir_1_UnitZ.nii')
+            assert os.path.isfile('tests/files/output/single/demo_dir_1.tiff')
+            assert os.path.isfile('tests/files/output/single/demo_dir_2.tiff')
+            assert os.path.isfile('tests/files/output/single/demo_dir_3.tiff')
+            assert not os.path.isfile('tests/files/output/single/demo_background_mask.tiff')
 
         with mock.patch('sys.argv', ['SLIXParameterGenerator',
                                      '--input',
                                      'tests/files/demo.nii',
                                      '--output',
-                                     'tests/files/output/unit/cpu',
+                                     'tests/files/output/unit',
                                      '--unit_vectors']):
             ParameterGenerator.main()
-            assert os.path.isdir('tests/files/output/unit/cpu')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_high_prominence_peaks.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_low_prominence_peaks.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakwidth.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakprominence.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_peakdistance.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_max.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_min.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_avg.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_1.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_2.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_dir_3.tiff')
-            assert not os.path.isfile('tests/files/output/unit/cpu/demo_background_mask.tiff')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitX.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitX.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitX.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitY.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitY.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitY.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_1_UnitZ.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_2_UnitZ.nii')
-            assert os.path.isfile('tests/files/output/unit/cpu/demo_dir_3_UnitZ.nii')
+            assert os.path.isdir('tests/files/output/unit')
+            assert not os.path.isfile('tests/files/output/unit/demo_high_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_low_prominence_peaks.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_peakwidth.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_peakprominence.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_peakdistance.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_max.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_min.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_avg.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_dir.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_dir_1.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_dir_2.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_dir_3.tiff')
+            assert not os.path.isfile('tests/files/output/unit/demo_background_mask.tiff')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_1_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_2_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_3_UnitX.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_1_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_2_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_3_UnitY.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_1_UnitZ.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_2_UnitZ.nii')
+            assert os.path.isfile('tests/files/output/unit/demo_dir_3_UnitZ.nii')
 
         with mock.patch('sys.argv', ['SLIXParameterGenerator',
                                      '--input',
                                      'tests/files/demo.nii',
                                      '--output',
-                                     'tests/files/output/detailed/gpu',
+                                     'tests/files/output/detailed',
                                      '--detailed']):
             ParameterGenerator.main()
-            assert os.path.isdir('tests/files/output/detailed/gpu')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_all_peaks_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_high_prominence_peaks.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_high_prominence_peaks_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_low_prominence_peaks.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakwidth.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakwidth_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakprominence.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakprominence_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakdistance.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_peakdistance_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_dir_1.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_dir_2.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_dir_3.tiff')
-            assert os.path.isfile('tests/files/output/detailed/gpu/demo_centroid_correction.tiff')
+            assert os.path.isdir('tests/files/output/detailed')
+            assert os.path.isfile('tests/files/output/detailed/demo_all_peaks_detailed.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_high_prominence_peaks.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_high_prominence_peaks_detailed.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_low_prominence_peaks.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakwidth.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakwidth_detailed.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakprominence.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakprominence_detailed.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakdistance.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_peakdistance_detailed.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_dir_1.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_dir_2.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_dir_3.tiff')
+            assert os.path.isfile('tests/files/output/detailed/demo_centroid_correction.tiff')
 
-        with mock.patch('sys.argv', ['SLIXParameterGenerator',
-                                     '--input',
-                                     'tests/files/demo.nii',
-                                     '--output',
-                                     'tests/files/output/detailed/cpu',
-                                     '--disable_gpu',
-                                     '--detailed']):
-            ParameterGenerator.main()
-            assert os.path.isdir('tests/files/output/detailed/cpu')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_all_peaks_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_high_prominence_peaks.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_high_prominence_peaks_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_low_prominence_peaks.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakwidth.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakwidth_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakprominence.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakprominence_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakdistance.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_peakdistance_detailed.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_dir_1.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_dir_2.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_dir_3.tiff')
-            assert os.path.isfile('tests/files/output/detailed/cpu/demo_centroid_correction.tiff')
+        for strategy in ['strict', 'safe', 'unsafe']:
+            with mock.patch('sys.argv', ['SLIXParameterGenerator',
+                                         '--input',
+                                         'tests/files/demo.nii',
+                                         '--output',
+                                         f'tests/files/output/strategy/{strategy}']):
+                ParameterGenerator.main()
+                assert os.path.isdir(f'tests/files/output/strategy/{strategy}')
+                assert os.path.isfile(f'tests/files/output/strategy/{strategy}/demo_dir_1.tiff')
+                assert os.path.isfile(f'tests/files/output/strategy/{strategy}/demo_dir_2.tiff')
+                assert os.path.isfile(f'tests/files/output/strategy/{strategy}/demo_dir_3.tiff')
 
 
 @pytest.fixture(scope="session", autouse=True)

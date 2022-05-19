@@ -173,53 +173,76 @@ class TestToolbox:
         assert toolbox_width[0, 0] == expected_width
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
-    def test_direction(self, use_gpu):
+    @pytest.mark.parametrize("direction_strategy",
+                             [["strict", [[45, -1, -1], [135, -1, -1], [135, 60, -1],
+                                          [135, 105, 60], [82.5, -1, -1], [-1, -1, -1]]],
+                              ["safe", [[45, -1, -1], [135, -1, -1], [135, 60, -1],
+                                        [135, 105, 60], [82.5, -1, -1], [60, -1, -1]]],
+                              ["unsafe", [[45, -1, -1], [135, -1, -1], [135, 60, -1],
+                                          [135, 105, 60], [82.5, -1, -1], [172.5, 142.5, 60.0]]]])
+    def test_direction(self, use_gpu, direction_strategy):
         # Test for one peak
         one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         one_peak_arr = one_peak_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([45, -1, -1])
+        expected_direction = numpy.array(direction_strategy[1][0])
         peaks = toolbox.peaks(one_peak_arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(one_peak_arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(one_peak_arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for one direction with 180°+-35° distance
         two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
         two_peak_arr = two_peak_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([135, -1, -1])
+        expected_direction = numpy.array(direction_strategy[1][1])
         peaks = toolbox.peaks(two_peak_arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for two directions with 180°+-35° distance
         four_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0])
         four_peak_arr = four_peak_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([135, 60, -1])
+        expected_direction = numpy.array(direction_strategy[1][2])
         peaks = toolbox.peaks(four_peak_arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
         # Test for three directions with 180°+-35° distance
         six_peak_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0])
         six_peak_arr = six_peak_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([135, 105, 60])
+        expected_direction = numpy.array(direction_strategy[1][3])
         peaks = toolbox.peaks(six_peak_arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
-        # Test for one angle outside of 180°+-35° distance
+        # Test for one angle outside 180°+-35° distance
         arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
         arr = arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([82.5, -1, -1])
+        expected_direction = numpy.array(direction_strategy[1][4])
         peaks = toolbox.peaks(arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
 
         error_arr = numpy.array([0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0])
         error_arr = error_arr.reshape((1, 1, 24))
-        expected_direction = numpy.array([-1, -1, -1])
+        expected_direction = numpy.array(direction_strategy[1][5])
         peaks = toolbox.peaks(error_arr, use_gpu=use_gpu)
-        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), use_gpu=use_gpu)
+        toolbox_direction = toolbox.direction(peaks, numpy.zeros(two_peak_arr.shape), strategy=direction_strategy[0],
+                                              use_gpu=use_gpu)
         assert numpy.all(expected_direction == toolbox_direction)
+
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
+    def test_direction_invalid_strategy(self, use_gpu):
+        one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        one_peak_arr = one_peak_arr.reshape((1, 1, 24))
+        peaks = toolbox.peaks(one_peak_arr, use_gpu=use_gpu)
+        try:
+            toolbox.direction(peaks, numpy.zeros(one_peak_arr.shape), strategy='invalid', use_gpu=use_gpu)
+        except KeyError:
+            assert True
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_centroid_correction(self, use_gpu):

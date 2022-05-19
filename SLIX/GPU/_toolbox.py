@@ -178,8 +178,8 @@ def _peakdistance(peak_image, centroid_array, number_of_peaks, result_image):
 
 
 @cuda.jit('void(int8[:, :, :], float32[:, :, :], int8[:, :], '
-          'float32[:, :, :], float32)')
-def _direction(peak_array, centroid_array, number_of_peaks, result_image, correctdir):
+          'float32[:, :, :], float32, uint8)')
+def _direction(peak_array, centroid_array, number_of_peaks, result_image, correctdir, strategy):
     idx, idy = cuda.grid(2)
     # Check if idx and idy are inside the image
     if not idx < peak_array.shape[0] or not idy < peak_array.shape[1]:
@@ -227,10 +227,15 @@ def _direction(peak_array, centroid_array, number_of_peaks, result_image, correc
 
                         # If our peaks are around 180° ± 35° apart,
                         # we can calculate the direction.
-                        if current_number_of_peaks > 2 and \
-                                abs(180 - (right - left)) >= 35:
-                            result_image[idx, idy] = BACKGROUND_COLOR
-                            break
+                        if strategy == 0:
+                            if current_number_of_peaks > 2 and \
+                                    abs(180 - (right - left)) >= 35:
+                                result_image[idx, idy] = BACKGROUND_COLOR
+                                break
+                        elif strategy == 1:
+                            if current_number_of_peaks > 2 and \
+                                    abs(180 - (right - left)) >= 35:
+                                continue
 
                         result_image[idx, idy, current_direction] = \
                             (270.0 - ((left + right) / 2.0)) % 180
