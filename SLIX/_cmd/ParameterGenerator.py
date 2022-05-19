@@ -306,6 +306,15 @@ def main():
                               low_prominence=args['prominence_threshold'],
                               use_gpu=toolbox.gpu_available,
                               return_numpy=not toolbox.gpu_available)
+        num_peaks = numpy.sum(significant_peaks, axis=-1)
+        # Where num_peaks is 1, we want to invert the 3d input image
+        image[num_peaks == 1, :] = image[num_peaks == 1, :] * -1
+        significant_peaks = toolbox. \
+            significant_peaks(image,
+                              low_prominence=args['prominence_threshold'],
+                              use_gpu=toolbox.gpu_available,
+                              return_numpy=not toolbox.gpu_available)
+
         if toolbox.gpu_available:
             significant_peaks_cpu = significant_peaks.get()
         else:
