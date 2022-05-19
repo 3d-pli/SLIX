@@ -102,6 +102,33 @@ class TestNumbaToolboxCPU:
                                                 numpy.array([4]), 3, 0, 1)
         assert numpy.all(expected_direction == toolbox_direction)
 
+    def test_direction_unsafe(self):
+        # Test for one peak
+        one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])\
+                            .reshape((1, 24))
+        expected_direction = numpy.array([45, ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR])
+        toolbox_direction = ntoolbox._direction(one_peak_arr, numpy.zeros(one_peak_arr.shape),
+                                                numpy.array([1]), 3, 0, 2)
+        assert numpy.all(expected_direction == toolbox_direction)
+
+        # Test for one direction with 180°+-35° distance
+        two_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])\
+                            .reshape((1, 24))
+        expected_direction = numpy.array([135, ntoolbox.BACKGROUND_COLOR, ntoolbox.BACKGROUND_COLOR])
+        toolbox_direction = ntoolbox._direction(two_peak_arr, numpy.zeros(two_peak_arr.shape),
+                                                numpy.array([2]), 3, 0, 2)
+        assert numpy.all(expected_direction == toolbox_direction)
+
+        # Test for (invalid) two directions with 180°+-35° distance
+        four_peak_arr = numpy.array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])\
+                             .reshape((1, 24))
+        expected_direction = numpy.array([45,
+                                          135,
+                                          ntoolbox.BACKGROUND_COLOR])
+        toolbox_direction = ntoolbox._direction(four_peak_arr, numpy.zeros(four_peak_arr.shape),
+                                                numpy.array([4]), 3, 0, 2)
+        assert numpy.all(expected_direction == toolbox_direction)
+
     def test_centroid_correction_bases(self):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14).reshape((1, 24))
