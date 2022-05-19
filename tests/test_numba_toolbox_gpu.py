@@ -69,7 +69,7 @@ if SLIX.toolbox.gpu_available:
             assert toolbox_distance[0, 0, 2] == expected_distance
             assert toolbox_distance[0, 0, 7] == 360 - expected_distance
 
-        def test_direction(self):
+        def test_direction_strict(self):
             # Test for one peak
             one_peak_arr = cupy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])\
                                 .reshape((1, 1, 24)).astype('int8')
