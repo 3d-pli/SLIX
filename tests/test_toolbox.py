@@ -235,6 +235,16 @@ class TestToolbox:
         assert numpy.all(expected_direction == toolbox_direction)
 
     @pytest.mark.parametrize("use_gpu", use_gpu_arr)
+    def test_direction_invalid_strategy(self, use_gpu):
+        one_peak_arr = numpy.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        one_peak_arr = one_peak_arr.reshape((1, 1, 24))
+        peaks = toolbox.peaks(one_peak_arr, use_gpu=use_gpu)
+        try:
+            toolbox.direction(peaks, numpy.zeros(one_peak_arr.shape), strategy='invalid', use_gpu=use_gpu)
+        except KeyError:
+            assert True
+
+    @pytest.mark.parametrize("use_gpu", use_gpu_arr)
     def test_centroid_correction(self, use_gpu):
         # simple test case: one distinct peak
         test_array = numpy.array([0] * 9 + [1] + [0] * 14)
