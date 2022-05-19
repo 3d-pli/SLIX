@@ -80,7 +80,7 @@ if SLIX.toolbox.gpu_available:
                  cupy.zeros(one_peak_arr.shape, dtype='float32'),
                  cupy.array([[1]], dtype='int8'),
                  toolbox_direction,
-                 0)
+                 0, 0)
             assert cupy.all(expected_direction == toolbox_direction)
 
             # Test for one direction with 180°+-35° distance
@@ -92,7 +92,7 @@ if SLIX.toolbox.gpu_available:
                  cupy.zeros(two_peak_arr.shape, dtype='float32'),
                  cupy.array([[2]], dtype='int8'),
                  toolbox_direction,
-                 0)
+                 0, 0)
             assert cupy.all(expected_direction == toolbox_direction)
 
             # Test for (invalid) two directions with 180°+-35° distance
@@ -104,7 +104,7 @@ if SLIX.toolbox.gpu_available:
                  cupy.zeros(four_peak_arr.shape, dtype='float32'),
                  cupy.array([[4]], dtype='int8'),
                  toolbox_direction,
-                 0)
+                 0, 0)
             assert cupy.all(expected_direction == toolbox_direction)
 
         def test_centroid_correction_bases(self):
