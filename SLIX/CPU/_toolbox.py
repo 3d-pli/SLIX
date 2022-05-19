@@ -166,7 +166,7 @@ def _peakdistance(peak_image, centroids, number_of_peaks):
 
 
 @jit(nopython=True, parallel=True)
-def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdir):
+def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdir, strategy):
     result_image = numpy.empty((peak_array.shape[0], num_directions),
                                dtype=numpy.float32)
     for idx in prange(peak_array.shape[0]):
@@ -208,12 +208,18 @@ def _direction(peak_array, centroids, number_of_peaks, num_directions, correctdi
                                      sub_centroid_array[right_peak_idx]) * \
                                     360.0 / len(sub_peak_array) + \
                                     numpy.float32(correctdir)
+
                             # If our peaks are around 180° ± 35° apart,
                             # we can calculate the direction.
-                            if number_of_peaks[idx] > 2 and \
-                                    abs(180 - (right - left)) >= 35:
-                                result_image[idx] = BACKGROUND_COLOR
-                                break
+                            if strategy == 0:
+                                if number_of_peaks[idx] > 2 and \
+                                        abs(180 - (right - left)) >= 35:
+                                    result_image[idx] = BACKGROUND_COLOR
+                                    break
+                            elif strategy == 1:
+                                if number_of_peaks[idx] > 2 and \
+                                        abs(180 - (right - left)) >= 35:
+                                    continue
 
                             result_image[idx, current_direction] = \
                                 (270.0 - ((left + right) / 2.0)) % 180

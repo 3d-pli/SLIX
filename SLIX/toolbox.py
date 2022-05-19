@@ -172,7 +172,7 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
 
 
 def direction(peak_image, centroids, correction_angle=0,
-              number_of_directions=3,
+              number_of_directions=3, strategy='strict',
               use_gpu=gpu_available, return_numpy=True):
     """
     Calculate up to `number_of_directions` direction angles based on the given
@@ -197,6 +197,12 @@ def direction(peak_image, centroids, correction_angle=0,
 
         number_of_directions: Number of directions which shall be generated.
 
+        strategy: Strategy to determine the direction angle. Possible values are
+                  'strict', 'safe' and 'unsafe'. 'strict' will only calculate a direction
+                  angle if all peak pairs are within 180°±35°. 'safe' will calculate a
+                  direction angle if the peak pair is within 180°±35°. 'unsafe' will
+                  calculate a direction angle independent of the peak pair distance.
+
         use_gpu: If available use the GPU for calculation
 
         return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or
@@ -211,10 +217,10 @@ def direction(peak_image, centroids, correction_angle=0,
     """
     if use_gpu:
         return gpu_toolbox.direction(peak_image, centroids, correction_angle,
-                                     number_of_directions, return_numpy)
+                                     number_of_directions, strategy, return_numpy)
     else:
         return cpu_toolbox.direction(peak_image, centroids, correction_angle,
-                                     number_of_directions)
+                                     number_of_directions, strategy)
 
 
 def peak_distance(peak_image, centroids, use_gpu=gpu_available,

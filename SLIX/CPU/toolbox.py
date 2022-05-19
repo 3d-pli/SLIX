@@ -357,7 +357,7 @@ def mean_peak_distance(peak_image, centroids):
 
 @_decorators.check_valid_input
 def direction(peak_image, centroids, correction_angle=0,
-              number_of_directions=3):
+              number_of_directions=3, strategy='strict'):
     """
     Calculate up to `number_of_directions` direction angles based on the given
     peak positions. If more than `number_of_directions*2` peaks are present, no
@@ -381,6 +381,12 @@ def direction(peak_image, centroids, correction_angle=0,
 
         number_of_directions: Number of directions which shall be generated.
 
+        strategy: Strategy to determine the direction angle. Possible values are
+                  'strict', 'safe' and 'unsafe'. 'strict' will only calculate a direction
+                  angle if all peak pairs are within 180°±35°. 'safe' will calculate a
+                  direction angle if the peak pair is within 180°±35°. 'unsafe' will
+                  calculate a direction angle independent of the peak pair distance.
+
     Returns:
 
         NumPy array with the shape (x, y, `number_of_directions`) containing up to
@@ -388,6 +394,8 @@ def direction(peak_image, centroids, correction_angle=0,
         the SLI image series. If a direction angle is invalid or missing, the
         array entry will be BACKGROUND_COLOR instead.
     """
+    strategy_dict = {'strict': 0, 'safe': 1, 'unsafe': 2}
+
     peak_image = numpy.array(peak_image).astype('uint8')
     image_x, image_y, image_z = peak_image.shape
 
@@ -396,7 +404,8 @@ def direction(peak_image, centroids, correction_angle=0,
     number_of_peaks = numpy.count_nonzero(peak_image, axis=-1).astype('uint8')
 
     result_img = _direction(peak_image, centroids, number_of_peaks,
-                            number_of_directions, correction_angle)
+                            number_of_directions, correction_angle,
+                            strategy_dict[strategy])
     result_img = result_img.reshape((image_x, image_y, number_of_directions))
 
     return result_img
