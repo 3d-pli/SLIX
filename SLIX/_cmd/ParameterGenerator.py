@@ -54,6 +54,10 @@ def create_argument_parser():
                           help='Correct the resulting direction angle by a'
                                ' floating point value. This is useful when the'
                                ' stack or camera was rotated.')
+    optional.add_argument('--direction_strategy',
+                          choices=['strict', 'safe', 'unsafe'],
+                          default='strict',
+                          help='Strategy to use when calculating the direction')
     optional.add_argument('--smoothing',
                           type=str,
                           nargs=3,
@@ -440,6 +444,7 @@ def main():
             direction = toolbox.direction(significant_peaks, centroids,
                                           correction_angle=args['correctdir'],
                                           use_gpu=toolbox.gpu_available,
+                                          strategy=args['direction_strategy'],
                                           return_numpy=True)
             if DIRECTION:
                 for dim in range(direction.shape[-1]):

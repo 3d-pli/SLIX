@@ -28,7 +28,6 @@ def prepare_kernel_execution(image):
                        int(numpy.ceil(original_shape[1] / threads_per_block[1])))
     return blocks_per_grid, threads_per_block
 
-
 @_decorators.check_valid_input
 def background_mask(image, return_numpy=True):
     """
@@ -492,7 +491,7 @@ def mean_peak_distance(peak_image, centroids, return_numpy=True):
 
 @_decorators.check_valid_input
 def direction(peak_image, centroids, correction_angle=0,
-              number_of_directions=3, return_numpy=True):
+              number_of_directions=3, strategy='strict', return_numpy=True):
     """
     Calculate up to `number_of_directions` direction angles based on the given
     peak positions. If more than `number_of_directions*2` peaks are present, no
@@ -516,6 +515,12 @@ def direction(peak_image, centroids, correction_angle=0,
 
         number_of_directions: Number of directions which shall be generated.
 
+        strategy: Strategy to determine the direction angle. Possible values are
+                  'strict', 'safe' and 'unsafe'. 'strict' will only calculate a direction
+                  angle if all peak pairs are within 180°±35°. 'safe' will calculate a
+                  direction angle if the peak pair is within 180°±35°. 'unsafe' will
+                  calculate a direction angle independent of the peak pair distance.
+
         return_numpy: Necessary if using `use_gpu`. Specifies if a CuPy or Numpy
         array will be returned.
 
@@ -526,6 +531,8 @@ def direction(peak_image, centroids, correction_angle=0,
         the SLI image series. If a direction angle is invalid or missing, the
         array entry will be BACKGROUND_COLOR instead.
     """
+    strategy_dict = {'strict': 0, 'safe': 1, 'unsafe': 2}
+
     gpu_peak_image = cupy.array(peak_image).astype('int8')
     gpu_centroids = cupy.array(centroids).astype('float32')
 
@@ -540,7 +547,8 @@ def direction(peak_image, centroids, correction_angle=0,
                                                    gpu_centroids,
                                                    number_of_peaks,
                                                    result_img_gpu,
-                                                   correction_angle)
+                                                   correction_angle,
+                                                   strategy_dict[strategy])
     cuda.synchronize()
     del number_of_peaks
 
