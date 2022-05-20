@@ -171,6 +171,22 @@ def num_peaks(image, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
         return cpu_toolbox.num_peaks(peak_image=peaks)
 
 
+def correct_inclined_peaks(image, peaks, low_prominence=cpu_toolbox.TARGET_PROMINENCE,
+                           high_prominence=numpy.inf, use_gpu=gpu_available, return_numpy=True):
+    if use_gpu:
+        num_peaks = gpu_toolbox.num_peaks(peaks, return_numpy=False)
+    else:
+        num_peaks = cpu_toolbox.num_peaks(peaks)
+
+    image = image.copy().astype(numpy.float32)
+    image[num_peaks == 1, :] *= -1
+
+    if use_gpu:
+        return significant_peaks(image, low_prominence, high_prominence, use_gpu=True, return_numpy=return_numpy)
+    else:
+        return significant_peaks(image, low_prominence, high_prominence, use_gpu=False)
+
+
 def direction(peak_image, centroids, correction_angle=0,
               number_of_directions=3, strategy='strict',
               use_gpu=gpu_available, return_numpy=True):
