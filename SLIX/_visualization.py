@@ -73,20 +73,19 @@ def _visualize_one_direction(direction, rgb_stack):
     return output_image.astype('float32')
 
 
-def _visualize_multiple_direction(direction, rgb_stack):
+@numba.njit(parallel=True)
+def _visualize_multiple_direction(direction, valid_directions, rgb_stack):
     output_image = numpy.zeros((direction.shape[0] * 2,
                                 direction.shape[1] * 2,
                                 3))
-    # count valid directions
-    valid_directions = numpy.count_nonzero(direction > -1, axis=-1)
 
     r = rgb_stack[..., 0]
     g = rgb_stack[..., 1]
     b = rgb_stack[..., 2]
 
     # Now we need to place them in the right pixel on our output image
-    for x in range(direction.shape[0]):
-        for y in range(direction.shape[1]):
+    for x in numba.prange(direction.shape[0]):
+        for y in numba.prange(direction.shape[1]):
             if valid_directions[x, y] == 0:
                 output_image[x * 2:x * 2 + 2, y * 2:y * 2 + 2] = 0
             elif valid_directions[x, y] == 1:

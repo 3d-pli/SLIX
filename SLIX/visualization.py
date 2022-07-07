@@ -541,6 +541,8 @@ def direction(direction, inclination=None, saturation=None, value=None,
     colors = hsv_to_rgb(hsv_colors)
 
     if len(direction_shape) > 2:
-        return (255.0 * _visualize_multiple_direction(direction, colors)).astype(numpy.uint8)
+        # count valid directions
+        valid_directions = numpy.count_nonzero(direction > -1, axis=-1)
+        return (255.0 * _visualize_multiple_direction(direction, valid_directions, colors)).astype(numpy.uint8)
     else:
         return (255.0 * _visualize_one_direction(direction, colors)).astype(numpy.uint8)
