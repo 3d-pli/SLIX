@@ -123,7 +123,7 @@ def _visualize_multiple_direction(direction, valid_directions, rgb_stack):
                         output_image[x * 2 + 1, y * 2 + 1, 1] = g[x, y, 3]
                         output_image[x * 2 + 1, y * 2 + 1, 2] = b[x, y, 3]
 
-    return output_image.astype('float32')
+    return output_image
 
 
 def _plot_axes_unit_vectors(ax, mesh_x, mesh_y, mesh_u, mesh_v,
