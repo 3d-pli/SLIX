@@ -5,6 +5,7 @@ import re
 import SLIX
 from SLIX._logging import get_logger
 from io import BytesIO
+from PIL import Image
 from matplotlib import pyplot as plt
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 
@@ -196,11 +197,16 @@ def read_weight_map(path: Optional[str]) -> Optional[numpy.ndarray]:
     return weight_map
 
 
-def pyplot_to_numpy(fig, ax):
-    fig.canvas.draw()
-    data = numpy.frombuffer(fig.canvas.tostring_rgb(), dtype=numpy.uint8)
-    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-    return data
+def pyplot_to_numpy(fig):
+    # Write to byte buffer in memory
+    io_buf = BytesIO()
+    fig.savefig(io_buf, format='png', bbox_inches='tight', pad_inches=0)
+    # Convert the byte buffer to NumPy
+    io_buf.seek(0)
+    img_arr = numpy.asarray(Image.open(io_buf))
+
+    # Return the RGB part of the array
+    return img_arr[:, :, :3]
 
 
 def write_vector(args, direction_image, output_path_name):
@@ -257,7 +263,7 @@ def write_vector_field(UnitX, UnitY, alpha, args, background_threshold, output_p
                                     weighting=weight_map,
                                     colormap=available_colormaps[args['colormap']],
                                     direction_offset=args['direction_offset'])
-    vector_image = pyplot_to_numpy(fig, ax)
+    vector_image = pyplot_to_numpy(fig)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
@@ -277,7 +283,7 @@ def write_vector_distribution(UnitX, UnitY, alpha, args, output_path_name, scale
                                                 weighting=weight_map,
                                                 colormap=available_colormaps[args['colormap']],
                                                 direction_offset=args['direction_offset'])
-    vector_image = pyplot_to_numpy(fig, ax)
+    vector_image = pyplot_to_numpy(fig)
     SLIX.io.imwrite_rgb(f"{output_path_name}vector_distribution_{args['colormap']}.tiff", vector_image)
     if not args['disable_colorbubble']:
         SLIX.io.imwrite_rgb(f"{args['output']}/color_bubble_{args['colormap']}.tiff",
