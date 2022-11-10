@@ -197,14 +197,10 @@ def read_weight_map(path: Optional[str]) -> Optional[numpy.ndarray]:
 
 
 def pyplot_to_numpy(fig, ax):
-    io_buf = BytesIO()
-    b = ax.get_window_extent()
-    fig.savefig(io_buf, format='raw', bbox_inches='tight', pad_inches=0)
-    io_buf.seek(0)
-    img_arr = numpy.reshape(numpy.frombuffer(io_buf.getvalue(), dtype=numpy.uint8),
-                            newshape=(int(b.height), int(b.width), -1))
-    io_buf.close()
-    return img_arr[:, :, :3]
+    fig.canvas.draw()
+    data = numpy.frombuffer(fig.canvas.tostring_rgb(), dtype=numpy.uint8)
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return data
 
 
 def write_vector(args, direction_image, output_path_name):
