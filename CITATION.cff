@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: SLIX
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - email: j.reuter@fz-juelich.de
+    orcid: 'https://orcid.org/0000-0002-1219-0310'
+    affiliation: Forschungszentrum Jülich
+    given-names: Jan André
+    family-names: Reuter
+  - given-names: Miriam
+    family-names: Menzel
+    orcid: 'https://orcid.org/0000-0002-6042-7490'
+    affiliation: >-
+      Forschungszentrum Jülich, Delft University of
+      Technology
+    email: m.menzel@fz-juelich.de
+identifiers:
+  - type: doi
+    value: 10.21105/joss.02675
+    description: Journal of Open Source Software Publication
+repository-code: 'https://github.com/3d-pli/SLIX'
+abstract: >-
+  Scattered Light Imaging ToolboX (SLIX) – an open-source
+  Python package that allows a fully automated evaluation of
+  SLI measurements and the generation of different parameter
+  maps
+keywords:
+  - light scattering
+  - brain architecture
+  - nerve fiber crossings
+license: MIT
